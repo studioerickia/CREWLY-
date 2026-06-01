@@ -1051,42 +1051,12 @@ async function processarPDF(){
   const isImg=arq.type.startsWith('image/');
   const mt=isImg?arq.type:'application/pdf';
   try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,
-        messages:[{role:'user',content:[
-          {type:isImg?'image':'document',source:{type:'base64',media_type:mt,data:b64}},
-          {type:'text',text:`Você é especialista em escalas de tripulantes da aviação brasileira (Azul, Gol, Latam).
-
-Analise esta escala e retorne APENAS um JSON válido, sem texto antes ou depois, sem markdown.
-
-Formato exato:
-{"mes":"Maio 2026","resumo":{"voos":0,"pernoites":0,"folgas":0,"sb":0},"dias":[{"dia":1,"tipo":"fr","label":"Folga","detalhe":""}]}
-
-Regras para identificar cada dia:
-- FR = Folga Regular (linha com "FR" na coluna Activity)
-- FP = Folga Programada (linha com "FP")
-- SB seguido de número = Sobreaviso (ex: SB18 = começa 18:00, calcule horas até 23:59, coloque no detalhe ex: "18:00 - 6h")
-- RHC ou REA = Reserva (vai ao aeroporto)
-- AD seguido de números = Voo Azul (ex: AD4070), coloque número no detalhe
-- G3 seguido de números = Voo Gol
-- LA seguido de números = Voo Latam  
-- Layover = Pernoite fora de casa
-- ADP = Adaptação internacional
-- AVN ou Dia Oculto = Folga especial (use fr)
-
-IMPORTANTE:
-- Identifique o mês e ano corretamente (ex: "Maio 2026", "Junho 2026")
-- Cada linha da tabela pode ter múltiplos voos no mesmo dia — agrupe pelo dia
-- Datas aparecem no formato DD/MM/YYYY ou DD Mês YYYY
-- Se um dia tem voo AD1234 e AD5678, coloque detalhe: "AD1234, AD5678"
-- Para Layover coloque no detalhe a cidade (ex: "MCO")
-- Conte apenas dias únicos no resumo
-
-Retorne o JSON completo com todos os dias do mês.`}
-        ]}]})
+    const r=await fetch('/api/parse-pdf',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({fileData:b64, mediaType:mt})
     });
-    const data=await r.json();
+        const data=await r.json();
     await dl(800);setS(3,'ok','Crewly organizou voos e folgas ✓');setS(4,'ld','Crewly calculando horas...');
     await dl(600);setS(4,'ok','Crewly calculou horas e diárias ✓');await dl(400);
     let txt=(data.content&&data.content[0]?data.content[0].text:'').replace(/```json|```/g,'').trim();
