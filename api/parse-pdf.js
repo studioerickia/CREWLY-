@@ -7,13 +7,11 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: 'API key not configured' });
-  }
+  if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
   try {
     const { fileData, mediaType } = req.body;
-    if (!fileData) return res.status(400).json({ error: 'No file data received' });
+    if (!fileData) return res.status(400).json({ error: 'No file data' });
 
     const isImage = (mediaType || '').startsWith('image/');
     const mt = mediaType || 'application/pdf';
@@ -26,7 +24,7 @@ module.exports = async function handler(req, res) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-5',
         max_tokens: 4000,
         messages: [{
           role: 'user',
@@ -37,7 +35,7 @@ module.exports = async function handler(req, res) {
             },
             {
               type: 'text',
-              text: 'Analise esta escala de tripulante brasileiro e retorne APENAS JSON valido sem texto adicional: {"mes":"Maio 2026","resumo":{"voos":0,"pernoites":0,"folgas":0,"sb":0},"dias":[{"dia":1,"tipo":"fr","label":"Folga","detalhe":""}]}. Tipos: fr=Folga Regular, fp=Folga Programada, sb=Sobreaviso(detalhe: horario e horas ex 18:00-6h), rea=Reserva/RHC, voo=Voo AD/G3/LA(detalhe: numero do voo), adp=Adaptacao internacional, pernoite=Layover(detalhe: cidade). Identifique o mes e ano corretamente. Agrupe voos do mesmo dia. Retorne todos os dias do mes.'
+              text: 'Analise esta escala de tripulante brasileiro e retorne APENAS JSON valido sem texto adicional: {"mes":"Maio 2026","resumo":{"voos":0,"pernoites":0,"folgas":0,"sb":0},"dias":[{"dia":1,"tipo":"fr","label":"Folga","detalhe":""}]}. Tipos: fr=Folga Regular, fp=Folga Programada, sb=Sobreaviso(detalhe: horario-horas ex 18:00-6h), rea=Reserva/RHC, voo=Voo AD/G3/LA(detalhe: numero do voo), adp=Adaptacao internacional, pernoite=Layover(detalhe: cidade). Identifique mes e ano corretamente. Agrupe voos do mesmo dia. Retorne todos os dias do mes.'
             }
           ]
         }]
@@ -53,9 +51,5 @@ module.exports = async function handler(req, res) {
 };
 
 module.exports.config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb',
-    },
-  },
+  api: { bodyParser: { sizeLimit: '10mb' } }
 };
