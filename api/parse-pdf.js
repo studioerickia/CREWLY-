@@ -7,33 +7,37 @@ export const config = {
 };
 
 export default async function handler(req, res) {
+  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).end();
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  
+  // Debug: verifica se a chave existe
+  if (!apiKey) {
+    return res.status(500).json({ 
+      error: 'ANTHROPIC_API_KEY not found',
+      env: Object.keys(process.env).filter(k => k.includes('ANTHRO'))
+    });
   }
 
   try {
-    const { fileData, mediaType } = req.body;
+    const body = req.body;
+    const fileData = body.fileData;
+    const mediaType = body.mediaType;
 
-    if (!fileData || !mediaType) {
-      return res.status(400).json({ error: 'fileData and mediaType are required' });
-    }
+    if (!fileData) return res.status(400).json({ error: 'No fileData' });
 
-    const isImage = mediaType.startsWith('image/');
-    const contentType = isImage ? 'image' : 'document';
-
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const isImage = mediaType && mediaType.startsWith('image/');
+    
+    const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'x-api-key': apiKey,
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
@@ -43,53 +47,22 @@ export default async function handler(req, res) {
           role: 'user',
           content: [
             {
-              type: contentType,
-              source: { 
-                type: 'base64', 
-                media_type: mediaType, 
-                data: fileData 
-              }
+              type: isImage ? 'image' : 'document',
+              source: { type: 'base64', media_type: mediaType || 'application/pdf', data: fileData }
             },
             {
               type: 'text',
-              text: `Voce e especialista em escalas de tripulantes da aviacao brasileira (Azul, Gol, Latam).
-
-Analise esta escala e retorne APENAS um JSON valido, sem texto antes ou depois, sem markdown.
-
-Formato exato:
-{"mes":"Maio 2026","resumo":{"voos":0,"pernoites":0,"folgas":0,"sb":0},"dias":[{"dia":1,"tipo":"fr","label":"Folga","detalhe":""}]}
-
-Regras:
-- FR = Folga Regular (tipo: fr)
-- FP = Folga Programada (tipo: fp)
-- SB + numero = Sobreaviso (tipo: sb, detalhe: "HH:MM - Xh")
-- RHC ou REA = Reserva (tipo: rea)
-- AD + numeros = Voo Azul (tipo: voo, detalhe: numero do voo)
-- G3 + numeros = Voo Gol (tipo: voo)
-- LA + numeros = Voo Latam (tipo: voo)
-- Layover = Pernoite (tipo: pernoite, detalhe: cidade)
-- ADP = Adaptacao internacional (tipo: adp)
-- AVN ou Dia Oculto = tipo fr
-
-IMPORTANTE:
-- Identifique mes e ano corretamente
-- Agrupe voos do mesmo dia: detalhe "AD1234, AD5678"
-- Retorne JSON com TODOS os dias do mes`
+              text: 'Analise esta escala de tripulante brasileiro. Retorne APENAS JSON: {"mes":"Maio 2026","resumo":{"voos":0,"pernoites":0,"folgas":0,"sb":0},"dias":[{"dia":1,"tipo":"fr","label":"Folga","detalhe":""}]}. Tipos: fr=Folga Regular, fp=Folga Programada, sb=Sobreaviso, rea=Reserva/RHC, voo=Voo AD/G3/LA, adp=Adaptacao, pernoite=Layover. Identifique o mes corretamente. Retorne todos os dias.'
             }
           ]
         }]
       })
     });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      return res.status(500).json({ error: 'API error: ' + errText });
-    }
-
-    const data = await response.json();
+    const data = await anthropicRes.json();
     return res.status(200).json(data);
 
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
+  } catch (err) {
+    return res.status(500).json({ error: err.message, stack: err.stack });
   }
 }
