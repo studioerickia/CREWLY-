@@ -1120,23 +1120,61 @@ async function salvarEscalaImportada(){
   
   dias.forEach(d => {
     const tipo = mapearTipo(d.tipo);
-    novaEscala[d.dia] = {t: tipo};
     
     if(tipo === 'sb'){
-      // Extrai horário do detalhe ex: "18:00 - 6h"
       const match = (d.detalhe||'').match(/(\d+:\d+)/);
       const ini = match ? match[1] : '12:00';
       const h = parseInt((d.detalhe||'').match(/(\d+)h/)?.[1]||'12');
       novaEscala[d.dia] = {t:'sb', i:ini, h:h, b:USER.base||'VCP'};
-    } else if(tipo === 'voo' && d.detalhe){
-      const nums = d.detalhe.split(',').map(s=>s.trim()).filter(Boolean);
-      novaEscala[d.dia] = {
-        t:'voo',
-        label: nums.length + ' voo' + (nums.length>1?'s':''),
-        v: nums.map(n=>({n:n, o:'--', d:'--', dp:'--', ar:'--', du:'--', ae:'--', fn:'FA'}))
-      };
+    } else if(tipo === 'voo'){
+      // Suporta formato rico (com voos detalhados) ou simples (só detalhe)
+      if(d.voos && d.voos.length > 0){
+        const tripulacao = (d.tripulacao||[]).map(t=>({
+          m: t.mat||t.m||'--',
+          n: t.n||t.nome||'--',
+          f: t.f||t.fn||'FA',
+          av: (t.n||'??').split(' ').map(p=>p[0]).join('').substring(0,2),
+          c: t.f==='CA'?'#fff3e0':t.f==='FO'?'#f3e8ff':t.f==='CL'?'#e3f0ff':'#e8f5e9',
+          tc: t.f==='CA'?'#e65100':t.f==='FO'?'#7c3aed':t.f==='CL'?'#1e6fef':'#2e7d32',
+          eu: t.mat===USER.mat
+        }));
+        novaEscala[d.dia] = {
+          t:'voo',
+          a: d.apres || d.voos[0]?.dp || '--',
+          al: d.apres_local || d.voos[0]?.o || USER.base,
+          v: d.voos.map(v=>({
+            n: v.n||v.num||'--',
+            o: v.o||v.orig||'--',
+            d: v.d||v.dest||'--',
+            dp: v.dp||v.partida||'--',
+            ar: v.ar||v.chegada||'--',
+            du: v.du||v.duracao||'--',
+            ae: v.ae||v.aeronave||'--',
+            fn: 'FA'
+          })),
+          tr: tripulacao.length>0 ? tripulacao : undefined,
+          p: d.pernoite ? {
+            l: d.pernoite.l||d.pernoite.local||'--',
+            ci: d.pernoite.ci||d.pernoite.checkin||'--',
+            co: d.pernoite.co||d.pernoite.checkout||'--'
+          } : undefined
+        };
+      } else {
+        // Formato simples
+        const detalhe = d.detalhe||'';
+        const partes = detalhe.split(/[\s,]+/).filter(p=>/^[A-Z]{2,3}\d+/.test(p));
+        novaEscala[d.dia] = {
+          t:'voo',
+          v: partes.length>0 ? partes.map(n=>({n,o:'--',d:'--',dp:'--',ar:'--',du:'--',ae:'--',fn:'FA'}))
+                             : [{n:detalhe||'--',o:'--',d:'--',dp:'--',ar:'--',du:'--',ae:'--',fn:'FA'}]
+        };
+      }
     } else if(tipo === 'adp'){
       novaEscala[d.dia] = {t:'adp', info: d.detalhe||'Adaptação'};
+    } else if(tipo === 'pernoite'){
+      novaEscala[d.dia] = {t:'pernoite', info: d.detalhe||'Pernoite'};
+    } else {
+      novaEscala[d.dia] = {t: tipo};
     }
   });
 
