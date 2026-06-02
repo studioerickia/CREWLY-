@@ -35,7 +35,62 @@ module.exports = async function handler(req, res) {
             },
             {
               type: 'text',
-              text: 'Analise esta escala de tripulante brasileiro e retorne APENAS JSON valido sem texto adicional: {"mes":"Maio 2026","resumo":{"voos":0,"pernoites":0,"folgas":0,"sb":0},"dias":[{"dia":1,"tipo":"fr","label":"Folga","detalhe":""}]}. Tipos: fr=Folga Regular, fp=Folga Programada, sb=Sobreaviso(detalhe: horario-horas ex 18:00-6h), rea=Reserva/RHC, voo=Voo AD/G3/LA(detalhe: numero do voo), adp=Adaptacao internacional, pernoite=Layover(detalhe: cidade). Identifique mes e ano corretamente. Agrupe voos do mesmo dia. Retorne todos os dias do mes.'
+              text: `Voce e especialista em escalas de tripulantes da aviacao brasileira (Azul, Gol, Latam).
+
+Analise esta escala e retorne APENAS JSON valido sem texto adicional.
+
+Formato:
+{
+  "mes": "Maio 2026",
+  "resumo": {"voos": 0, "pernoites": 0, "folgas": 0, "sb": 0},
+  "dias": [
+    {
+      "dia": 1,
+      "tipo": "fr",
+      "label": "Folga",
+      "detalhe": "",
+      "voos": [
+        {
+          "n": "AD4070",
+          "o": "VCP",
+          "d": "GRU",
+          "dp": "06:00",
+          "ar": "07:00",
+          "du": "1h00",
+          "ae": "32N"
+        }
+      ],
+      "tripulacao": [
+        {"mat": "12345", "n": "NOME SOBRENOME", "f": "CA"},
+        {"mat": "67890", "n": "OUTRO NOME", "f": "FA"}
+      ],
+      "pernoite": {"l": "GRU", "ci": "22:00", "co": "10:00+1"}
+    }
+  ]
+}
+
+Tipos de dia:
+- fr = Folga Regular (FR)
+- fp = Folga Programada (FP)
+- sb = Sobreaviso (SB18 = inicio 18:00, detalhe: "18:00 - 6h")
+- rea = Reserva (REA, RHC)
+- voo = Voo (AD, G3, LA)
+- adp = Adaptacao internacional (ADP)
+- pernoite = Layover
+
+Para dias de VOO extraia:
+- Numero do voo (ex: AD4070, AD8750)
+- Origem e destino (siglas IATA ex: VCP, GRU, MCO)
+- Horario de decolagem e pouso
+- Duracao do voo
+- Aeronave (32N, 32A, ATR, E1, E2, 330, 33A)
+- Tripulacao completa com matricula, nome e funcao (CA, FO, SUP, CL, FA, FE)
+- Pernoite se houver (cidade, checkin, checkout)
+
+Para SB extraia horario de inicio e calcule horas ate 23:59.
+Identifique mes e ano corretamente.
+Agrupe todas atividades do mesmo dia num unico objeto.
+Retorne JSON com TODOS os dias do mes.`
             }
           ]
         }]
