@@ -307,6 +307,7 @@ body.dark [style*="border-color:#e8ecf0"]{border-color:#30363d!important}
   </div>
   <div class="sa">
     <div id="card-hoje" style="margin:12px 16px 0"></div>
+    <div id="card-empty" style="display:none;margin:12px 16px 0"></div>
     <div class="card" style="margin-top:12px" id="card-amanha"></div>
     <!-- Diárias -->
     <div style="margin:12px 16px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:20px;padding:16px 20px;color:#fff;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="go('estimativa')">
@@ -1122,6 +1123,29 @@ function updateHome(){
     }
   }
 
+  // ESTADO VAZIO - sem escala importada
+  const emptyCard = document.getElementById('card-empty');
+  const cardHoje = document.getElementById('card-hoje');
+  const cardAmanha = document.getElementById('card-amanha');
+
+  if(!ESCALA_IMPORTADA){
+    // Mostra card de importar escala
+    if(emptyCard){
+      emptyCard.style.display='block';
+      emptyCard.innerHTML=`
+        <div style="background:linear-gradient(135deg,#1e6fef,#1458cc);border-radius:20px;padding:24px;color:#fff;text-align:center;cursor:pointer" onclick="go('import')">
+          <div style="font-size:48px;margin-bottom:12px">✈️</div>
+          <div style="font-size:20px;font-weight:800;margin-bottom:8px">Importe sua escala!</div>
+          <div style="font-size:14px;opacity:.85;margin-bottom:16px;line-height:1.6">Envie o PDF da sua escala para ver seus voos, folgas e diárias do mês.</div>
+          <div style="background:rgba(255,255,255,.2);border-radius:12px;padding:12px 20px;font-size:15px;font-weight:700;display:inline-block">📄 Importar escala agora</div>
+        </div>`;
+    }
+    if(cardHoje) cardHoje.innerHTML='';
+    if(cardAmanha) cardAmanha.innerHTML='';
+  } else {
+    if(emptyCard) emptyCard.style.display='none';
+  }
+
   // CARD SEMANA
   buildSemana();
 
@@ -1282,13 +1306,34 @@ async function salvarEscalaImportada(){
           } : undefined
         };
       } else {
-        // Formato simples
+        // Formato simples - extrai números de voo do detalhe
         const detalhe = d.detalhe||'';
         const partes = detalhe.split(/[\s,]+/).filter(p=>/^[A-Z]{2,3}\d+/.test(p));
+        
+        // Processa tripulação se veio do parser
+        let trParser = [];
+        if(d.tripulacao && d.tripulacao.length > 0){
+          const corFnP={CA:'#e65100',FO:'#7c3aed',SUP:'#0a7a60',CL:'#1e6fef',FE:'#6d28d9',FA:'#2e7d32'};
+          const bgFnP={CA:'#fff3e0',FO:'#f3e8ff',SUP:'#e0f7f4',CL:'#e3f0ff',FE:'#ede9fe',FA:'#e8f5e9'};
+          trParser = d.tripulacao.map(t=>{
+            const fn = (t.funcao||t.f||'FA').toUpperCase();
+            const nome = t.nome||t.n||'--';
+            const av = nome.split(' ').map(p=>p[0]||'').join('').substring(0,2).toUpperCase();
+            const euFlag = nome.includes('ERICKSON') || nome.includes(USER.nome?.split(' ')[0]?.toUpperCase()||'XXXXXX');
+            return {
+              m:'', n:nome, f:fn, av,
+              c: euFlag?'#1e6fef':(bgFnP[fn]||'#e8f5e9'),
+              tc: euFlag?'#fff':(corFnP[fn]||'#2e7d32'),
+              eu: euFlag
+            };
+          });
+        }
+
         novaEscala[d.dia] = {
           t:'voo',
           v: partes.length>0 ? partes.map(n=>({n,o:'--',d:'--',dp:'--',ar:'--',du:'--',ae:'--',fn:'FA'}))
-                             : [{n:detalhe||'--',o:'--',d:'--',dp:'--',ar:'--',du:'--',ae:'--',fn:'FA'}]
+                             : [{n:detalhe||'--',o:'--',d:'--',dp:'--',ar:'--',du:'--',ae:'--',fn:'FA'}],
+          tr: trParser.length>0 ? trParser : undefined
         };
       }
     } else if(tipo === 'adp'){
