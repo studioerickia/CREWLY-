@@ -16,76 +16,92 @@ module.exports = async function handler(req, res) {
     const mt = mediaType || 'application/pdf';
     const contentType = isImage ? 'image' : 'document';
 
-    const makeRequest = async (prompt) => {
-      const r = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 8000,
-          messages: [{
-            role: 'user',
-            content: [
-              { type: contentType, source: { type: 'base64', media_type: mt, data: fileData } },
-              { type: 'text', text: prompt }
-            ]
-          }]
-        })
-      });
-      const d = await r.json();
-      if (d.error) throw new Error(d.error.message || 'API error');
-      return (d.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
-    };
+    // ─── STEP 1: extrai texto bruto da tabela ────────────────────────────────
+    const step1Response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 8000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: contentType, source: { type: 'base64', media_type: mt, data: fileData } },
+            { type: 'text', text: `Você está lendo uma escala do app "Minha Escala" da Azul Linhas Aéreas.
 
-    // ─── PROMPT BASE ────────────────────────────────────────────────────────────
-    // Baseado no formato real do app "Minha Escala" da Azul Linhas Aéreas.
-    // O PDF tem uma tabela principal com colunas:
-    //   Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
-    //
-    // A coluna "Crews" contém uma sub-tabela com duas colunas: "Crew" (nome) e "Function" (função).
-    // Cada linha da tabela principal representa UMA ATIVIDADE para UM DIA.
-    // ────────────────────────────────────────────────────────────────────────────
+A tabela tem colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
 
-    const basePrompt = `Você está lendo uma escala do app "Minha Escala" da Azul Linhas Aéreas.
+A coluna Crews tem uma sub-tabela com "Crew" (nome) e "Function" (função).
 
-ESTRUTURA DO DOCUMENTO:
-A tabela principal tem colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
-A coluna "Crews" contém uma mini-tabela com colunas "Crew" (nome completo) e "Function" (função: CA, FO, CL, FA, FE, SUP).
-As datas aparecem no formato DD/MM/AAAA nas colunas Checkin/Start/End/Checkout.
+Transcreva TODAS as linhas da tabela, uma por linha, no formato:
+DATA | ACTIVITY | START | END | DEP | ARR | ACVER | CREWS
 
-COMO IDENTIFICAR CADA TIPO DE ATIVIDADE (pela coluna Activity):
-- "FR" = Folga Regular → tipo: "fr", label: "Folga"
-- "FP" = Folga Programada → tipo: "fp", label: "Folga"  
-- "PP" = Folga → tipo: "fp", label: "Folga"
-- "SB" seguido de número (ex: SB12) = Sobreaviso → tipo: "sb", label: "Sobreaviso", detalhe: horário início e duração do Checkin/Start/End
-- "RHC" ou "RHC22" ou "RHC23" ou qualquer "RHC+número" = RESERVA (não é voo!) → tipo: "rea", label: "Reserva", sem voos
-- Código começando com "AD" seguido de números (ex: AD4070, AD2805) = Voo Azul → tipo: "voo"
-- Código começando com "G3" seguido de números (ex: G3123) = Voo Gol → tipo: "voo"
-- Código começando com "LA" ou "JJ" seguido de números = Voo Latam → tipo: "voo"
-- "ADP" = Adaptação → tipo: "adp", label: "Adaptação"
-- "Layover" = Pernoite — NÃO é um dia separado, pertence ao dia do voo anterior
+Para CREWS, liste todos os tripulantes separados por vírgula no formato NOME:FUNCAO
+Exemplo: JOAO SILVA:CA, MARIA SOUZA:FO, ANA LIMA:CL, PEDRO COSTA:FA
 
-REGRA IMPORTANTE — RESERVA vs VOO:
-RHC (qualquer variação) = RESERVA. Nunca coloque voos dentro de uma reserva.
-Só coloque tipo "voo" quando houver um código de voo real (AD####, G3###, etc.).
+Se não houver tripulação, deixe CREWS em branco.
+Para Layover, use: DATA | Layover | CHECKIN | CHECKOUT | LOCAL | | |
 
-REGRA IMPORTANTE — LAYOVER/PERNOITE:
-Quando aparecer uma linha "Layover" após um voo, ela indica pernoite no destino do voo anterior.
-Adicione o pernoite ao dia do voo anterior com: {"l": "CIDADE/AEROPORTO", "ci": "HH:MM checkin layover", "co": "HH:MM checkout layover"}
+Transcreva absolutamente TODAS as linhas, sem pular nenhuma.
+Não adicione explicações, só a transcrição linha a linha.` }
+          ]
+        }]
+      })
+    });
 
-REGRA IMPORTANTE — VOOS NO MESMO DIA:
-Se houver múltiplos voos com a mesma data (ex: dois "AD####" no dia 09/JUN), agrupe-os no mesmo objeto de dia, em um array "voos".
+    const step1Data = await step1Response.json();
+    if (step1Data.error) throw new Error(step1Data.error.message || 'API error step1');
+    const rawText = (step1Data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
 
-REGRA IMPORTANTE — TRIPULAÇÃO:
-A coluna Crews tem a lista de tripulação. Leia TODOS os nomes e funções da sub-tabela.
-Funções possíveis: CA (Comandante), FO (Primeiro Oficial), CL (Comissário Líder), FA (Comissário), FE (Flight Engineer), SUP (Supervisor).
-Inclua a tripulação no objeto do dia, no campo "tripulacao".
+    // ─── STEP 2: converte texto estruturado em JSON ──────────────────────────
+    const step2Response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 8000,
+        messages: [{
+          role: 'user',
+          content: [{
+            type: 'text',
+            text: `Converta esta transcrição de escala de voo em JSON.
 
-FORMATO DE SAÍDA — retorne APENAS JSON válido, sem texto antes ou depois:
+TRANSCRIÇÃO:
+${rawText}
+
+REGRAS DE CONVERSÃO:
+
+Tipos de atividade (campo "tipo"):
+- FR, FP, PP → tipo: "fr" ou "fp", label: "Folga"
+- SB+número (ex: SB12) → tipo: "sb", label: "Sobreaviso", detalhe: horário ex "18:00 - 6h"
+- RHC, RHC22, RHC23, qualquer RHC+número → tipo: "rea", label: "Reserva" (NUNCA tem voos!)
+- AD####, G3###, LA###, JJ### → tipo: "voo", label: "Voo"
+- ADP → tipo: "adp", label: "Adaptação"
+- Layover → NÃO é um dia separado, adiciona pernoite ao dia anterior
+
+AGRUPAMENTO:
+- Múltiplos voos no mesmo dia (mesma data) → 1 objeto só com array "voos" com todos
+- A tripulação dos voos é compartilhada entre todos os voos do mesmo dia (mesmo grupo de voo)
+- Layover: adiciona {"l":"AEROPORTO","ci":"HH:MM","co":"HH:MM"} ao dia anterior
+
+TRIPULAÇÃO:
+- Inclua TODOS os tripulantes listados, sem exceção
+- CA = Comandante, FO = Copiloto, CL = Comissário Líder, FA = Comissário, FE = Flight Engineer, SUP = Supervisor
+- Se um tripulante tiver só primeiro nome (ex: "JULIA"), use como está
+
+DIAS VAZIOS:
+- Se um dia da semana não aparece na transcrição, inclua mesmo assim como folga (tipo: "fr")
+- O mês deve ter TODOS os dias, do 1 ao último
+
+FORMATO JSON (retorne APENAS o JSON, sem texto antes ou depois, sem markdown):
 {
   "mes": "Junho 2026",
   "resumo": {"voos": 0, "pernoites": 0, "folgas": 0, "sb": 0},
@@ -105,62 +121,39 @@ FORMATO DE SAÍDA — retorne APENAS JSON válido, sem texto antes ou depois:
       "label": "Voo",
       "detalhe": "",
       "voos": [
-        {"n": "AD4070", "o": "VCP", "d": "REC", "dp": "06:00", "ar": "09:00", "du": "3h00", "ae": "32N"},
-        {"n": "AD4071", "o": "REC", "d": "VCP", "dp": "10:00", "ar": "13:00", "du": "3h00", "ae": "32N"}
+        {"n": "AD6704", "o": "VCP", "d": "FLL", "dp": "21:40", "ar": "06:30", "du": "9h50", "ae": "32N"},
+        {"n": "AD6705", "o": "FLL", "d": "VCP", "dp": "08:00", "ar": "17:00", "du": "9h00", "ae": "32N"}
       ],
       "tripulacao": [
         {"nome": "JOAO SILVA", "funcao": "CA"},
-        {"nome": "MARIA SOUZA", "funcao": "FA"}
+        {"nome": "MARIA SOUZA", "funcao": "FO"},
+        {"nome": "ANA LIMA", "funcao": "CL"},
+        {"nome": "PEDRO COSTA", "funcao": "FA"},
+        {"nome": "JULIA SANTOS", "funcao": "FA"}
       ],
-      "pernoite": null
+      "pernoite": {"l": "FLL", "ci": "07:00", "co": "20:00"}
     }
   ]
-}
+}`
+          }]
+        }]
+      })
+    });
 
-CAMPOS DE CADA VOO:
-- n: número do voo (ex: "AD4070")
-- o: aeroporto origem 3 letras (coluna Dep)
-- d: aeroporto destino 3 letras (coluna Arr)
-- dp: horário partida HH:MM (coluna Start)
-- ar: horário chegada HH:MM (coluna End)
-- du: duração calculada entre dp e ar (ex: "3h00")
-- ae: aeronave (coluna AcVer, ex: "32N", "32A", "E2", "ATR", "320")
+    const step2Data = await step2Response.json();
+    if (step2Data.error) throw new Error(step2Data.error.message || 'API error step2');
+    const jsonText = (step2Data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
 
-Para dias sem voo (folga, reserva, sb), use voos:[] e tripulacao:[].
-Inclua TODOS os dias do mês, mesmo os de folga.`;
-
-    const prompt1 = basePrompt + `
-
-Extraia APENAS os dias 1 a 15 do mês. Retorne somente o JSON.`;
-
-    const prompt2 = basePrompt + `
-
-Extraia APENAS os dias 16 até o final do mês. Retorne somente o JSON com estrutura:
-{"dias": [...]}`;
-
-    const [text1, text2] = await Promise.all([
-      makeRequest(prompt1),
-      makeRequest(prompt2)
-    ]);
-
-    // ─── EXTRAÇÃO E REPAIR DE JSON ───────────────────────────────────────────────
+    // ─── PARSE E REPAIR ──────────────────────────────────────────────────────
     const extractAndRepair = (text) => {
-      // Remove possíveis markdown fences
       let clean = text.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
-      
       const match = clean.match(/\{[\s\S]*\}/);
       if (!match) return null;
-      
       try {
         return JSON.parse(match[0]);
       } catch (e) {
-        // Tenta reparar JSON truncado
         let t = match[0];
-        
-        // Remove última vírgula antes de fechar array/objeto
         t = t.replace(/,\s*([}\]])/g, '$1');
-        
-        // Fecha estruturas abertas
         let opens = 0, objOpens = 0;
         for (let c of t) {
           if (c === '[') opens++;
@@ -170,61 +163,36 @@ Extraia APENAS os dias 16 até o final do mês. Retorne somente o JSON com estru
         }
         while (opens > 0) { t += ']'; opens--; }
         while (objOpens > 0) { t += '}'; objOpens--; }
-        
-        try { return JSON.parse(t); }
-        catch (e2) { return null; }
+        try { return JSON.parse(t); } catch (e2) { return null; }
       }
     };
 
-    const res1 = extractAndRepair(text1);
-    const res2 = extractAndRepair(text2);
+    const parsed = extractAndRepair(jsonText);
 
-    if (!res1) {
-      return res.status(500).json({ 
-        error: 'Não consegui ler os primeiros 15 dias',
-        rawText: text1.substring(0, 500)
+    if (!parsed) {
+      // Retorna o texto bruto pra debug
+      return res.status(500).json({
+        error: 'Falha ao converter JSON',
+        rawExtraction: rawText.substring(0, 1000),
+        rawJson: jsonText.substring(0, 1000)
       });
     }
 
-    // ─── COMBINA OS DOIS BLOCOS ──────────────────────────────────────────────────
-    const diasFinal = [...(res1.dias || [])];
-    
-    if (res2 && res2.dias) {
-      res2.dias.forEach(d => {
-        if (!diasFinal.find(x => x.dia === d.dia)) {
-          diasFinal.push(d);
-        }
-      });
-    }
-    
-    diasFinal.sort((a, b) => a.dia - b.dia);
-
-    // ─── NORMALIZA CADA DIA ──────────────────────────────────────────────────────
-    diasFinal.forEach(d => {
-      // Garante arrays existam
+    // ─── NORMALIZA ───────────────────────────────────────────────────────────
+    const labels = { fr: 'Folga', fp: 'Folga', voo: 'Voo', rea: 'Reserva', sb: 'Sobreaviso', adp: 'Adaptação' };
+    (parsed.dias || []).forEach(d => {
       if (!d.voos) d.voos = [];
       if (!d.tripulacao) d.tripulacao = [];
       if (!d.pernoite) d.pernoite = null;
       if (!d.detalhe) d.detalhe = '';
-      
-      // Normaliza tipo
-      if (!d.tipo) {
-        if (d.voos && d.voos.length > 0) d.tipo = 'voo';
-        else d.tipo = 'fr';
-      }
-      
-      // Garante label
-      if (!d.label) {
-        const labels = { fr: 'Folga', fp: 'Folga', voo: 'Voo', rea: 'Reserva', sb: 'Sobreaviso', adp: 'Adaptação' };
-        d.label = labels[d.tipo] || d.tipo.toUpperCase();
-      }
+      if (!d.label) d.label = labels[d.tipo] || d.tipo;
     });
 
-    // ─── CALCULA RESUMO REAL ─────────────────────────────────────────────────────
+    // ─── RECALCULA RESUMO ─────────────────────────────────────────────────────
     const resumo = { voos: 0, pernoites: 0, folgas: 0, sb: 0 };
-    diasFinal.forEach(d => {
+    (parsed.dias || []).forEach(d => {
       if (d.tipo === 'voo') {
-        resumo.voos += (d.voos && d.voos.length > 0) ? d.voos.length : 1;
+        resumo.voos += d.voos.length > 0 ? d.voos.length : 1;
         if (d.pernoite) resumo.pernoites++;
       } else if (d.tipo === 'fr' || d.tipo === 'fp') {
         resumo.folgas++;
@@ -232,15 +200,12 @@ Extraia APENAS os dias 16 até o final do mês. Retorne somente o JSON com estru
         resumo.sb++;
       }
     });
+    parsed.resumo = resumo;
 
     return res.status(200).json({
       content: [{
         type: 'text',
-        text: JSON.stringify({
-          mes: res1.mes || 'Junho 2026',
-          resumo,
-          dias: diasFinal
-        })
+        text: JSON.stringify(parsed)
       }]
     });
 
