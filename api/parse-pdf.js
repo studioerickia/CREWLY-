@@ -2,7 +2,6 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).end();
 
@@ -15,90 +14,120 @@ module.exports = async function handler(req, res) {
 
     const isImage = (mediaType || '').startsWith('image/');
     const mt = mediaType || 'application/pdf';
+    const contentType = isImage ? 'image' : 'document';
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 4000,
-        messages: [{
-          role: 'user',
-          content: [
-            {
-              type: isImage ? 'image' : 'document',
-              source: { type: 'base64', media_type: mt, data: fileData }
-            },
-            {
-              type: 'text',
-              text: `Voce e especialista em escalas de tripulantes da aviacao brasileira (Azul, Gol, Latam).
+    const makeRequest = async (prompt) => {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 8000,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: contentType, source: { type: 'base64', media_type: mt, data: fileData } },
+              { type: 'text', text: prompt }
+            ]
+          }]
+        })
+      });
+      const d = await r.json();
+      if (d.error) throw new Error(d.error.message || 'API error');
+      return (d.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+    };
 
-Analise esta escala e retorne APENAS JSON valido sem texto adicional.
+    // Primeira chamada: estrutura geral + dias 1-15
+    const prompt1 = `Analise esta escala de tripulante de aviacao brasileira.
 
-Formato:
-{
-  "mes": "Maio 2026",
-  "resumo": {"voos": 0, "pernoites": 0, "folgas": 0, "sb": 0},
-  "dias": [
-    {
-      "dia": 1,
-      "tipo": "fr",
-      "label": "Folga",
-      "detalhe": "",
-      "voos": [
-        {
-          "n": "AD4070",
-          "o": "VCP",
-          "d": "GRU",
-          "dp": "06:00",
-          "ar": "07:00",
-          "du": "1h00",
-          "ae": "32N"
+Retorne APENAS JSON valido sem texto:
+{"mes":"Junho 2026","resumo":{"voos":0,"pernoites":0,"folgas":0,"sb":0},"dias":[{"dia":1,"tipo":"fr","label":"Folga","detalhe":"","tripulacao":[]}]}
+
+Tipos: fr=Folga Regular, fp=Folga Programada, sb=Sobreaviso(detalhe:"HH:MM-Xh"), rea=RHC/REA, voo=AD/G3/LA(detalhe:numeros), adp=ADP, pernoite=Layover incluir no dia do voo.
+
+Para VOO: tripulacao=[{"nome":"NOME","funcao":"CA"}] com funcoes CA/FO/CL/FA/FE/SUP.
+
+RETORNE APENAS OS DIAS 1 A 15 DO MES. Identifique mes e ano pelas datas.`;
+
+    // Segunda chamada: dias 16-31
+    const prompt2 = `Analise esta escala de tripulante de aviacao brasileira.
+
+Retorne APENAS JSON valido sem texto:
+{"dias":[{"dia":16,"tipo":"fr","label":"Folga","detalhe":"","tripulacao":[]}]}
+
+Tipos: fr=Folga Regular, fp=Folga Programada, sb=Sobreaviso(detalhe:"HH:MM-Xh"), rea=RHC/REA, voo=AD/G3/LA(detalhe:numeros), adp=ADP, pernoite=Layover incluir no dia do voo.
+
+Para VOO: tripulacao=[{"nome":"NOME","funcao":"CA"}] com funcoes CA/FO/CL/FA/FE/SUP.
+
+RETORNE APENAS OS DIAS 16 AO FINAL DO MES.`;
+
+    // Faz as duas chamadas em paralelo
+    const [text1, text2] = await Promise.all([
+      makeRequest(prompt1),
+      makeRequest(prompt2)
+    ]);
+
+    const extractJSON = (text) => {
+      const match = text.match(/\{[\s\S]*\}/);
+      if (!match) return null;
+      try { return JSON.parse(match[0]); }
+      catch(e) {
+        // Tenta reparar JSON truncado
+        let t = match[0];
+        const lastObj = t.lastIndexOf('},');
+        if (lastObj > 0) t = t.substring(0, lastObj + 1);
+        let opens = 0, objOpens = 0;
+        for (let c of t) {
+          if (c === '[') opens++;
+          else if (c === ']') opens--;
+          else if (c === '{') objOpens++;
+          else if (c === '}') objOpens--;
         }
-      ],
-      "tripulacao": [
-        {"mat": "12345", "n": "NOME SOBRENOME", "f": "CA"},
-        {"mat": "67890", "n": "OUTRO NOME", "f": "FA"}
-      ],
-      "pernoite": {"l": "GRU", "ci": "22:00", "co": "10:00+1"}
+        while (opens > 0) { t += ']'; opens--; }
+        while (objOpens > 0) { t += '}'; objOpens--; }
+        try { return JSON.parse(t); } catch(e2) { return null; }
+      }
+    };
+
+    const res1 = extractJSON(text1);
+    const res2 = extractJSON(text2);
+
+    if (!res1) {
+      return res.status(500).json({ error: 'Nao consegui ler os primeiros dias da escala' });
     }
-  ]
-}
 
-Tipos de dia:
-- fr = Folga Regular (FR)
-- fp = Folga Programada (FP)
-- sb = Sobreaviso (SB18 = inicio 18:00, detalhe: "18:00 - 6h")
-- rea = Reserva (REA, RHC)
-- voo = Voo (AD, G3, LA)
-- adp = Adaptacao internacional (ADP)
-- pernoite = Layover
+    // Combina os resultados
+    const diasFinal = [...(res1.dias || [])];
+    if (res2 && res2.dias) {
+      res2.dias.forEach(d => {
+        if (!diasFinal.find(x => x.dia === d.dia)) {
+          diasFinal.push(d);
+        }
+      });
+    }
+    diasFinal.sort((a, b) => a.dia - b.dia);
 
-Para dias de VOO extraia:
-- Numero do voo (ex: AD4070, AD8750)
-- Origem e destino (siglas IATA ex: VCP, GRU, MCO)
-- Horario de decolagem e pouso
-- Duracao do voo
-- Aeronave (32N, 32A, ATR, E1, E2, 330, 33A)
-- Tripulacao completa com matricula, nome e funcao (CA, FO, SUP, CL, FA, FE)
-- Pernoite se houver (cidade, checkin, checkout)
-
-Para SB extraia horario de inicio e calcule horas ate 23:59.
-Identifique mes e ano corretamente.
-Agrupe todas atividades do mesmo dia num unico objeto.
-Retorne JSON com TODOS os dias do mes.`
-            }
-          ]
-        }]
-      })
+    // Recalcula resumo
+    const resumo = { voos: 0, pernoites: 0, folgas: 0, sb: 0 };
+    diasFinal.forEach(d => {
+      if (d.tipo === 'voo') { resumo.voos++; }
+      else if (d.tipo === 'fr' || d.tipo === 'fp') resumo.folgas++;
+      else if (d.tipo === 'sb') resumo.sb++;
     });
 
-    const data = await response.json();
-    return res.status(200).json(data);
+    const resultado = {
+      mes: res1.mes || 'Junho 2026',
+      resumo,
+      dias: diasFinal
+    };
+
+    return res.status(200).json({
+      content: [{ type: 'text', text: JSON.stringify(resultado) }]
+    });
 
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -106,5 +135,8 @@ Retorne JSON com TODOS os dias do mes.`
 };
 
 module.exports.config = {
-  api: { bodyParser: { sizeLimit: '10mb' } }
+  api: {
+    bodyParser: { sizeLimit: '10mb' },
+    maxDuration: 60
+  }
 };
