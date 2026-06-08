@@ -1300,11 +1300,21 @@ async function salvarEscalaImportada(){
       novaEscala[d.dia] = {t:'sb', i:ini, h:h, b:USER.base||'VCP'};
     } else if(tipo === 'voo'){
       // Suporta formato rico (com voos detalhados) ou simples (só detalhe)
+      // Normaliza campo tripulacao (pode vir como array de objetos com nome/funcao)
+      const tripRaw = d.tripulacao || d.crew || [];
+      const tripNorm = tripRaw.map(t => {
+        // Normaliza diferentes formatos
+        const nome = t.nome || t.n || t.name || '--';
+        const fn = (t.funcao || t.f || t.function || 'FA').toUpperCase();
+        return {nome, funcao: fn};
+      });
+      d.tripulacao = tripNorm;
+
       if(d.voos && d.voos.length > 0){
         const tripulacao = (d.tripulacao||[]).map(t=>({
-          m: t.mat||t.m||'--',
-          n: t.n||t.nome||'--',
-          f: t.f||t.fn||'FA',
+          m: t.mat||t.m||'',
+          n: t.nome||t.n||'--',
+          f: (t.funcao||t.f||t.fn||'FA').toUpperCase(),
           av: (t.n||'??').split(' ').map(p=>p[0]).join('').substring(0,2),
           c: t.f==='CA'?'#fff3e0':t.f==='FO'?'#f3e8ff':t.f==='CL'?'#e3f0ff':'#e8f5e9',
           tc: t.f==='CA'?'#e65100':t.f==='FO'?'#7c3aed':t.f==='CL'?'#1e6fef':'#2e7d32',
@@ -1355,11 +1365,38 @@ async function salvarEscalaImportada(){
           });
         }
 
+        // Também tenta usar campo voos se existir
+        let voosArr = [];
+        if(d.voos && d.voos.length > 0){
+          voosArr = d.voos.map(v=>({
+            n: v.n || v.numero || v.num || '--',
+            o: v.o || v.orig || v.origem || '--',
+            d: v.d || v.dest || v.destino || '--',
+            dp: v.dp || v.partida || v.start || '--',
+            ar: v.ar || v.chegada || v.end || '--',
+            du: v.du || v.duracao || '--',
+            ae: v.ae || v.aeronave || '--',
+            fn: 'FA'
+          }));
+        } else if(partes.length > 0){
+          voosArr = partes.map(n=>({n,o:'--',d:'--',dp:'--',ar:'--',du:'--',ae:'--',fn:'FA'}));
+        } else if(detalhe){
+          voosArr = [{n:detalhe,o:'--',d:'--',dp:'--',ar:'--',du:'--',ae:'--',fn:'FA'}];
+        }
+        
+        // Pernoite do parser
+        let pernoiteParser = undefined;
+        if(d.pernoite && d.pernoite.l){
+          pernoiteParser = {l:d.pernoite.l, ci:d.pernoite.ci||'--', co:d.pernoite.co||'--'};
+        }
+
         novaEscala[d.dia] = {
           t:'voo',
-          v: partes.length>0 ? partes.map(n=>({n,o:'--',d:'--',dp:'--',ar:'--',du:'--',ae:'--',fn:'FA'}))
-                             : [{n:detalhe||'--',o:'--',d:'--',dp:'--',ar:'--',du:'--',ae:'--',fn:'FA'}],
-          tr: trParser.length>0 ? trParser : undefined
+          a: d.apres || d.apresentacao || (voosArr[0]?.dp !== '--' ? voosArr[0]?.dp : undefined),
+          al: d.apres_local || d.base || (voosArr[0]?.o !== '--' ? voosArr[0]?.o : undefined),
+          v: voosArr.length > 0 ? voosArr : [{n:'--',o:'--',d:'--',dp:'--',ar:'--',du:'--',ae:'--',fn:'FA'}],
+          tr: trParser.length>0 ? trParser : undefined,
+          p: pernoiteParser
         };
       }
     } else if(tipo === 'adp'){
