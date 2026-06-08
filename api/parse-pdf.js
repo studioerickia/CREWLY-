@@ -41,51 +41,63 @@ module.exports = async function handler(req, res) {
       return (d.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
     };
 
-    // Primeira chamada: estrutura geral + dias 1-15
-    const prompt1 = `Analise esta escala de tripulante de aviacao brasileira.
+    const basePrompt = `Esta e uma escala do app "Minha Escala" da Azul Linhas Aereas.
 
-Retorne APENAS JSON valido sem texto:
-{"mes":"Junho 2026","resumo":{"voos":0,"pernoites":0,"folgas":0,"sb":0},"dias":[{"dia":1,"tipo":"fr","label":"Folga","detalhe":"","tripulacao":[]}]}
+O documento tem uma tabela com colunas: Activity, Checkin, Start, End, Checkout, Dep, Arr, AcVer, DD/CAT, Crews.
 
-Tipos: fr=Folga Regular, fp=Folga Programada, sb=Sobreaviso(detalhe:"HH:MM-Xh"), rea=RHC/REA, voo=AD/G3/LA(detalhe:numeros), adp=ADP, pernoite=Layover incluir no dia do voo.
+Regras para interpretar:
+- Linhas com "FR" na coluna Activity = Folga Regular (tipo: fr)
+- Linhas com "FP" = Folga Programada (tipo: fp)  
+- Linhas com "SB" seguido de numero = Sobreaviso (tipo: sb, detalhe: horario inicio e horas ex "18:00-6h")
+- Linhas com "RHC" ou "RHC22" = Reserva (tipo: rea)
+- Linhas com codigo de voo como "AD4070", "AD2805", "G3123" = Voo (tipo: voo)
+- Linhas com "Layover" = Pernoite, incluir no dia do voo anterior
+- Linhas com "ADP" = Adaptacao (tipo: adp)
+- Linhas com "PP" = Folga (tipo: fp)
 
-Para VOO: tripulacao=[{"nome":"NOME","funcao":"CA"}] com funcoes CA/FO/CL/FA/FE/SUP.
+Para cada voo extraia:
+- Numero do voo exato da coluna Activity (ex: AD4070, AD2805)
+- Origem: coluna Dep (aeroporto de 3 letras ex: VCP, GRU, REC)
+- Destino: coluna Arr
+- Horario partida: coluna Start
+- Horario chegada: coluna End
+- Aeronave: coluna AcVer (ex: 32N, 32A, E2, ATR)
+- Tripulacao: coluna Crews (lista de nomes e funcoes CA/FO/CL/FA/FE/SUP)
 
-RETORNE APENAS OS DIAS 1 A 15 DO MES. Identifique mes e ano pelas datas.`;
+Agrupe todos os voos do mesmo dia em um objeto so.
+Identifique o mes e ano pelas datas nas colunas Checkin/Start.`;
 
-    // Segunda chamada: dias 16-31
-    const prompt2 = `Analise esta escala de tripulante de aviacao brasileira.
+    const prompt1 = basePrompt + `
 
-Retorne APENAS JSON valido sem texto:
-{"dias":[{"dia":16,"tipo":"fr","label":"Folga","detalhe":"","tripulacao":[]}]}
+Retorne APENAS JSON valido sem texto adicional para os DIAS 1 A 15:
+{"mes":"Junho 2026","resumo":{"voos":0,"pernoites":0,"folgas":0,"sb":0},"dias":[{"dia":1,"tipo":"fr","label":"Folga","detalhe":"","voos":[{"n":"AD4070","o":"VCP","d":"REC","dp":"06:00","ar":"09:00","du":"3h00","ae":"32N"}],"tripulacao":[{"nome":"NOME SOBRENOME","funcao":"CA"}],"pernoite":{"l":"REC","ci":"09:30","co":"15:00"}}]}
 
-Tipos: fr=Folga Regular, fp=Folga Programada, sb=Sobreaviso(detalhe:"HH:MM-Xh"), rea=RHC/REA, voo=AD/G3/LA(detalhe:numeros), adp=ADP, pernoite=Layover incluir no dia do voo.
+Retorne apenas dias 1 a 15. Para dias sem voo use apenas tipo e label, sem voos e tripulacao.`;
 
-Para VOO: tripulacao=[{"nome":"NOME","funcao":"CA"}] com funcoes CA/FO/CL/FA/FE/SUP.
+    const prompt2 = basePrompt + `
 
-RETORNE APENAS OS DIAS 16 AO FINAL DO MES.`;
+Retorne APENAS JSON valido sem texto adicional para os DIAS 16 AO FIM DO MES:
+{"dias":[{"dia":16,"tipo":"fr","label":"Folga","detalhe":"","voos":[{"n":"AD4070","o":"VCP","d":"REC","dp":"06:00","ar":"09:00","du":"3h00","ae":"32N"}],"tripulacao":[{"nome":"NOME SOBRENOME","funcao":"CA"}],"pernoite":{"l":"REC","ci":"09:30","co":"15:00"}}]}
 
-    // Faz as duas chamadas em paralelo
+Retorne apenas dias 16 em diante. Para dias sem voo use apenas tipo e label.`;
+
     const [text1, text2] = await Promise.all([
       makeRequest(prompt1),
       makeRequest(prompt2)
     ]);
 
-    const extractJSON = (text) => {
+    const extractAndRepair = (text) => {
       const match = text.match(/\{[\s\S]*\}/);
       if (!match) return null;
       try { return JSON.parse(match[0]); }
       catch(e) {
-        // Tenta reparar JSON truncado
         let t = match[0];
         const lastObj = t.lastIndexOf('},');
-        if (lastObj > 0) t = t.substring(0, lastObj + 1);
+        if (lastObj > 200) t = t.substring(0, lastObj + 1);
         let opens = 0, objOpens = 0;
         for (let c of t) {
-          if (c === '[') opens++;
-          else if (c === ']') opens--;
-          else if (c === '{') objOpens++;
-          else if (c === '}') objOpens--;
+          if (c==='[') opens++; else if (c===']') opens--;
+          if (c==='{') objOpens++; else if (c==='}') objOpens--;
         }
         while (opens > 0) { t += ']'; opens--; }
         while (objOpens > 0) { t += '}'; objOpens--; }
@@ -93,40 +105,37 @@ RETORNE APENAS OS DIAS 16 AO FINAL DO MES.`;
       }
     };
 
-    const res1 = extractJSON(text1);
-    const res2 = extractJSON(text2);
+    const res1 = extractAndRepair(text1);
+    const res2 = extractAndRepair(text2);
 
-    if (!res1) {
-      return res.status(500).json({ error: 'Nao consegui ler os primeiros dias da escala' });
-    }
+    if (!res1) return res.status(500).json({ error: 'Nao consegui ler os primeiros 15 dias' });
 
-    // Combina os resultados
+    // Combina dias
     const diasFinal = [...(res1.dias || [])];
     if (res2 && res2.dias) {
       res2.dias.forEach(d => {
-        if (!diasFinal.find(x => x.dia === d.dia)) {
-          diasFinal.push(d);
-        }
+        if (!diasFinal.find(x => x.dia === d.dia)) diasFinal.push(d);
       });
     }
     diasFinal.sort((a, b) => a.dia - b.dia);
 
-    // Recalcula resumo
+    // Calcula resumo real
     const resumo = { voos: 0, pernoites: 0, folgas: 0, sb: 0 };
     diasFinal.forEach(d => {
-      if (d.tipo === 'voo') { resumo.voos++; }
+      if (d.tipo === 'voo') {
+        resumo.voos += (d.voos && d.voos.length > 0) ? d.voos.length : 1;
+        if (d.pernoite) resumo.pernoites++;
+      }
       else if (d.tipo === 'fr' || d.tipo === 'fp') resumo.folgas++;
       else if (d.tipo === 'sb') resumo.sb++;
     });
 
-    const resultado = {
-      mes: res1.mes || 'Junho 2026',
-      resumo,
-      dias: diasFinal
-    };
-
     return res.status(200).json({
-      content: [{ type: 'text', text: JSON.stringify(resultado) }]
+      content: [{ type: 'text', text: JSON.stringify({
+        mes: res1.mes || 'Junho 2026',
+        resumo,
+        dias: diasFinal
+      })}]
     });
 
   } catch (err) {
