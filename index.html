@@ -1493,7 +1493,8 @@ function abrirTrip(vi){
   const sup=e.tr.filter(t=>t.f==='SUP');
   const cl=e.tr.filter(t=>t.f==='CL');
   const fe=e.tr.filter(t=>t.f==='FE');
-  const fa=e.tr.filter(t=>t.f==='FA');
+  const fa=e.tr.filter(t=>t.f==='FA'||t.f==='FA');
+  console.log('Tripulação total:', e.tr.length, 'CA:', ca.length, 'FO:', fo.length, 'CL:', cl.length, 'FE:', fe.length, 'FA:', fa.length);
 
   const corFn={CA:'#e65100',FO:'#7c3aed',SUP:'#0a7a60',CL:'#1e6fef',FE:'#6d28d9',FA:'#2e7d32'};
   const bgFn={CA:'#fff3e0',FO:'#f3e8ff',SUP:'#e0f7f4',CL:'#e3f0ff',FE:'#ede9fe',FA:'#e8f5e9'};
@@ -1501,10 +1502,12 @@ function abrirTrip(vi){
   const rt=t=>{
     const cor = t.eu ? '#1e6fef' : corFn[t.f]||'#555';
     const bg = t.eu ? '#f0f6ff' : '';
+    const mat = t.m && t.m!=='' ? t.m+' ' : '';
+    const av = t.av || (t.n||'??').substring(0,2).toUpperCase();
     return `<div class="ti" style="${bg?'background:'+bg+';margin:0 -14px;padding:9px 14px;':''}">
-      <div class="tav" style="background:${t.eu?'#1e6fef':bgFn[t.f]||'#f5f6fa'};color:${t.eu?'#fff':corFn[t.f]||'#555'}">${t.av||'??'}</div>
+      <div class="tav" style="background:${t.eu?'#1e6fef':bgFn[t.f]||'#f5f6fa'};color:${t.eu?'#fff':corFn[t.f]||'#555'}">${av}</div>
       <div style="flex:1">
-        <div style="font-size:14px;font-weight:600;color:${cor}">${t.m||''} ${t.n||''}</div>
+        <div style="font-size:14px;font-weight:600;color:${cor}">${mat}${t.n||'--'}</div>
         <div style="font-size:12px;color:${t.eu?'#5b8fef':'#8a94a6'};margin-top:2px">${t.f}${t.s?' · Senior '+t.s:''}${t.eu?' · Você':''}</div>
       </div>
       <span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:${bgFn[t.f]||'#f5f6fa'};color:${corFn[t.f]||'#555'}">${t.f}</span>
@@ -1518,8 +1521,10 @@ function abrirTrip(vi){
     </div>`:'';
 
   const tc=document.getElementById('tc');
+  // Total tripulação
+  const totalTrip = [...ca,...fo,...sup,...cl,...fe,...fa].length;
   if(tc)tc.innerHTML=
-    `<div style="font-size:12px;font-weight:600;color:#8a94a6;letter-spacing:.8px;text-transform:uppercase;margin-bottom:14px">Tripulação</div>`+
+    `<div style="font-size:12px;font-weight:600;color:#8a94a6;letter-spacing:.8px;text-transform:uppercase;margin-bottom:14px">Tripulação · ${totalTrip} pessoas</div>`+
     secao('Comandante','⭐',ca,'#e65100')+
     secao('Copiloto','🎮',fo,'#7c3aed')+
     secao('Supervisor','🌍',sup,'#0a7a60')+
