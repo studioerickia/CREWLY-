@@ -10,6 +10,34 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;background:#f5f6fa;font-family:-apple-system,sans-serif}
+/* MODO NOTURNO */
+body.dark{background:#0d1117}
+body.dark .screen{background:#0d1117}
+body.dark .tb,body.dark .ph,body.dark .bnav{background:#161b22;border-color:#30363d}
+body.dark .card,body.dark .vc,body.dark .lcard{background:#161b22;border-color:#30363d}
+body.dark .mi{background:#161b22;border-color:#21262d}
+body.dark .row{border-color:#21262d}
+body.dark .fi{background:#21262d;border-color:#30363d}
+body.dark .fi input,.dark .fi select{color:#e6edf3}
+body.dark .stl{color:#8b949e}
+body.dark .rk{color:#8b949e}
+body.dark .rv{color:#e6edf3}
+body.dark h1,body.dark h2,body.dark h3{color:#e6edf3}
+body.dark .ph .ttl{color:#e6edf3}
+body.dark .mil span{color:#e6edf3}
+body.dark .cd{color:#e6edf3}
+body.dark .cd.folga{background:#1a3a1a;color:#4ec94e}
+body.dark .cd.voo{background:#0d2847;color:#58a6ff}
+body.dark .cd.sby{background:#2d1b4e;color:#a371f7}
+body.dark .cd.rea{background:#0d3333;color:#39d0d8}
+body.dark .cd.adp{background:#2d1b4e;color:#a371f7}
+body.dark .cfgr input{background:#21262d;border-color:#30363d;color:#e6edf3}
+body.dark [style*="color:#1a1a2e"]{color:#e6edf3!important}
+body.dark [style*="color:#8a94a6"]{color:#8b949e!important}
+body.dark [style*="background:#fff"]{background:#161b22!important}
+body.dark [style*="background:#f5f6fa"]{background:#21262d!important}
+body.dark [style*="background:#f5f7fa"]{background:#21262d!important}
+body.dark [style*="border-color:#e8ecf0"]{border-color:#30363d!important}
 .screen{display:none;flex-direction:column;height:100vh;position:fixed;inset:0;background:#f5f6fa;overflow:hidden}
 .screen.active{display:flex}
 .sa{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:90px;scrollbar-width:none}
@@ -286,10 +314,11 @@ html,body{height:100%;overflow:hidden;background:#f5f6fa;font-family:-apple-syst
       <i class="ti ti-clock" style="font-size:36px;opacity:.3"></i>
     </div>
     <div class="stl" style="margin-top:4px">Junho 2026</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 16px 12px">
-      <div style="background:#fff;border-radius:14px;padding:14px 8px;text-align:center;border:1px solid #e8ecf0"><i class="ti ti-plane" style="font-size:22px;margin-bottom:6px;display:block;color:#1e6fef"></i><div style="font-size:22px;font-weight:800;color:#1a1a2e" id="h-voos">12</div><div style="font-size:11px;color:#8a94a6">voos</div></div>
-      <div style="background:#fff;border-radius:14px;padding:14px 8px;text-align:center;border:1px solid #e8ecf0"><i class="ti ti-bed" style="font-size:22px;margin-bottom:6px;display:block;color:#f59e0b"></i><div style="font-size:22px;font-weight:800;color:#1a1a2e" id="h-pern">4</div><div style="font-size:11px;color:#8a94a6">pernoites</div></div>
-      <div style="background:#fff;border-radius:14px;padding:14px 8px;text-align:center;border:1px solid #e8ecf0"><i class="ti ti-circle-check" style="font-size:22px;margin-bottom:6px;display:block;color:#10b981"></i><div style="font-size:22px;font-weight:800;color:#1a1a2e" id="h-folgas">8</div><div style="font-size:11px;color:#8a94a6">folgas</div></div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 16px 12px">
+      <div style="background:#fff;border-radius:14px;padding:12px 6px;text-align:center;border:1px solid #e8ecf0"><i class="ti ti-plane" style="font-size:20px;margin-bottom:4px;display:block;color:#1e6fef"></i><div style="font-size:20px;font-weight:800;color:#1a1a2e" id="h-voos">12</div><div style="font-size:10px;color:#8a94a6">voos</div></div>
+      <div style="background:#fff;border-radius:14px;padding:12px 6px;text-align:center;border:1px solid #e8ecf0;cursor:pointer" onclick="abrirPernoites()"><i class="ti ti-bed" style="font-size:20px;margin-bottom:4px;display:block;color:#f59e0b"></i><div style="font-size:20px;font-weight:800;color:#1a1a2e" id="h-pern">4</div><div style="font-size:10px;color:#8a94a6">pernoites</div></div>
+      <div style="background:#fff;border-radius:14px;padding:12px 6px;text-align:center;border:1px solid #e8ecf0"><i class="ti ti-circle-check" style="font-size:20px;margin-bottom:4px;display:block;color:#10b981"></i><div style="font-size:20px;font-weight:800;color:#1a1a2e" id="h-folgas">8</div><div style="font-size:10px;color:#8a94a6">folgas</div></div>
+      <div style="background:#fff;border-radius:14px;padding:12px 6px;text-align:center;border:1px solid #e8ecf0;cursor:pointer" onclick="abrirPaises()"><i class="ti ti-world" style="font-size:20px;margin-bottom:4px;display:block;color:#8b5cf6"></i><div style="font-size:20px;font-weight:800;color:#1a1a2e" id="h-paises">1</div><div style="font-size:10px;color:#8a94a6">países</div></div>
     </div>
     <!-- Horas -->
     <div class="card" style="margin-bottom:12px">
@@ -303,10 +332,18 @@ html,body{height:100%;overflow:hidden;background:#f5f6fa;font-family:-apple-syst
     </div>
     <!-- Estimativa -->
     <div style="margin:0 16px 12px;background:linear-gradient(135deg,#0f9d7a,#0a7a60);border-radius:20px;padding:18px 20px;color:#fff;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="go('estimativa')">
-      <div><div style="font-size:11px;opacity:.8;font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px">Estimativa do Mês</div><div style="font-size:30px;font-weight:800" id="h-total">R$ 5.211,16</div><div style="font-size:12px;opacity:.75;margin-top:2px">Toque para detalhes</div></div>
+      <div><div style="font-size:11px;opacity:.8;font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px">Estimativa do Mês</div><div style="font-size:30px;font-weight:800" id="h-total">R$ 7.424,66</div><div style="font-size:12px;opacity:.75;margin-top:2px">Toque para detalhes</div></div>
       <i class="ti ti-trending-up" style="font-size:40px;opacity:.35"></i>
     </div>
     <!-- Jornada -->
+    <!-- Resumo da semana -->
+    <div class="card" style="margin-bottom:12px" id="card-semana">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span style="font-size:15px;font-weight:600;color:#1a1a2e">📅 Esta semana</span>
+        <span style="font-size:12px;color:#8a94a6" id="semana-datas"></span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px" id="semana-stats"></div>
+    </div>
     <div class="card" style="cursor:pointer;margin-bottom:16px" onclick="go('fadiga')">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><span style="font-size:15px;font-weight:600;color:#1a1a2e">Controle de Jornada</span><i class="ti ti-chevron-right" style="color:#b0b8c1"></i></div>
       <div style="display:flex;gap:16px">
@@ -393,8 +430,12 @@ html,body{height:100%;overflow:hidden;background:#f5f6fa;font-family:-apple-syst
 <div class="screen" id="s-dia">
   <div style="background:#fff;padding:max(52px,calc(env(safe-area-inset-top)+14px)) 16px 12px;border-bottom:1px solid #e8ecf0;flex-shrink:0">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      <i class="ti ti-arrow-left" style="font-size:24px;color:#1a1a2e;cursor:pointer" id="dia-back" onclick="go('home')"></i>
-      <div><div style="font-size:13px;color:#8a94a6" id="ds">Sexta-feira</div><div style="font-size:20px;font-weight:800;color:#1a1a2e" id="dd">19 de Junho de 2026</div></div>
+      <i class="ti ti-arrow-left" style="font-size:24px;color:#1a1a2e;cursor:pointer" onclick="go('calendar')"></i>
+      <div style="flex:1"><div style="font-size:13px;color:#8a94a6" id="ds">Sexta-feira</div><div style="font-size:20px;font-weight:800;color:#1a1a2e" id="dd">19 de Junho de 2026</div></div>
+      <div style="display:flex;gap:8px">
+        <div onclick="diaAnterior()" style="width:36px;height:36px;border-radius:50%;background:#f5f6fa;border:1px solid #e8ecf0;display:flex;align-items:center;justify-content:center;cursor:pointer"><i class="ti ti-chevron-left" style="font-size:18px;color:#1a1a2e"></i></div>
+        <div onclick="proximoDia()" style="width:36px;height:36px;border-radius:50%;background:#1e6fef;display:flex;align-items:center;justify-content:center;cursor:pointer"><i class="ti ti-chevron-right" style="font-size:18px;color:#fff"></i></div>
+      </div>
     </div>
     <div style="display:flex;gap:8px;padding-bottom:4px" id="dr"></div>
   </div>
@@ -448,20 +489,24 @@ html,body{height:100%;overflow:hidden;background:#f5f6fa;font-family:-apple-syst
     <div style="padding:16px 16px 0">
       <div style="background:linear-gradient(135deg,#0f9d7a,#0a7a60);border-radius:20px;padding:22px;color:#fff;margin-bottom:16px;text-align:center">
         <div style="font-size:12px;opacity:.8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Total estimado</div>
-        <div style="font-size:38px;font-weight:800" id="est-total-val">R$ 5.211,16</div>
+        <div style="font-size:38px;font-weight:800" id="est-total-val">R$ 7.424,66</div>
         <div style="font-size:12px;opacity:.7;margin-top:6px">Valores estimados · sujeito a alteração</div>
       </div>
       <div class="stl">Salário Base</div>
       <div class="card">
         <div class="row"><div class="rk"><i class="ti ti-currency-dollar" style="color:#1e6fef"></i>Salário fixo</div><div class="rv">R$ 3.474,11</div></div>
-        <div class="row"><div class="rk"><i class="ti ti-alert-triangle" style="color:#f59e0b"></i>Periculosidade</div><div class="rv">R$ 1.042,23</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-alert-triangle" style="color:#f59e0b"></i>Periculosidade (30%)</div><div class="rv">R$ 1.042,23</div></div>
         <div class="row"><div class="rk"><i class="ti ti-plus" style="color:#10b981"></i>Comp. Orgânica</div><div class="rv">R$ 694,82</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-calendar" style="color:#8b5cf6"></i>DSR</div><div class="rv">R$ 590,22</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-alert-triangle" style="color:#e65100"></i>Periculosidade s/ Variáveis</div><div class="rv">R$ 374,60</div></div>
       </div>
       <div class="stl">Horas de Voo</div>
       <div class="card">
-        <div class="row"><div class="rk"><i class="ti ti-clock" style="color:#1e6fef"></i>Faixa 1 (38h × R$ 26,44)</div><div class="rv" id="est-f1">R$ 1.004,72</div></div>
-        <div class="row"><div class="rk"><i class="ti ti-clock-2" style="color:#f59e0b"></i>Faixa 2 (0h × R$ 31,79)</div><div class="rv" id="est-f2">R$ 0,00</div></div>
-        <div class="row"><div class="rk"><i class="ti ti-moon" style="color:#8b5cf6"></i>H. Noturnas inclusas</div><div class="rv" style="color:#8a94a6">Faixa 1</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-clock" style="color:#1e6fef"></i>Faixa 1 (R$ 26,44/h)</div><div class="rv" id="est-f1">R$ 335,79</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-clock-2" style="color:#f59e0b"></i>Faixa 2 (R$ 31,79/h)</div><div class="rv" id="est-f2">R$ 0,00</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-moon" style="color:#8b5cf6"></i>H. Noturnas (R$ 26,44/h)</div><div class="rv" id="est-not">R$ 559,79</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-sun" style="color:#f59e0b"></i>H. Diurnas Especiais</div><div class="rv" id="est-diur">R$ 345,70</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-moon-stars" style="color:#7c3aed"></i>H. Noturnas Especiais</div><div class="rv" id="est-notur-esp">R$ 7,40</div></div>
       </div>
       <div class="stl">Diárias Nacionais (BR)</div>
       <div class="card">
@@ -481,7 +526,10 @@ html,body{height:100%;overflow:hidden;background:#f5f6fa;font-family:-apple-syst
         <div class="row"><div class="rk"><i class="ti ti-map-pin" style="color:#10b981"></i>Am. Sul · diária (USD 21)</div><div class="rv" id="val-sul-diaria">R$ 118,02</div></div>
       </div>
       <div style="margin:0 16px 8px;background:#fff;border-radius:16px;border:1px solid #e8ecf0;padding:14px 16px">
-        <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:16px;font-weight:700;color:#1a1a2e">Total estimado</div><div style="font-size:20px;font-weight:800;color:#10b981" id="est-total2">R$ 5.211,16</div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid #f0f2f5"><div style="font-size:15px;font-weight:600;color:#1a1a2e">Total bruto</div><div style="font-size:18px;font-weight:800;color:#1e6fef" id="est-total2">R$ 7.424,66</div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f2f5"><div style="font-size:15px;font-weight:600;color:#e53935">(-) Descontos</div><div style="font-size:18px;font-weight:800;color:#e53935" id="est-descontos">- R$ 2.307,72</div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px"><div style="font-size:16px;font-weight:700;color:#1a1a2e">💰 Líquido estimado</div><div style="font-size:22px;font-weight:800;color:#10b981" id="est-liquido">R$ 5.116,94</div></div>
+        <div style="font-size:11px;color:#8a94a6;margin-top:6px">Configure seus descontos em Configurações</div>
       </div>
       <!-- Simulador de troca -->
       <div style="margin:0 16px 8px;background:#f0f6ff;border-radius:16px;padding:14px 16px;cursor:pointer" onclick="abrirSimulador()">
@@ -632,6 +680,27 @@ html,body{height:100%;overflow:hidden;background:#f5f6fa;font-family:-apple-syst
       <div class="card">
         <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">VA (Vale Alimentação)</div><div style="font-size:12px;color:#8a94a6">Não entra no cálculo</div></div><input value="591,95" style="opacity:.6"></div>
       </div>
+      <div class="stl">Meus Descontos</div>
+      <div style="background:#e3f0ff;border-radius:12px;padding:10px 14px;margin:0 16px 10px;display:flex;gap:8px">
+        <i class="ti ti-info-circle" style="font-size:16px;color:#1e6fef;flex-shrink:0;margin-top:1px"></i>
+        <div style="font-size:12px;color:#1e6fef;line-height:1.5">Preencha seus descontos para o Crewly calcular seu <strong>salário líquido</strong> automaticamente.</div>
+      </div>
+      <div class="card">
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">INSS</div></div><input id="desc-inss" value="840,96" placeholder="0,00"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Imposto de Renda</div></div><input id="desc-ir" value="901,78" placeholder="0,00"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Vale-Transporte</div></div><input id="desc-vt" value="208,44" placeholder="0,00"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Mensalidade Sindical</div></div><input id="desc-sind" value="62,81" placeholder="0,00"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">AzulPrev VGBL</div></div><input id="desc-prev" value="74,25" placeholder="0,00"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Plano de Saúde</div></div><input id="desc-saude" value="88,94" placeholder="0,00"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Outros descontos</div></div><input id="desc-outros" value="130,54" placeholder="0,00"></div>
+      </div>
+      <div class="stl">Aparência</div>
+      <div class="card">
+        <div class="cfgr">
+          <div><div style="font-size:14px;color:#1a1a2e">🌙 Modo noturno</div><div style="font-size:12px;color:#8a94a6">Tema escuro para usar à noite</div></div>
+          <div class="tgl" id="dark-toggle" onclick="toggleDark()"></div>
+        </div>
+      </div>
       <div class="stl">Notificações</div>
       <div class="card">
         <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Apresentação amanhã</div></div><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
@@ -664,6 +733,10 @@ html,body{height:100%;overflow:hidden;background:#f5f6fa;font-family:-apple-syst
       <div class="mi" onclick="go('notif')"><div class="mil"><i class="ti ti-bell"></i><span>Notificações</span></div><i class="ti ti-chevron-right" style="color:#b0b8c1;font-size:18px"></i></div>
     </div>
     <div style="margin:14px 16px;background:#fff0f0;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:10px;padding:16px;cursor:pointer;color:#e53935;font-weight:600;font-size:16px;border:1px solid #ffd5d5" onclick="fazerLogout()"><i class="ti ti-logout" style="font-size:20px"></i>Sair</div>
+    <div style="text-align:center;padding:0 16px 24px;font-size:11px;color:#b0b8c1;line-height:1.8">
+      © 2026 Crewly. Todos os direitos reservados.<br>
+      Versão 1.0.0 · Não afiliado a nenhuma companhia aérea.
+    </div>
   </div>
   <nav class="bnav">
     <div class="ni" onclick="go('home')"><i class="ti ti-home"></i><span>Início</span></div>
@@ -671,6 +744,28 @@ html,body{height:100%;overflow:hidden;background:#f5f6fa;font-family:-apple-syst
     <div class="ni" onclick="go('historico')"><i class="ti ti-chart-bar"></i><span>Histórico</span></div>
     <div class="ni active" onclick="go('perfil')"><i class="ti ti-user"></i><span>Perfil</span></div>
   </nav>
+</div>
+
+<!-- MODAL PAÍSES -->
+<div id="modal-paises" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:480px;padding-bottom:max(24px,env(safe-area-inset-bottom));max-height:70vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div><div style="font-size:18px;font-weight:700;color:#1a1a2e">🌍 Países Visitados</div><div style="font-size:12px;color:#8a94a6;margin-top:2px">Este mês</div></div>
+      <i class="ti ti-x" style="font-size:22px;color:#8a94a6;cursor:pointer" onclick="document.getElementById('modal-paises').style.display='none'"></i>
+    </div>
+    <div id="lista-paises"></div>
+  </div>
+</div>
+
+<!-- MODAL PERNOITES -->
+<div id="modal-pern" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:480px;padding-bottom:max(24px,env(safe-area-inset-bottom));max-height:70vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div><div style="font-size:18px;font-weight:700;color:#1a1a2e">Pernoites do Mês</div><div style="font-size:12px;color:#8a94a6;margin-top:2px">Cidades onde você vai dormir</div></div>
+      <i class="ti ti-x" style="font-size:22px;color:#8a94a6;cursor:pointer" onclick="document.getElementById('modal-pern').style.display='none'"></i>
+    </div>
+    <div id="lista-pern"></div>
+  </div>
 </div>
 
 <!-- MODAL SIMULADOR -->
@@ -1003,6 +1098,9 @@ function updateHome(){
     }
   }
 
+  // CARD SEMANA
+  buildSemana();
+
   // CARD AMANHÃ
   if(eA&&cardA){
     let txt='';
@@ -1294,6 +1392,18 @@ function getDiaDemo(){
 }
 
 // ===== ABRIR DIA =====
+function diaAnterior(){
+  const diasNoMes = new Date(ESCALA_ANO, ESCALA_MES, 0).getDate();
+  let novo = dA - 1;
+  if(novo < 1) novo = diasNoMes;
+  abrirDia(novo);
+}
+function proximoDia(){
+  const diasNoMes = new Date(ESCALA_ANO, ESCALA_MES, 0).getDate();
+  let novo = dA + 1;
+  if(novo > diasNoMes) novo = 1;
+  abrirDia(novo);
+}
 function abrirDia(d){
   dA=d;
   const e=E[d];if(!e)return;
@@ -1376,40 +1486,150 @@ function abrirTrip(vi){
   const tv=document.getElementById('tv');const ti2=document.getElementById('ti2');
   if(tv)tv.textContent=v.n;
   if(ti2)ti2.textContent=`${v.o} → ${v.d} · ${String(dA).padStart(2,'0')}/06 · ${v.dp}`;
-  const ca=e.tr.filter(t=>t.f==='CA'),fo=e.tr.filter(t=>t.f==='FO');
-  const cl=e.tr.filter(t=>t.f==='CL'),fa=e.tr.filter(t=>t.f==='FA');
-  const rt=t=>`<div class="ti" style="${t.eu?'background:#f0f6ff;margin:0 -14px;padding:9px 14px;':''}">
-    <div class="tav" style="background:${t.c};color:${t.tc}">${t.av}</div>
-    <div style="flex:1"><div style="font-size:14px;font-weight:600;color:${t.eu?'#1e6fef':'#1a1a2e'}">${t.m} ${t.n}</div>
-    <div style="font-size:12px;color:${t.eu?'#5b8fef':'#8a94a6'};margin-top:2px">${t.f}${t.s?' · Senior '+t.s:''}${t.eu?' · Você':''}</div></div>
-    <span class="tbg b${t.f.toLowerCase()}">${t.f}</span></div>`;
+  const ca=e.tr.filter(t=>t.f==='CA');
+  const fo=e.tr.filter(t=>t.f==='FO');
+  const sup=e.tr.filter(t=>t.f==='SUP');
+  const cl=e.tr.filter(t=>t.f==='CL');
+  const fe=e.tr.filter(t=>t.f==='FE');
+  const fa=e.tr.filter(t=>t.f==='FA');
+
+  const corFn={CA:'#e65100',FO:'#7c3aed',SUP:'#0a7a60',CL:'#1e6fef',FE:'#6d28d9',FA:'#2e7d32'};
+  const bgFn={CA:'#fff3e0',FO:'#f3e8ff',SUP:'#e0f7f4',CL:'#e3f0ff',FE:'#ede9fe',FA:'#e8f5e9'};
+
+  const rt=t=>{
+    const cor = t.eu ? '#1e6fef' : corFn[t.f]||'#555';
+    const bg = t.eu ? '#f0f6ff' : '';
+    return `<div class="ti" style="${bg?'background:'+bg+';margin:0 -14px;padding:9px 14px;':''}">
+      <div class="tav" style="background:${t.eu?'#1e6fef':bgFn[t.f]||'#f5f6fa'};color:${t.eu?'#fff':corFn[t.f]||'#555'}">${t.av||'??'}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:600;color:${cor}">${t.m||''} ${t.n||''}</div>
+        <div style="font-size:12px;color:${t.eu?'#5b8fef':'#8a94a6'};margin-top:2px">${t.f}${t.s?' · Senior '+t.s:''}${t.eu?' · Você':''}</div>
+      </div>
+      <span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:${bgFn[t.f]||'#f5f6fa'};color:${corFn[t.f]||'#555'}">${t.f}</span>
+    </div>`;
+  };
+
+  const secao=(titulo,emoji,lista,cor)=>lista.length?
+    `<div style="background:#fff;border-radius:16px;border:1px solid #e8ecf0;padding:14px;margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;color:${cor};letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">${emoji} ${titulo}</div>
+      ${lista.map(rt).join('')}
+    </div>`:'';
+
   const tc=document.getElementById('tc');
-  if(tc)tc.innerHTML=`<div style="font-size:12px;font-weight:600;color:#8a94a6;letter-spacing:.8px;text-transform:uppercase;margin-bottom:14px">Tripulação · Hierarquia</div>`+
-    (ca.length?`<div style="background:#fff;border-radius:16px;border:1px solid #e8ecf0;padding:14px;margin-bottom:10px"><div style="font-size:10px;font-weight:700;color:#e65100;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">⭐ Comandante</div>${ca.map(rt).join('')}</div>`:'')+
-    (fo.length?`<div style="background:#fff;border-radius:16px;border:1px solid #e8ecf0;padding:14px;margin-bottom:10px"><div style="font-size:10px;font-weight:700;color:#7c3aed;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">🎮 Copiloto</div>${fo.map(rt).join('')}</div>`:'')+
-    ((cl.length||fa.length)?`<div style="background:#fff;border-radius:16px;border:1px solid #e8ecf0;padding:14px;margin-bottom:16px"><div style="font-size:10px;font-weight:700;color:#1e6fef;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">👥 Comissários · senioridade</div>${[...cl,...fa].map(rt).join('')}</div>`:'');
+  if(tc)tc.innerHTML=
+    `<div style="font-size:12px;font-weight:600;color:#8a94a6;letter-spacing:.8px;text-transform:uppercase;margin-bottom:14px">Tripulação · Hierarquia Azul</div>`+
+    secao('Comandante','⭐',ca,'#e65100')+
+    secao('Copiloto','🎮',fo,'#7c3aed')+
+    secao('Supervisor','🌍',sup,'#0a7a60')+
+    secao('Comissário Líder','⭐',cl,'#1e6fef')+
+    secao('Executiva (FE)','💺',fe,'#6d28d9')+
+    secao('Comissários','👥',fa,'#2e7d32');
   go('trip');
 }
 
 // ===== HISTÓRICO =====
+function buildSemana(){
+  const hoje = new Date();
+  // Encontra segunda-feira da semana atual
+  const diaSemana = hoje.getDay();
+  const seg = new Date(hoje);
+  seg.setDate(hoje.getDate() - (diaSemana === 0 ? 6 : diaSemana - 1));
+  const dom = new Date(seg);
+  dom.setDate(seg.getDate() + 6);
+
+  const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const datasEl = document.getElementById('semana-datas');
+  if(datasEl) datasEl.textContent = `${seg.getDate()} ${meses[seg.getMonth()]} – ${dom.getDate()} ${meses[dom.getMonth()]}`;
+
+  // Conta atividades da semana
+  let voos=0, folgas=0, sb=0, diarias=0;
+  for(let i=0; i<=6; i++){
+    const d = new Date(seg);
+    d.setDate(seg.getDate() + i);
+    if(d.getMonth()+1 === ESCALA_MES && d.getFullYear() === ESCALA_ANO){
+      const e = E[d.getDate()];
+      if(e){
+        if(e.t==='voo'){ voos+=(e.v||[]).length; if(e.p)diarias++; }
+        else if(e.t==='fr'||e.t==='fp') folgas++;
+        else if(e.t==='sb') sb++;
+      }
+    }
+  }
+
+  const statsEl = document.getElementById('semana-stats');
+  if(statsEl) statsEl.innerHTML = `
+    <div style="background:#e3f0ff;border-radius:10px;padding:10px;text-align:center">
+      <div style="font-size:20px;font-weight:800;color:#1e6fef">${voos}</div>
+      <div style="font-size:10px;color:#5b8fef">voos</div>
+    </div>
+    <div style="background:#e8f5e9;border-radius:10px;padding:10px;text-align:center">
+      <div style="font-size:20px;font-weight:800;color:#2e7d32">${folgas}</div>
+      <div style="font-size:10px;color:#2e7d32">folgas</div>
+    </div>
+    <div style="background:#fff3e0;border-radius:10px;padding:10px;text-align:center">
+      <div style="font-size:20px;font-weight:800;color:#e65100">${diarias}</div>
+      <div style="font-size:10px;color:#e65100">pernoites</div>
+    </div>
+  `;
+}
+
 function buildHist(){
   const data=[
-    {m:'Junho 2026',v:12,h:'38h',p:4,t:'R$ 5.211',parc:true},
-    {m:'Maio 2026',v:14,h:'86h',p:8,t:'R$ 6.840'},
-    {m:'Abril 2026',v:12,h:'78h',p:7,t:'R$ 6.310'}
+    {m:'Junho 2026',mes:6,v:12,h:38,p:4,t:5211,parc:true},
+    {m:'Maio 2026',mes:5,v:18,h:86,p:8,t:7424},
+    {m:'Abril 2026',mes:4,v:14,h:78,p:7,t:6840},
+    {m:'Março 2026',mes:3,v:16,h:82,p:6,t:7100},
+    {m:'Fevereiro 2026',mes:2,v:12,h:70,p:5,t:6400},
+    {m:'Janeiro 2026',mes:1,v:15,h:90,p:9,t:7800}
   ];
-  const hm=document.getElementById('hm');
-  if(hm)hm.innerHTML=data.map(h=>`<div style="margin:0 16px 12px;background:#fff;border-radius:16px;padding:16px;border:1px solid #e8ecf0">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <div><span style="font-size:16px;font-weight:700;color:#1a1a2e">${h.m}</span>${h.parc?'<span style="font-size:10px;background:#fff3e0;color:#e65100;padding:2px 8px;border-radius:20px;font-weight:600;margin-left:6px">Parcial</span>':''}</div>
-      <span style="font-size:15px;font-weight:800;color:#0f9d7a">${h.t}</span>
+
+  // Gráfico de barras anual
+  const maxH = Math.max(...data.map(d=>d.h));
+  const grafico = data.slice().reverse().map(d=>`
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">
+      <div style="font-size:9px;font-weight:600;color:#1e6fef">${d.h}h</div>
+      <div style="width:100%;border-radius:4px 4px 0 0;background:${d.parc?'rgba(30,111,239,.3)':'#1e6fef'};height:${Math.round((d.h/maxH)*60)}px;min-height:4px"></div>
+      <div style="font-size:9px;color:#8a94a6">${d.m.substring(0,3)}</div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <div style="background:#f5f6fa;border-radius:10px;padding:10px"><div style="font-size:11px;color:#8a94a6">Voos</div><div style="font-size:17px;font-weight:700;color:#1e6fef">${h.v}</div></div>
-      <div style="background:#f5f6fa;border-radius:10px;padding:10px"><div style="font-size:11px;color:#8a94a6">Horas</div><div style="font-size:17px;font-weight:700;color:#8b5cf6">${h.h}</div></div>
-      <div style="background:#f5f6fa;border-radius:10px;padding:10px"><div style="font-size:11px;color:#8a94a6">Pernoites</div><div style="font-size:17px;font-weight:700;color:#f59e0b">${h.p}</div></div>
-      <div style="background:#f5f6fa;border-radius:10px;padding:10px"><div style="font-size:11px;color:#8a94a6">Estimativa</div><div style="font-size:17px;font-weight:700;color:#10b981">${h.t}</div></div>
-    </div></div>`).join('');
+  `).join('');
+
+  const hm=document.getElementById('hm');
+  if(!hm) return;
+
+  const totalAnual = data.reduce((a,d)=>a+(d.parc?0:d.t),0);
+  const totalHoras = data.reduce((a,d)=>a+d.h,0);
+  const totalVoos = data.reduce((a,d)=>a+d.v,0);
+
+  hm.innerHTML = `
+    <!-- Resumo anual -->
+    <div style="margin:0 16px 16px;background:linear-gradient(135deg,#1e6fef,#1458cc);border-radius:20px;padding:20px;color:#fff">
+      <div style="font-size:11px;opacity:.8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">2026 · Resumo anual</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px">
+        <div><div style="font-size:22px;font-weight:800">${totalVoos}</div><div style="font-size:10px;opacity:.7">voos</div></div>
+        <div><div style="font-size:22px;font-weight:800">${totalHoras}h</div><div style="font-size:10px;opacity:.7">voadas</div></div>
+        <div><div style="font-size:22px;font-weight:800">R$${Math.round(totalAnual/1000)}k</div><div style="font-size:10px;opacity:.7">recebidos</div></div>
+      </div>
+    </div>
+    <!-- Gráfico -->
+    <div style="margin:0 16px 16px;background:#fff;border-radius:16px;padding:16px;border:1px solid #e8ecf0">
+      <div style="font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:16px">Horas voadas por mês</div>
+      <div style="display:flex;align-items:flex-end;gap:6px;height:80px">${grafico}</div>
+    </div>
+    <!-- Meses -->
+    ${data.map(h=>`
+    <div style="margin:0 16px 12px;background:#fff;border-radius:16px;padding:16px;border:1px solid #e8ecf0">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div><span style="font-size:16px;font-weight:700;color:#1a1a2e">${h.m}</span>${h.parc?'<span style="font-size:10px;background:#fff3e0;color:#e65100;padding:2px 8px;border-radius:20px;font-weight:600;margin-left:6px">Parcial</span>':''}</div>
+        <span style="font-size:15px;font-weight:800;color:#0f9d7a">R$ ${h.t.toLocaleString('pt-BR')}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="background:#f5f6fa;border-radius:10px;padding:10px"><div style="font-size:11px;color:#8a94a6">Voos</div><div style="font-size:17px;font-weight:700;color:#1e6fef">${h.v}</div></div>
+        <div style="background:#f5f6fa;border-radius:10px;padding:10px"><div style="font-size:11px;color:#8a94a6">Horas</div><div style="font-size:17px;font-weight:700;color:#8b5cf6">${h.h}h</div></div>
+        <div style="background:#f5f6fa;border-radius:10px;padding:10px"><div style="font-size:11px;color:#8a94a6">Pernoites</div><div style="font-size:17px;font-weight:700;color:#f59e0b">${h.p}</div></div>
+        <div style="background:#f5f6fa;border-radius:10px;padding:10px"><div style="font-size:11px;color:#8a94a6">Estimativa</div><div style="font-size:17px;font-weight:700;color:#10b981">R$ ${h.t.toLocaleString('pt-BR')}</div></div>
+      </div>
+    </div>`).join('')}
+  `;
 }
 
 // ===== CIA =====
@@ -1422,6 +1642,24 @@ function selCia(cia, el){
 function confirmarCia(){
   USER.cia = ciaSel;
   go('fn-sel');
+}
+
+// ===== MODO NOTURNO =====
+function toggleDark(){
+  const isDark = document.body.classList.toggle('dark');
+  const toggle = document.getElementById('dark-toggle');
+  if(toggle) toggle.classList.toggle('on', isDark);
+  try{ localStorage.setItem('crewly_dark', isDark?'1':'0'); }catch(e){}
+}
+function initDark(){
+  try{
+    const saved = localStorage.getItem('crewly_dark');
+    if(saved === '1'){
+      document.body.classList.add('dark');
+      const toggle = document.getElementById('dark-toggle');
+      if(toggle) toggle.classList.add('on');
+    }
+  }catch(e){}
 }
 
 // ===== COTAÇÃO EM TEMPO REAL =====
@@ -1452,6 +1690,108 @@ function usdToBrl(usd){ return fmtBRL(usd * cotacao.usd); }
 function eurToBrl(eur){ return fmtBRL(eur * cotacao.eur); }
 
 // ===== SIMULADOR DE TROCA =====
+function abrirPaises(){
+  const modal = document.getElementById('modal-paises');
+  const lista = document.getElementById('lista-paises');
+  if(!modal||!lista) return;
+
+  // Aeroportos internacionais conhecidos por país
+  const paisPorIATA = {
+    'MCO':'🇺🇸 Estados Unidos','MIA':'🇺🇸 Estados Unidos','JFK':'🇺🇸 Estados Unidos','LAX':'🇺🇸 Estados Unidos','ORD':'🇺🇸 Estados Unidos',
+    'LIS':'🇵🇹 Portugal','OPO':'🇵🇹 Portugal',
+    'GRU':'🇧🇷 Brasil','CGH':'🇧🇷 Brasil','VCP':'🇧🇷 Brasil','GIG':'🇧🇷 Brasil','BSB':'🇧🇷 Brasil',
+    'SSA':'🇧🇷 Brasil','REC':'🇧🇷 Brasil','FOR':'🇧🇷 Brasil','BEL':'🇧🇷 Brasil','MAO':'🇧🇷 Brasil',
+    'CNF':'🇧🇷 Brasil','CWB':'🇧🇷 Brasil','POA':'🇧🇷 Brasil','FLN':'🇧🇷 Brasil','SDU':'🇧🇷 Brasil',
+    'VIX':'🇧🇷 Brasil','THE':'🇧🇷 Brasil','SLZ':'🇧🇷 Brasil','NAT':'🇧🇷 Brasil','JPA':'🇧🇷 Brasil',
+    'MCZ':'🇧🇷 Brasil','AJU':'🇧🇷 Brasil','IMP':'🇧🇷 Brasil','PMW':'🇧🇷 Brasil','CGB':'🇧🇷 Brasil',
+    'CGR':'🇧🇷 Brasil','PVH':'🇧🇷 Brasil','BOA':'🇧🇷 Brasil','MCP':'🇧🇷 Brasil',
+    'EZE':'🇦🇷 Argentina','AEP':'🇦🇷 Argentina',
+    'SCL':'🇨🇱 Chile','GRU':'🇧🇷 Brasil',
+    'BOG':'🇨🇴 Colômbia','LIM':'🇵🇪 Peru','UIO':'🇪🇨 Equador',
+    'CDG':'🇫🇷 França','LHR':'🇬🇧 Reino Unido','MAD':'🇪🇸 Espanha','FCO':'🇮🇹 Itália',
+    'FLL':'🇺🇸 Estados Unidos','XAA':'🇺🇸 Estados Unidos'
+  };
+
+  const paises = new Set();
+  const destinos = [];
+  Object.entries(E).forEach(([d,e])=>{
+    if(e && e.t==='voo' && e.v){
+      e.v.forEach(v=>{
+        [v.o, v.d].forEach(iata=>{
+          if(iata && iata!=='--'){
+            const pais = paisPorIATA[iata];
+            if(pais) paises.add(pais);
+            if(pais && pais!=='🇧🇷 Brasil' && !destinos.find(x=>x.iata===iata)){
+              destinos.push({iata, pais});
+            }
+          }
+        });
+      });
+    }
+  });
+
+  const total = paises.size;
+  const intl = destinos.length;
+
+  // Update counter
+  const h = document.getElementById('h-paises');
+  if(h) h.textContent = total;
+
+  lista.innerHTML = `
+    <div style="background:#f3e8ff;border-radius:14px;padding:14px;margin-bottom:16px;text-align:center">
+      <div style="font-size:32px;font-weight:800;color:#7c3aed">${total}</div>
+      <div style="font-size:13px;color:#7c3aed;margin-top:4px">país${total!==1?'es':''} este mês</div>
+    </div>
+    ${intl>0?`
+      <div style="font-size:12px;font-weight:600;color:#8a94a6;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Internacional</div>
+      ${destinos.map(d=>`
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f0f2f5">
+          <div style="width:44px;height:44px;border-radius:12px;background:#ede9fe;display:flex;align-items:center;justify-content:center;font-size:24px">${d.pais.split(' ')[0]}</div>
+          <div><div style="font-size:15px;font-weight:600;color:#1a1a2e">${d.pais.split(' ').slice(1).join(' ')}</div><div style="font-size:12px;color:#8a94a6">${d.iata}</div></div>
+        </div>
+      `).join('')}
+    `:'<div style="text-align:center;padding:20px;color:#8a94a6">Apenas voos nacionais este mês 🇧🇷</div>'}
+  `;
+  modal.style.display = 'flex';
+}
+
+function abrirPernoites(){
+  const modal = document.getElementById('modal-pern');
+  const lista = document.getElementById('lista-pern');
+  if(!modal || !lista) return;
+  
+  // Coleta todos os pernoites da escala
+  const pernoites = [];
+  const cidadeCount = {};
+  Object.entries(E).forEach(([d, e]) => {
+    if(e && e.p && e.p.l && e.p.l !== '--'){
+      const cidade = e.p.l;
+      cidadeCount[cidade] = (cidadeCount[cidade]||0) + 1;
+      pernoites.push({dia: parseInt(d), cidade, ci: e.p.ci||'--', co: e.p.co||'--', int: e.p.int});
+    }
+  });
+  
+  if(pernoites.length === 0){
+    lista.innerHTML = '<div style="text-align:center;padding:20px;color:#8a94a6">Nenhum pernoite encontrado neste mês</div>';
+  } else {
+    const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    lista.innerHTML = pernoites.map(p => `
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f0f2f5">
+        <div style="width:44px;height:44px;border-radius:12px;background:${p.int?'#ede9fe':'#fff3e0'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="ti ti-bed" style="font-size:22px;color:${p.int?'#6d28d9':'#e65100'}"></i>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:16px;font-weight:700;color:#1a1a2e">${p.cidade}</div>
+          <div style="font-size:12px;color:#8a94a6;margin-top:2px">Dia ${p.dia} · Check-in ${p.ci}</div>
+          ${cidadeCount[p.cidade]>1?`<div style="font-size:11px;color:#1e6fef;margin-top:2px">${cidadeCount[p.cidade]}x este mês</div>`:''}
+        </div>
+        ${p.int?'<span style="font-size:10px;background:#ede9fe;color:#6d28d9;padding:3px 8px;border-radius:20px;font-weight:600">Internacional</span>':''}
+      </div>
+    `).join('');
+  }
+  modal.style.display = 'flex';
+}
+
 function abrirSimulador(){
   const modal = document.getElementById('modal-simulador');
   if(modal) modal.style.display = 'flex';
@@ -1486,6 +1826,7 @@ function calcularTroca(){
 
 // ===== INIT =====
 (async function init(){
+  initDark();
   buscarCotacao();
   buildCal();
   buildHist();
