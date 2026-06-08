@@ -1206,34 +1206,60 @@ async function processarPDF(){
     await dl(800);setS(3,'ok','Crewly organizou voos e folgas ✓');setS(4,'ld','Crewly calculando horas...');
     await dl(600);setS(4,'ok','Crewly calculou horas e diárias ✓');await dl(400);
     let txt=(data.content&&data.content[0]?data.content[0].text:'').replace(/```json|```/g,'').trim();
-    console.log('Resposta IA:', txt.substring(0,500));
+    console.log('Resposta IA:', txt.substring(0,300));
     
     // Se a API retornou erro
     if(data.error){
       showEst('err');
       const em=document.getElementById('emsg');
-      if(em)em.textContent='Erro da API: '+data.error.message;
+      if(em)em.textContent='Erro da API: '+(data.error.message||data.error);
       return;
     }
     
     let res;
     try{
-      // Tenta extrair JSON mesmo se vier com texto antes/depois
-      const jsonMatch = txt.match(/\{[\s\S]*\}/);
-      if(jsonMatch) res=JSON.parse(jsonMatch[0]);
-      else throw new Error('JSON não encontrado');
-    }catch(e){
-      console.error('Parse error:', e, 'Text:', txt.substring(0,200));
-      showEst('err');
-      const em=document.getElementById('emsg');
-      if(em)em.textContent='Não consegui interpretar o PDF. Tente enviar como imagem (foto da tela) em vez de PDF.';
-      return;
+      // Tenta parse direto
+      res = JSON.parse(txt);
+    }catch(e1){
+      try{
+        // Tenta extrair JSON com regex
+        const jsonMatch = txt.match(/\{[\s\S]*\}/);
+        if(jsonMatch) res = JSON.parse(jsonMatch[0]);
+        else throw new Error('no json');
+      }catch(e2){
+        // JSON truncado — tenta reparar fechando arrays/objetos abertos
+        console.log('Parse error, tentando reparar JSON truncado...');
+        try{
+          let truncated = txt;
+          // Conta colchetes e chaves abertas
+          let opens = 0, objOpens = 0;
+          for(let c of truncated){ 
+            if(c==='{') objOpens++; else if(c==='}') objOpens--;
+            if(c==='[') opens++; else if(c===']') opens--;
+          }
+          // Fecha o que estiver aberto
+          // Remove último objeto incompleto (sem fechar)
+          const lastComplete = truncated.lastIndexOf('},');
+          if(lastComplete > 0) truncated = truncated.substring(0, lastComplete+1);
+          // Fecha arrays e objetos
+          while(opens > 0){ truncated += ']'; opens--; }
+          while(objOpens > 0){ truncated += '}'; objOpens--; }
+          res = JSON.parse(truncated);
+          console.log('JSON reparado com sucesso!');
+        }catch(e3){
+          console.error('Falha ao reparar JSON:', e3.message);
+          showEst('err');
+          const em=document.getElementById('emsg');
+          if(em)em.textContent='Não consegui processar o PDF. Erro: '+e3.message.substring(0,100);
+          return;
+        }
+      }
     }
     
-    if(!res.dias || res.dias.length === 0){
+    if(!res || !res.dias || res.dias.length === 0){
       showEst('err');
       const em=document.getElementById('emsg');
-      if(em)em.textContent='O Crewly não conseguiu ler os dias da escala. Tente tirar uma foto da tela da escala e enviar como imagem.';
+      if(em)em.textContent='Crewly não encontrou dias na escala. Tente novamente.';
       return;
     }
     
