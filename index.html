@@ -517,7 +517,7 @@ body.dark [style*="border-color:#e8ecf0"]{border-color:#30363d!important}
       <div class="card">
         <div style="background:#f0f6ff;border-radius:10px;padding:10px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
           <div style="font-size:12px;color:#1e6fef;font-weight:600">💱 Cotação em tempo real</div>
-          <div style="text-align:right"><div class="cotacao-usd" style="font-size:12px;font-weight:700;color:#1e6fef">USD 1 = R$ 5,62</div><div class="cotacao-eur" style="font-size:12px;font-weight:700;color:#8b5cf6">EUR 1 = R$ 6,10</div></div>
+          <div style="text-align:right"><div class="cotacao-usd" style="font-size:12px;font-weight:700;color:#1e6fef">USD 1 = R$ 5,19</div><div class="cotacao-eur" style="font-size:12px;font-weight:700;color:#8b5cf6">EUR 1 = R$ 5,65</div></div>
         </div>
         <div class="row"><div class="rk"><i class="ti ti-world" style="color:#1e6fef"></i>Europa · diária (USD 23)</div><div class="rv" id="val-eur-diaria">R$ 129,26</div></div>
         <div class="row"><div class="rk"><i class="ti ti-coffee" style="color:#f59e0b"></i>Europa · café (USD 5,25)</div><div class="rv" id="val-eur-cafe">R$ 29,51</div></div>
@@ -674,7 +674,7 @@ body.dark [style*="border-color:#e8ecf0"]{border-color:#30363d!important}
         <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Europa · diária</div></div><input value="23,00"></div>
         <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Am. Sul · café</div></div><input value="6,00"></div>
         <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Am. Sul · diária</div></div><input value="21,00"></div>
-        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">USD → BRL</div></div><input value="5,62"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">USD → BRL</div></div><input value="5,19"></div>
       </div>
       <div class="stl">Benefícios (consulta)</div>
       <div class="card">
@@ -876,11 +876,11 @@ let ESCALA_MES = 6; // mês atual (junho=6)
 let ESCALA_ANO = 2026;
 let ESCALA_IMPORTADA = false; // flag se já importou escala real
 const TR_DEFAULT=[
-  {m:'2669',n:'JULIO CARDOSO',f:'CA',s:668,av:'JC',c:'#fff3e0',tc:'#e65100'},
-  {m:'5203',n:'FERNANDO CASTRO',f:'FO',s:623,av:'FC',c:'#f3e8ff',tc:'#7c3aed'},
+  {m:'2669',n:'JULIO CARDOSO',f:'CA',av:'JC',c:'#fff3e0',tc:'#e65100'},
+  {m:'5203',n:'FERNANDO CASTRO',f:'FO',av:'FC',c:'#f3e8ff',tc:'#7c3aed'},
   {m:'29311',n:'NATHALIA MARQUES',f:'CL',s:833,av:'NM',c:'#e3f0ff',tc:'#1e6fef'},
-  {m:'3300',n:'ANA WENDT',f:'FA',s:145,av:'AW',c:'#e8f5e9',tc:'#2e7d32'},
-  {m:'15115',n:'ADRIO BRASIL',f:'FA',s:420,av:'AB',c:'#e8f5e9',tc:'#2e7d32'},
+  {m:'3300',n:'ANA WENDT',f:'FA',av:'AW',c:'#e8f5e9',tc:'#2e7d32'},
+  {m:'15115',n:'ADRIO BRASIL',f:'FA',av:'AB',c:'#e8f5e9',tc:'#2e7d32'},
   {m:'23628',n:'ERICKSON RODRIGUES',f:'FA',s:1288,av:'ER',c:'#1e6fef',tc:'#fff',eu:true}
 ];
 const TR_LIS=[
@@ -1298,6 +1298,8 @@ async function salvarEscalaImportada(){
 
   // Salva no Supabase
   await salvarEscala(mesNum, anoNum, novaEscala);
+  // Salva no histórico automaticamente
+  setTimeout(salvarMesNoHistorico, 1000);
 
   // Atualiza interface
   buildCal();
@@ -1440,7 +1442,7 @@ function abrirDia(d){
     con=`<div class="vc"><div class="vh" style="background:#7c3aed"><span style="font-size:15px;font-weight:800;color:#fff">🔔 Sobreaviso</span></div>
       <div style="padding:16px"><div style="font-size:24px;font-weight:800;color:#6d28d9;margin-bottom:8px">SB (${e.h} horas)</div>
       <div style="font-size:14px;color:#8a94a6;margin-bottom:12px">Das <strong>${e.i}</strong> às <strong>23:59</strong> · Base: ${e.b}</div>
-      <div style="background:#f3e8ff;border-radius:10px;padding:12px;font-size:13px;color:#7c3aed;line-height:1.6">🏠 Fique em casa disponível. Não precisa ir ao aeroporto.</div></div></div>`;
+      <div style="background:#f3e8ff;border-radius:10px;padding:12px;font-size:13px;color:#7c3aed;font-weight:600">🔔 Você está de Sobreaviso</div></div></div>`;
   } else if(e.t==='fr'||e.t==='fp'){
     res=`<div style="background:#e8f5e9;border-radius:10px;padding:8px 12px;text-align:center;flex:1"><div style="font-size:18px;font-weight:800;color:#2e7d32">✓</div><div style="font-size:10px;color:#2e7d32;font-weight:600">${e.t==='fr'?'FOLGA':'FOLGA PROG.'}</div></div>`;
     con=`<div class="vc"><div class="vh" style="background:#2e7d32"><span style="font-size:15px;font-weight:800;color:#fff">🌿 ${e.t==='fr'?'Folga Regular':'Folga Programada'}</span></div>
@@ -1517,7 +1519,7 @@ function abrirTrip(vi){
 
   const tc=document.getElementById('tc');
   if(tc)tc.innerHTML=
-    `<div style="font-size:12px;font-weight:600;color:#8a94a6;letter-spacing:.8px;text-transform:uppercase;margin-bottom:14px">Tripulação · Hierarquia Azul</div>`+
+    `<div style="font-size:12px;font-weight:600;color:#8a94a6;letter-spacing:.8px;text-transform:uppercase;margin-bottom:14px">Tripulação</div>`+
     secao('Comandante','⭐',ca,'#e65100')+
     secao('Copiloto','🎮',fo,'#7c3aed')+
     secao('Supervisor','🌍',sup,'#0a7a60')+
@@ -1663,7 +1665,7 @@ function initDark(){
 }
 
 // ===== COTAÇÃO EM TEMPO REAL =====
-let cotacao = {usd: 5.62, eur: 6.10, fonte: 'carregando...'};
+let cotacao = {usd: 5.19, eur: 5.65, fonte: 'carregando...'};
 
 async function buscarCotacao(){
   try{
@@ -1822,6 +1824,33 @@ function calcularTroca(){
         Diferença: <strong style="color:${dif>=0?'#2e7d32':'#e53935'}">${dif>=0?'+':''}${fmtBRL(dif)}</strong>
       </div>
     </div>`;
+}
+
+// ===== SALVAR HISTÓRICO AUTOMÁTICO =====
+async function salvarMesNoHistorico(){
+  if(!USER.id || !ESCALA_IMPORTADA) return;
+  const key = `hist_${ESCALA_ANO}_${ESCALA_MES}`;
+  // Conta dados do mês
+  let voos=0, pernoites=0, folgas=0, sb=0, horas=0;
+  Object.values(E).forEach(e=>{
+    if(!e) return;
+    if(e.t==='voo'){ voos+=(e.v||[]).length; if(e.p)pernoites++; }
+    else if(e.t==='fr'||e.t==='fp') folgas++;
+    else if(e.t==='sb') sb++;
+  });
+  // Salva no Supabase como parte do histórico
+  try{
+    await supa.from('escalas').upsert({
+      user_id: USER.id,
+      mes: ESCALA_MES,
+      ano: ESCALA_ANO,
+      dados: E,
+      updated_at: new Date().toISOString()
+    }, {onConflict: 'user_id,mes,ano'});
+    console.log('Mês salvo no histórico:', ESCALA_MES, ESCALA_ANO);
+  }catch(err){
+    console.log('Erro ao salvar histórico:', err);
+  }
 }
 
 // ===== INIT =====
