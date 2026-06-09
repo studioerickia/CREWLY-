@@ -36,21 +36,33 @@ module.exports = async function handler(req, res) {
 A tabela tem colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
 A coluna Crews tem uma sub-tabela com "Crew" (nome) e "Function" (função).
 
-ATENÇÃO — leia com extremo cuidado:
-- "Activity": copie o código EXATAMENTE como está (ex: AD8750, AD4508, FR, FP, FC, FA, SB18, RHC22)
-- "Dep": aeroporto de ORIGEM 3 letras (ex: VCP, LIS, OPO). NUNCA deixe vazio — se está na tabela, copie.
-- "Arr": aeroporto de DESTINO 3 letras (ex: LIS, VCP, REC). NUNCA deixe vazio.
-- "AcVer": modelo da aeronave EXATAMENTE como está (ex: 763, 772, 32N, 32Q, 32A, ATR, 330). Não altere.
+ATENÇÃO — leia com extremo cuidado cada coluna:
+
+COLUNAS E O QUE FAZER COM CADA UMA:
+- "Activity": copie EXATAMENTE como está (ex: AD8750, AD4508, FR, FP, FC, FA, SB18, RHC22)
+- "Checkin": é o horário de APRESENTAÇÃO do tripulante (antes do voo). Use como CHECKIN.
+- "Start": é o horário de DECOLAGEM/INÍCIO do voo. Use como START. NÃO confunda com Checkin!
+- "End": é o horário de POUSO/FIM do voo. Use como END.
+- "Checkout": horário de saída após o voo.
+- "Dep": aeroporto de ORIGEM 3 letras (ex: VCP, LIS, OPO). NUNCA deixe vazio.
+- "Arr": aeroporto de DESTINO 3 letras (ex: LIS, VCP, REC). NUNCA deixe vazio. Copie as 3 letras completas.
+- "AcVer": aeronave EXATAMENTE como está (ex: 763, 772, 32N, 32Q, 32A, ATR, 330).
 - "DD/CAT": copie exatamente (ex: V, COBS, DHD, ou vazio)
-- "Crews": liste TODOS os tripulantes sem exceção no formato NOME:FUNCAO
+- "Crews": liste TODOS os tripulantes no formato NOME:FUNCAO
+
+EXEMPLO REAL de como ler uma linha de voo:
+Activity=AD8750, Checkin=16:25, Start=17:55, End=04:45, Dep=VCP, Arr=LIS
+→ Saída: 26/06/2026 | AD8750 | 17:55 | 04:45 | VCP | LIS | 763 | | NOMES
 
 Formato de saída — uma linha por atividade:
-DATA | ACTIVITY | START | END | DEP | ARR | ACVER | DDCAT | CREWS
+DATA | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT | CREWS
 
 Onde:
 - DATA = data da coluna Start em DD/MM/AAAA
+- CHECKIN = horário da coluna Checkin (apresentação)
+- START = horário da coluna Start (decolagem)
 - CREWS = NOME1:FUNC1, NOME2:FUNC2, ... (todos os tripulantes)
-- Para Layover: DATA | Layover | START | END | LOCAL | LOCAL | | |
+- Para Layover: DATA | Layover | | START | END | LOCAL | LOCAL | | |
 
 Transcreva TODAS as linhas sem pular nenhuma. Sem explicações.` }
           ]
@@ -86,11 +98,21 @@ Transcreva TODAS as linhas sem pular nenhuma. Sem explicações.` }
 TRANSCRIÇÃO:
 ${rawText}
 
+FORMATO DA TRANSCRIÇÃO: DATA | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT | CREWS
+- CHECKIN = horário de apresentação do tripulante → use como "apres" no JSON do dia
+- START = horário real de decolagem → use como "dp" no voo
+- END = horário real de pouso → use como "ar" no voo
+
+SOBREAVISO — calcule a duração real (END - START):
+Exemplo: START=12:00, END=20:00 → 8h → detalhe: "12:00 - 8h"
+Exemplo: START=18:00, END=06:00 → 12h → detalhe: "18:00 - 12h"
+NUNCA coloque 12h fixo. Sempre calcule do START até o END.
+
 ═══ TIPOS DE ATIVIDADE ═══
 FR, FP, PP → tipo: "fr" ou "fp", label: "Folga" ou "Folga Programada"
 FC  → tipo: "fc", label: "Folga Casada"
 FA  → tipo: "fa", label: "Folga Aniversário"  ← só quando FA é a atividade, não função
-SB+número → tipo: "sb", label: "Sobreaviso", detalhe: ex "20:00 - 12h"
+SB+número → tipo: "sb", label: "Sobreaviso", detalhe: "HH:MM - Xh" (X = END - START calculado)
 RHC+qualquer → tipo: "rea", label: "Reserva" — NUNCA tem voos
 ADP  → tipo: "adp", label: "Adaptação"
 ADPOB → tipo: "adpob", label: "Adaptação fora da base"
@@ -146,8 +168,9 @@ Retorne APENAS o JSON válido, sem texto antes ou depois, sem markdown, sem back
       "detalhe": "",
       "dhd": false,
       "euroAtlantic": false,
+      "apres": "16:25",
       "voos": [
-        {"n": "AD8750", "o": "VCP", "d": "LIS", "dp": "04:45", "ar": "17:55", "du": "13h10", "ae": "763"}
+        {"n": "AD8750", "o": "VCP", "d": "LIS", "dp": "17:55", "ar": "04:45+1", "du": "10h50", "ae": "763"}
       ],
       "tripulacao": [
         {"nome": "SCANDUZZI", "funcao": "CA"},
