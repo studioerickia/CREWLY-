@@ -1472,10 +1472,21 @@ async function salvarEscalaImportada(){
   setTimeout(salvarMesNoHistorico, 1000);
 
   // Atualiza interface
-  buildCal();
+buildCal();
+setTimeout(() => {
   updateHome();
-  go('home');
-}
+  // Recalcula contadores reais do E
+  let cV=0, cP=0, cF=0;
+  for(let d=1;d<=31;d++){
+    const e=E[d]||{};
+    if(e.t==='voo'){cV+=(e.v||[]).length;if(e.p)cP++;}
+    else if(e.t==='fr'||e.t==='fp'||e.t==='fc'||e.t==='fa')cF++;
+  }
+  document.getElementById('h-voos').textContent=cV;
+  document.getElementById('h-pern').textContent=cP;
+  document.getElementById('h-folgas').textContent=cF;
+}, 100);
+go('home');
 
 function mapearTipo(tipo){
   const map = {
