@@ -1334,7 +1334,7 @@ async function salvarEscalaImportada(){
         }));
         novaEscala[d.dia] = {
           t:'voo',
-         a: d.apres || calcApresentacao(d.voos[0]?.dp, d.voos[0]?.o, d.voos[0]?.d),
+       a: d.apres || calcApresentacao(d.voos[0]?.dp, d.voos[0]?.o, d.voos[0]?.d),
           al: d.apres_local || d.voos[0]?.o || USER.base,
           v: d.voos.map(v=>({
             n: v.n||v.num||'--',
