@@ -34,27 +34,25 @@ module.exports = async function handler(req, res) {
             { type: 'text', text: `Você está lendo uma escala do app "Minha Escala" da Azul Linhas Aéreas.
 
 A tabela tem colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
-
 A coluna Crews tem uma sub-tabela com "Crew" (nome) e "Function" (função).
 
-ATENÇÃO — leia com cuidado:
-- A coluna "Activity" contém o código exato do voo. Copie EXATAMENTE como está, letra por letra.
-  Exemplos corretos: AD8750, AD8901, AD4508, AD8800, AD8003
-  NUNCA invente letras. Se está escrito "AD8750", copie "AD8750", não "ADB750".
-- A coluna "Arr" é o aeroporto de DESTINO (3 letras: LIS, VCP, OPO, REC, etc). Nunca deixe vazio.
-- A coluna "AcVer" é o modelo da aeronave (ex: 763, 772, 32N, 32Q, ATR). Copie exatamente.
-- A coluna "DD/CAT" pode conter: V, COBS, DHD, ou estar vazia. Copie exatamente.
+ATENÇÃO — leia com extremo cuidado:
+- "Activity": copie o código EXATAMENTE como está (ex: AD8750, AD4508, FR, FP, FC, FA, SB18, RHC22)
+- "Dep": aeroporto de ORIGEM 3 letras (ex: VCP, LIS, OPO). NUNCA deixe vazio — se está na tabela, copie.
+- "Arr": aeroporto de DESTINO 3 letras (ex: LIS, VCP, REC). NUNCA deixe vazio.
+- "AcVer": modelo da aeronave EXATAMENTE como está (ex: 763, 772, 32N, 32Q, 32A, ATR, 330). Não altere.
+- "DD/CAT": copie exatamente (ex: V, COBS, DHD, ou vazio)
+- "Crews": liste TODOS os tripulantes sem exceção no formato NOME:FUNCAO
 
-Transcreva TODAS as linhas da tabela, uma por linha, no formato:
+Formato de saída — uma linha por atividade:
 DATA | ACTIVITY | START | END | DEP | ARR | ACVER | DDCAT | CREWS
 
-- DATA: use a data da coluna Start no formato DD/MM/AAAA
-- Para CREWS: liste TODOS os tripulantes separados por vírgula no formato NOME:FUNCAO
-  Exemplo: DANIELE:COBS, ELIZAMA IODES:V
-- Se não houver tripulação, deixe CREWS em branco
-- Para Layover: DATA | Layover | START | END | DEP | ARR | | |
-- Transcreva absolutamente TODAS as linhas sem pular nenhuma
-- Não adicione explicações, só a transcrição` }
+Onde:
+- DATA = data da coluna Start em DD/MM/AAAA
+- CREWS = NOME1:FUNC1, NOME2:FUNC2, ... (todos os tripulantes)
+- Para Layover: DATA | Layover | START | END | LOCAL | LOCAL | | |
+
+Transcreva TODAS as linhas sem pular nenhuma. Sem explicações.` }
           ]
         }]
       })
@@ -64,7 +62,6 @@ DATA | ACTIVITY | START | END | DEP | ARR | ACVER | DDCAT | CREWS
     if (step1Data.error) throw new Error(step1Data.error.message || 'API error step1');
     const rawText = (step1Data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
 
-    // Modo debug: retorna só a transcrição do step 1
     if (debug) {
       return res.status(200).json({ debug: true, rawText });
     }
@@ -84,41 +81,48 @@ DATA | ACTIVITY | START | END | DEP | ARR | ACVER | DDCAT | CREWS
           role: 'user',
           content: [{
             type: 'text',
-            text: `Converta esta transcrição de escala de voo em JSON.
+            text: `Converta esta transcrição de escala de voo em JSON seguindo EXATAMENTE o formato especificado.
 
 TRANSCRIÇÃO:
 ${rawText}
 
-═══ REGRAS DE TIPO (campo "tipo") ═══
-
-FR  → tipo: "fr",    label: "Folga"
-FP  → tipo: "fp",    label: "Folga Programada"
-PP  → tipo: "fp",    label: "Folga"
-FC  → tipo: "fc",    label: "Folga Casada"
-FA  → tipo: "fa",    label: "Folga Aniversário"   ← atividade FA, não função de tripulante
-SB+número → tipo: "sb",   label: "Sobreaviso",  detalhe: horário ex "18:00 - 6h"
-RHC (qualquer variação) → tipo: "rea",  label: "Reserva"  — NUNCA tem voos
-ADP  → tipo: "adp",   label: "Adaptação"
+═══ TIPOS DE ATIVIDADE ═══
+FR, FP, PP → tipo: "fr" ou "fp", label: "Folga" ou "Folga Programada"
+FC  → tipo: "fc", label: "Folga Casada"
+FA  → tipo: "fa", label: "Folga Aniversário"  ← só quando FA é a atividade, não função
+SB+número → tipo: "sb", label: "Sobreaviso", detalhe: ex "20:00 - 12h"
+RHC+qualquer → tipo: "rea", label: "Reserva" — NUNCA tem voos
+ADP  → tipo: "adp", label: "Adaptação"
 ADPOB → tipo: "adpob", label: "Adaptação fora da base"
-Layover → NÃO é dia separado, vira pernoite do dia anterior
-DHD  → tipo: "voo",   label: "DHD · Extra a Serviço", dhd: true
-Código AD####, G3###, LA###, JJ### → tipo: "voo", label: "Voo"
-Se DDCAT for "COBS" ou "V" → adicionar euroAtlantic: true no objeto do dia
+AD####, G3###, LA###, JJ### → tipo: "voo", label: "Voo"
+DHD → tipo: "voo", label: "DHD · Extra a Serviço", dhd: true
+Layover → NÃO é dia separado, vira pernoite no dia anterior
+DDCAT "COBS" ou "V" → euroAtlantic: true no dia
 
 ═══ AGRUPAMENTO ═══
-- Múltiplos voos na mesma data → 1 objeto de dia com array "voos" contendo todos
-- Tripulação é compartilhada entre voos do mesmo dia
-- Layover: adiciona pernoite {"l":"AEROPORTO","ci":"HH:MM","co":"HH:MM"} ao dia anterior
+Múltiplos voos na mesma data → 1 objeto de dia, array "voos" com todos
+Layover → pernoite: {"l":"AEROPORTO","ci":"HH:MM","co":"HH:MM"} no dia anterior
+Dias ausentes → incluir como tipo "fr"
+O mês deve ter TODOS os dias do 1 ao último
 
-═══ TRIPULAÇÃO ═══
-CA → "CA", FO → "FO", CL → "CL", FA → "FA", FE → "FE", SUP → "SUP"
-COBS → "SUP", V → "SUP", DHD → "DHD"
-Inclua TODOS os tripulantes, sem exceção.
+═══ FUNÇÕES DE TRIPULAÇÃO ═══
+CA→"CA", FO→"FO", CL→"CL", FA→"FA", FE→"FE", SUP→"SUP", COBS→"SUP", V→"SUP", DHD→"DHD"
+Incluir TODOS os tripulantes listados.
 
-═══ DIAS VAZIOS ═══
-Se um dia não aparece, inclua como tipo "fr". O mês deve ter TODOS os dias do 1 ao último.
+═══ FORMATO OBRIGATÓRIO DOS VOOS ═══
+ATENÇÃO: use EXATAMENTE estes nomes de campos para cada voo:
+- "n"  = número do voo (ex: "AD8750")
+- "o"  = origem 3 letras (ex: "VCP") — NUNCA null
+- "d"  = destino 3 letras (ex: "LIS") — NUNCA null
+- "dp" = horário partida "HH:MM"
+- "ar" = horário chegada "HH:MM"
+- "du" = duração calculada (ex: "11h30")
+- "ae" = aeronave (ex: "763", "32N", "330")
 
-Retorne APENAS o JSON válido, sem texto antes ou depois, sem markdown, sem backticks.
+NÃO use: "voo", "partida", "chegada", "origem", "destino", "aeronave" — esses nomes estão ERRADOS.
+Use APENAS: "n", "o", "d", "dp", "ar", "du", "ae"
+
+Retorne APENAS o JSON válido, sem texto antes ou depois, sem markdown, sem backticks:
 
 {
   "mes": "Junho 2026",
@@ -134,6 +138,25 @@ Retorne APENAS o JSON válido, sem texto antes ou depois, sem markdown, sem back
       "voos": [],
       "tripulacao": [],
       "pernoite": null
+    },
+    {
+      "dia": 26,
+      "tipo": "voo",
+      "label": "Voo",
+      "detalhe": "",
+      "dhd": false,
+      "euroAtlantic": false,
+      "voos": [
+        {"n": "AD8750", "o": "VCP", "d": "LIS", "dp": "04:45", "ar": "17:55", "du": "13h10", "ae": "763"}
+      ],
+      "tripulacao": [
+        {"nome": "SCANDUZZI", "funcao": "CA"},
+        {"nome": "SONI", "funcao": "FO"},
+        {"nome": "JULIETTI GALHARDO", "funcao": "CL"},
+        {"nome": "NATALI MICHELLIM", "funcao": "FE"},
+        {"nome": "ERICKSON RODRIGUES", "funcao": "FA"}
+      ],
+      "pernoite": {"l": "LIS", "ci": "17:55", "co": "04:45"}
     }
   ]
 }`
@@ -151,9 +174,8 @@ Retorne APENAS o JSON válido, sem texto antes ou depois, sem markdown, sem back
       let clean = text.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
       const match = clean.match(/\{[\s\S]*\}/);
       if (!match) return null;
-      try {
-        return JSON.parse(match[0]);
-      } catch (e) {
+      try { return JSON.parse(match[0]); }
+      catch (e) {
         let t = match[0];
         t = t.replace(/,\s*([}\]])/g, '$1');
         let opens = 0, objOpens = 0;
@@ -179,7 +201,7 @@ Retorne APENAS o JSON válido, sem texto antes ou depois, sem markdown, sem back
       });
     }
 
-    // ─── NORMALIZA ───────────────────────────────────────────────────────────
+    // ─── NORMALIZA E CORRIGE CAMPOS ───────────────────────────────────────────
     const labels = {
       fr: 'Folga', fp: 'Folga Programada', fc: 'Folga Casada',
       fa: 'Folga Aniversário', voo: 'Voo', rea: 'Reserva',
@@ -194,6 +216,19 @@ Retorne APENAS o JSON válido, sem texto antes ou depois, sem markdown, sem back
       if (d.dhd === undefined) d.dhd = false;
       if (d.euroAtlantic === undefined) d.euroAtlantic = false;
       if (!d.label) d.label = labels[d.tipo] || d.tipo;
+
+      // Corrige campos com nomes errados nos voos
+      d.voos = d.voos.map(v => {
+        const corrected = {};
+        corrected.n   = v.n   || v.voo    || v.numero   || v.flight || '';
+        corrected.o   = v.o   || v.origem  || v.dep      || v.from   || '';
+        corrected.d   = v.d   || v.destino || v.arr      || v.to     || '';
+        corrected.dp  = v.dp  || (v.partida  ? v.partida.substring(11,16)  : '') || '';
+        corrected.ar  = v.ar  || (v.chegada  ? v.chegada.substring(11,16)  : '') || '';
+        corrected.du  = v.du  || v.duracao  || v.duration || '';
+        corrected.ae  = v.ae  || v.aeronave || v.aircraft || v.acver  || '';
+        return corrected;
+      });
     });
 
     // ─── RECALCULA RESUMO ─────────────────────────────────────────────────────
