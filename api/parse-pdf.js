@@ -16,7 +16,7 @@ module.exports = async function handler(req, res) {
     const mt = mediaType || 'application/pdf';
     const contentType = isImage ? 'image' : 'document';
 
-    // ─── STEP 1: extrai texto bruto da tabela ────────────────────────────────
+    // ─── STEP 1: transcrição fiel do PDF ────────────────────────────────────
     const step1Response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -38,16 +38,16 @@ A tabela tem colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | 
 A coluna Crews tem uma sub-tabela com "Crew" (nome) e "Function" (função).
 
 Transcreva TODAS as linhas da tabela, uma por linha, no formato:
-DATA | ACTIVITY | START | END | DEP | ARR | ACVER | CREWS
+DATA | ACTIVITY | START | END | DEP | ARR | ACVER | DDCAT | CREWS
 
-Para CREWS, liste todos os tripulantes separados por vírgula no formato NOME:FUNCAO
-Exemplo: JOAO SILVA:CA, MARIA SOUZA:FO, ANA LIMA:CL, PEDRO COSTA:FA
-
-Se não houver tripulação, deixe CREWS em branco.
-Para Layover, use: DATA | Layover | CHECKIN | CHECKOUT | LOCAL | | |
-
-Transcreva absolutamente TODAS as linhas, sem pular nenhuma.
-Não adicione explicações, só a transcrição linha a linha.` }
+- DATA: use a data da coluna Start no formato DD/MM/AAAA
+- DDCAT: copie exatamente o valor da coluna DD/CAT (ex: V, COBS, DHD, vazio)
+- Para CREWS: liste TODOS os tripulantes separados por vírgula no formato NOME:FUNCAO
+  Exemplo: JOAO SILVA:CA, MARIA SOUZA:FO, ANA LIMA:CL, PEDRO COSTA:FA, ELIZAMA IODES:V
+- Se não houver tripulação, deixe CREWS em branco
+- Para Layover: DATA | Layover | START | END | DEP | ARR | | |
+- Transcreva absolutamente TODAS as linhas sem pular nenhuma
+- Não adicione explicações, só a transcrição` }
           ]
         }]
       })
@@ -57,7 +57,7 @@ Não adicione explicações, só a transcrição linha a linha.` }
     if (step1Data.error) throw new Error(step1Data.error.message || 'API error step1');
     const rawText = (step1Data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
 
-    // ─── STEP 2: converte texto estruturado em JSON ──────────────────────────
+    // ─── STEP 2: converte para JSON ──────────────────────────────────────────
     const step2Response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -77,31 +77,46 @@ Não adicione explicações, só a transcrição linha a linha.` }
 TRANSCRIÇÃO:
 ${rawText}
 
-REGRAS DE CONVERSÃO:
+═══ REGRAS DE TIPO (campo "tipo") ═══
 
-Tipos de atividade (campo "tipo"):
-- FR, FP, PP → tipo: "fr" ou "fp", label: "Folga"
-- SB+número (ex: SB12) → tipo: "sb", label: "Sobreaviso", detalhe: horário ex "18:00 - 6h"
-- RHC, RHC22, RHC23, qualquer RHC+número → tipo: "rea", label: "Reserva" (NUNCA tem voos!)
-- AD####, G3###, LA###, JJ### → tipo: "voo", label: "Voo"
-- ADP → tipo: "adp", label: "Adaptação"
-- Layover → NÃO é um dia separado, adiciona pernoite ao dia anterior
+FR  → tipo: "fr",    label: "Folga"
+FP  → tipo: "fp",    label: "Folga Programada"
+PP  → tipo: "fp",    label: "Folga"
+FC  → tipo: "fc",    label: "Folga Casada"
+FA  → tipo: "fa",    label: "Folga Aniversário"   ← atividade FA, não função de tripulante
+SB+número → tipo: "sb",   label: "Sobreaviso",  detalhe: horário ex "18:00 - 6h"
+RHC (qualquer variação) → tipo: "rea",  label: "Reserva"  — NUNCA tem voos
+ADP  → tipo: "adp",   label: "Adaptação"
+ADPOB → tipo: "adpob", label: "Adaptação fora da base"
+Layover → NÃO é dia separado, vira pernoite do dia anterior
+DHD  → tipo: "voo",   label: "DHD · Extra a Serviço", dhd: true  — voo de outra cia a serviço
+Código AD####, G3###, LA###, JJ### → tipo: "voo", label: "Voo"
+Se DDCAT for "COBS" ou "V" → é voo Euro Atlantic: adicionar euroAtlantic: true no objeto do dia
 
-AGRUPAMENTO:
-- Múltiplos voos no mesmo dia (mesma data) → 1 objeto só com array "voos" com todos
-- A tripulação dos voos é compartilhada entre todos os voos do mesmo dia (mesmo grupo de voo)
-- Layover: adiciona {"l":"AEROPORTO","ci":"HH:MM","co":"HH:MM"} ao dia anterior
+═══ AGRUPAMENTO ═══
+- Múltiplos voos na mesma data → 1 objeto de dia com array "voos" contendo todos
+- Tripulação é compartilhada entre voos do mesmo dia
+- Layover: adiciona pernoite {"l":"AEROPORTO","ci":"HH:MM","co":"HH:MM"} ao dia anterior
 
-TRIPULAÇÃO:
-- Inclua TODOS os tripulantes listados, sem exceção
-- CA = Comandante, FO = Copiloto, CL = Comissário Líder, FA = Comissário, FE = Flight Engineer, SUP = Supervisor
-- Se um tripulante tiver só primeiro nome (ex: "JULIA"), use como está
+═══ TRIPULAÇÃO — MAPEAMENTO DE FUNÇÕES ═══
+CA   → "CA"   (Comandante)
+FO   → "FO"   (Copiloto)
+CL   → "CL"   (Comissário Líder)
+FA   → "FA"   (Comissário)
+FE   → "FE"   (Flight Engineer)
+SUP  → "SUP"  (Supervisor)
+COBS → "SUP"  (Supervisor Euro Atlantic)
+V    → "SUP"  (Supervisor Euro Atlantic)
+DHD  → "DHD"  (Extra a serviço)
+Inclua TODOS os tripulantes listados, sem exceção.
 
-DIAS VAZIOS:
-- Se um dia da semana não aparece na transcrição, inclua mesmo assim como folga (tipo: "fr")
-- O mês deve ter TODOS os dias, do 1 ao último
+═══ DIAS VAZIOS ═══
+Se um dia não aparece na transcrição, inclua como tipo "fr", label "Folga".
+O mês deve ter TODOS os dias do 1 ao último.
 
-FORMATO JSON (retorne APENAS o JSON, sem texto antes ou depois, sem markdown):
+═══ FORMATO JSON ═══
+Retorne APENAS o JSON válido, sem texto antes ou depois, sem markdown, sem backticks.
+
 {
   "mes": "Junho 2026",
   "resumo": {"voos": 0, "pernoites": 0, "folgas": 0, "sb": 0},
@@ -111,27 +126,43 @@ FORMATO JSON (retorne APENAS o JSON, sem texto antes ou depois, sem markdown):
       "tipo": "fr",
       "label": "Folga",
       "detalhe": "",
+      "dhd": false,
+      "euroAtlantic": false,
       "voos": [],
       "tripulacao": [],
       "pernoite": null
     },
     {
-      "dia": 9,
+      "dia": 3,
       "tipo": "voo",
       "label": "Voo",
       "detalhe": "",
+      "dhd": false,
+      "euroAtlantic": false,
       "voos": [
-        {"n": "AD6704", "o": "VCP", "d": "FLL", "dp": "21:40", "ar": "06:30", "du": "9h50", "ae": "32N"},
-        {"n": "AD6705", "o": "FLL", "d": "VCP", "dp": "08:00", "ar": "17:00", "du": "9h00", "ae": "32N"}
+        {"n": "AD8750", "o": "VCP", "d": "LIS", "dp": "16:40", "ar": "04:10", "du": "11h30", "ae": "763"}
       ],
       "tripulacao": [
-        {"nome": "JOAO SILVA", "funcao": "CA"},
-        {"nome": "MARIA SOUZA", "funcao": "FO"},
-        {"nome": "ANA LIMA", "funcao": "CL"},
-        {"nome": "PEDRO COSTA", "funcao": "FA"},
-        {"nome": "JULIA SANTOS", "funcao": "FA"}
+        {"nome": "DANIELE", "funcao": "SUP"},
+        {"nome": "ELIZAMA IODES", "funcao": "SUP"}
       ],
-      "pernoite": {"l": "FLL", "ci": "07:00", "co": "20:00"}
+      "pernoite": null
+    },
+    {
+      "dia": 21,
+      "tipo": "voo",
+      "label": "Voo",
+      "detalhe": "",
+      "dhd": false,
+      "euroAtlantic": true,
+      "voos": [
+        {"n": "AD8800", "o": "VCP", "d": "OPO", "dp": "19:40", "ar": "05:20", "du": "9h40", "ae": "763"}
+      ],
+      "tripulacao": [
+        {"nome": "THALYSSA ROCHA", "funcao": "SUP"},
+        {"nome": "ELIZAMA IODES", "funcao": "SUP"}
+      ],
+      "pernoite": null
     }
   ]
 }`
@@ -170,7 +201,6 @@ FORMATO JSON (retorne APENAS o JSON, sem texto antes ou depois, sem markdown):
     const parsed = extractAndRepair(jsonText);
 
     if (!parsed) {
-      // Retorna o texto bruto pra debug
       return res.status(500).json({
         error: 'Falha ao converter JSON',
         rawExtraction: rawText.substring(0, 1000),
@@ -179,12 +209,19 @@ FORMATO JSON (retorne APENAS o JSON, sem texto antes ou depois, sem markdown):
     }
 
     // ─── NORMALIZA ───────────────────────────────────────────────────────────
-    const labels = { fr: 'Folga', fp: 'Folga', voo: 'Voo', rea: 'Reserva', sb: 'Sobreaviso', adp: 'Adaptação' };
+    const labels = {
+      fr: 'Folga', fp: 'Folga Programada', fc: 'Folga Casada',
+      fa: 'Folga Aniversário', voo: 'Voo', rea: 'Reserva',
+      sb: 'Sobreaviso', adp: 'Adaptação', adpob: 'Adaptação fora da base'
+    };
+
     (parsed.dias || []).forEach(d => {
       if (!d.voos) d.voos = [];
       if (!d.tripulacao) d.tripulacao = [];
       if (!d.pernoite) d.pernoite = null;
       if (!d.detalhe) d.detalhe = '';
+      if (d.dhd === undefined) d.dhd = false;
+      if (d.euroAtlantic === undefined) d.euroAtlantic = false;
       if (!d.label) d.label = labels[d.tipo] || d.tipo;
     });
 
@@ -194,7 +231,7 @@ FORMATO JSON (retorne APENAS o JSON, sem texto antes ou depois, sem markdown):
       if (d.tipo === 'voo') {
         resumo.voos += d.voos.length > 0 ? d.voos.length : 1;
         if (d.pernoite) resumo.pernoites++;
-      } else if (d.tipo === 'fr' || d.tipo === 'fp') {
+      } else if (['fr', 'fp', 'fc', 'fa'].includes(d.tipo)) {
         resumo.folgas++;
       } else if (d.tipo === 'sb') {
         resumo.sb++;
@@ -203,10 +240,7 @@ FORMATO JSON (retorne APENAS o JSON, sem texto antes ou depois, sem markdown):
     parsed.resumo = resumo;
 
     return res.status(200).json({
-      content: [{
-        type: 'text',
-        text: JSON.stringify(parsed)
-      }]
+      content: [{ type: 'text', text: JSON.stringify(parsed) }]
     });
 
   } catch (err) {
