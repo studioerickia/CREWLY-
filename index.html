@@ -1155,8 +1155,19 @@ function updateHome(){
   </div>
 </div>`;
     }
-    if(cardHoje) cardHoje.innerHTML='';
-    if(cardAmanha) cardAmanha.innerHTML='';
+   if(cardHoje) cardHoje.innerHTML='';
+if(cardAmanha) cardAmanha.innerHTML='';
+document.getElementById('h-voos').textContent='0';
+document.getElementById('h-pern').textContent='0';
+document.getElementById('h-folgas').textContent='0';
+document.getElementById('h-paises').textContent='0';
+document.getElementById('h-norm').textContent='0h';
+document.getElementById('h-f2').textContent='0h';
+document.getElementById('h-not').textContent='0h';
+document.getElementById('home-diarias').textContent='0 diárias';
+document.getElementById('home-diarias-val').textContent='Importe sua escala';
+document.getElementById('h-total').textContent='R$ 0,00';
+document.getElementById('est-total-val').textContent='R$ 0,00';
   } else {
     if(emptyCard) emptyCard.style.display='none';
   }
