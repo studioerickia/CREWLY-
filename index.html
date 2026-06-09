@@ -1282,7 +1282,19 @@ function buildFallback(){
 
 // Última escala processada
 let ultimaEscalaProcessada = null;
-
+function calcApresentacao(dp, origem, destino) {
+  if (!dp || dp === '--') return '--';
+  const intl = ['LIS','OPO','FLL','MIA','MCO','JFK','LAX','ORD','CDG','LHR','MAD','FCO','EZE','SCL','BOG','LIM'];
+  const ehInternacional = intl.includes(destino) || intl.includes(origem);
+  const antecedencia = ehInternacional ? 90 : 50;
+  const [h, m] = dp.split(':').map(Number);
+  if (isNaN(h) || isNaN(m)) return '--';
+  let totalMin = h * 60 + m - antecedencia;
+  if (totalMin < 0) totalMin += 24 * 60;
+  const hA = Math.floor(totalMin / 60) % 24;
+  const mA = totalMin % 60;
+  return `${String(hA).padStart(2,'0')}:${String(mA).padStart(2,'0')}`;
+}
 async function salvarEscalaImportada(){
   if(!ultimaEscalaProcessada){go('home');return;}
   
