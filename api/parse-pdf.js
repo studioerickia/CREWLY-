@@ -9,7 +9,7 @@ module.exports = async function handler(req, res) {
   if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
   try {
-    const { fileData, mediaType } = req.body;
+    const { fileData, mediaType, debug } = req.body;
     if (!fileData) return res.status(400).json({ error: 'No file data' });
 
     const isImage = (mediaType || '').startsWith('image/');
@@ -37,13 +37,20 @@ A tabela tem colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | 
 
 A coluna Crews tem uma sub-tabela com "Crew" (nome) e "Function" (função).
 
+ATENÇÃO — leia com cuidado:
+- A coluna "Activity" contém o código exato do voo. Copie EXATAMENTE como está, letra por letra.
+  Exemplos corretos: AD8750, AD8901, AD4508, AD8800, AD8003
+  NUNCA invente letras. Se está escrito "AD8750", copie "AD8750", não "ADB750".
+- A coluna "Arr" é o aeroporto de DESTINO (3 letras: LIS, VCP, OPO, REC, etc). Nunca deixe vazio.
+- A coluna "AcVer" é o modelo da aeronave (ex: 763, 772, 32N, 32Q, ATR). Copie exatamente.
+- A coluna "DD/CAT" pode conter: V, COBS, DHD, ou estar vazia. Copie exatamente.
+
 Transcreva TODAS as linhas da tabela, uma por linha, no formato:
 DATA | ACTIVITY | START | END | DEP | ARR | ACVER | DDCAT | CREWS
 
 - DATA: use a data da coluna Start no formato DD/MM/AAAA
-- DDCAT: copie exatamente o valor da coluna DD/CAT (ex: V, COBS, DHD, vazio)
 - Para CREWS: liste TODOS os tripulantes separados por vírgula no formato NOME:FUNCAO
-  Exemplo: JOAO SILVA:CA, MARIA SOUZA:FO, ANA LIMA:CL, PEDRO COSTA:FA, ELIZAMA IODES:V
+  Exemplo: DANIELE:COBS, ELIZAMA IODES:V
 - Se não houver tripulação, deixe CREWS em branco
 - Para Layover: DATA | Layover | START | END | DEP | ARR | | |
 - Transcreva absolutamente TODAS as linhas sem pular nenhuma
@@ -56,6 +63,11 @@ DATA | ACTIVITY | START | END | DEP | ARR | ACVER | DDCAT | CREWS
     const step1Data = await step1Response.json();
     if (step1Data.error) throw new Error(step1Data.error.message || 'API error step1');
     const rawText = (step1Data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+
+    // Modo debug: retorna só a transcrição do step 1
+    if (debug) {
+      return res.status(200).json({ debug: true, rawText });
+    }
 
     // ─── STEP 2: converte para JSON ──────────────────────────────────────────
     const step2Response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -89,32 +101,23 @@ RHC (qualquer variação) → tipo: "rea",  label: "Reserva"  — NUNCA tem voos
 ADP  → tipo: "adp",   label: "Adaptação"
 ADPOB → tipo: "adpob", label: "Adaptação fora da base"
 Layover → NÃO é dia separado, vira pernoite do dia anterior
-DHD  → tipo: "voo",   label: "DHD · Extra a Serviço", dhd: true  — voo de outra cia a serviço
+DHD  → tipo: "voo",   label: "DHD · Extra a Serviço", dhd: true
 Código AD####, G3###, LA###, JJ### → tipo: "voo", label: "Voo"
-Se DDCAT for "COBS" ou "V" → é voo Euro Atlantic: adicionar euroAtlantic: true no objeto do dia
+Se DDCAT for "COBS" ou "V" → adicionar euroAtlantic: true no objeto do dia
 
 ═══ AGRUPAMENTO ═══
 - Múltiplos voos na mesma data → 1 objeto de dia com array "voos" contendo todos
 - Tripulação é compartilhada entre voos do mesmo dia
 - Layover: adiciona pernoite {"l":"AEROPORTO","ci":"HH:MM","co":"HH:MM"} ao dia anterior
 
-═══ TRIPULAÇÃO — MAPEAMENTO DE FUNÇÕES ═══
-CA   → "CA"   (Comandante)
-FO   → "FO"   (Copiloto)
-CL   → "CL"   (Comissário Líder)
-FA   → "FA"   (Comissário)
-FE   → "FE"   (Flight Engineer)
-SUP  → "SUP"  (Supervisor)
-COBS → "SUP"  (Supervisor Euro Atlantic)
-V    → "SUP"  (Supervisor Euro Atlantic)
-DHD  → "DHD"  (Extra a serviço)
-Inclua TODOS os tripulantes listados, sem exceção.
+═══ TRIPULAÇÃO ═══
+CA → "CA", FO → "FO", CL → "CL", FA → "FA", FE → "FE", SUP → "SUP"
+COBS → "SUP", V → "SUP", DHD → "DHD"
+Inclua TODOS os tripulantes, sem exceção.
 
 ═══ DIAS VAZIOS ═══
-Se um dia não aparece na transcrição, inclua como tipo "fr", label "Folga".
-O mês deve ter TODOS os dias do 1 ao último.
+Se um dia não aparece, inclua como tipo "fr". O mês deve ter TODOS os dias do 1 ao último.
 
-═══ FORMATO JSON ═══
 Retorne APENAS o JSON válido, sem texto antes ou depois, sem markdown, sem backticks.
 
 {
@@ -130,38 +133,6 @@ Retorne APENAS o JSON válido, sem texto antes ou depois, sem markdown, sem back
       "euroAtlantic": false,
       "voos": [],
       "tripulacao": [],
-      "pernoite": null
-    },
-    {
-      "dia": 3,
-      "tipo": "voo",
-      "label": "Voo",
-      "detalhe": "",
-      "dhd": false,
-      "euroAtlantic": false,
-      "voos": [
-        {"n": "AD8750", "o": "VCP", "d": "LIS", "dp": "16:40", "ar": "04:10", "du": "11h30", "ae": "763"}
-      ],
-      "tripulacao": [
-        {"nome": "DANIELE", "funcao": "SUP"},
-        {"nome": "ELIZAMA IODES", "funcao": "SUP"}
-      ],
-      "pernoite": null
-    },
-    {
-      "dia": 21,
-      "tipo": "voo",
-      "label": "Voo",
-      "detalhe": "",
-      "dhd": false,
-      "euroAtlantic": true,
-      "voos": [
-        {"n": "AD8800", "o": "VCP", "d": "OPO", "dp": "19:40", "ar": "05:20", "du": "9h40", "ae": "763"}
-      ],
-      "tripulacao": [
-        {"nome": "THALYSSA ROCHA", "funcao": "SUP"},
-        {"nome": "ELIZAMA IODES", "funcao": "SUP"}
-      ],
       "pernoite": null
     }
   ]
@@ -203,8 +174,8 @@ Retorne APENAS o JSON válido, sem texto antes ou depois, sem markdown, sem back
     if (!parsed) {
       return res.status(500).json({
         error: 'Falha ao converter JSON',
-        rawExtraction: rawText.substring(0, 1000),
-        rawJson: jsonText.substring(0, 1000)
+        rawExtraction: rawText.substring(0, 2000),
+        rawJson: jsonText.substring(0, 2000)
       });
     }
 
