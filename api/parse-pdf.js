@@ -8,6 +8,57 @@ module.exports = async function handler(req, res) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
+  // ═══════════════════════════════════════════════════════════════════════
+  // HELPERS DE TEMPO — TODO cálculo é feito aqui em código, NUNCA pela IA.
+  // ═══════════════════════════════════════════════════════════════════════
+  const parseTime = (t) => {
+    if (!t) return null;
+    const m = String(t).match(/(\d{1,2}):(\d{2})/);
+    if (!m) return null;
+    let mins = parseInt(m[1]) * 60 + parseInt(m[2]);
+    if (/\+1/.test(String(t))) mins += 1440;
+    return mins;
+  };
+  const fmtTime = (mins) => {
+    mins = ((mins % 1440) + 1440) % 1440;
+    return `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
+  };
+  const durationStr = (start, end) => {
+    let s = parseTime(start), e = parseTime(end);
+    if (s == null || e == null) return '';
+    let diff = e - s;
+    if (diff < 0) diff += 1440;
+    return `${Math.floor(diff / 60)}h${String(diff % 60).padStart(2, '0')}`;
+  };
+  const durationHoras = (start, end) => {
+    let s = parseTime(start), e = parseTime(end);
+    if (s == null || e == null) return 0;
+    let diff = e - s;
+    if (diff < 0) diff += 1440;
+    return Math.round(diff / 60);
+  };
+  const subMinutes = (t, mins) => {
+    let v = parseTime(t);
+    if (v == null) return '';
+    return fmtTime(v - mins);
+  };
+
+  // Aeroportos internacionais (fora do Brasil)
+  const INTL = ['LIS','OPO','FLL','MIA','MCO','JFK','LAX','ORD','CDG','LHR','MAD','FCO','EZE','SCL','BOG','LIM','UIO','PUJ','SCL'];
+  const isIntlAirport = (iata) => INTL.includes((iata || '').toUpperCase());
+
+  // Apresentação: usa checkin lido se plausível, senão calcula (50 nac / 90 int)
+  const calcApres = (checkin, firstDep, isIntl) => {
+    const margin = isIntl ? 90 : 50;
+    const computed = subMinutes(firstDep, margin);
+    const a = parseTime(checkin), d = parseTime(firstDep);
+    if (a == null || d == null) return computed;
+    let gap = d - a;
+    if (gap < 0) gap += 1440;
+    if (gap < 20 || gap > 240) return computed; // checkin implausível → recalcula
+    return fmtTime(a);
+  };
+
   try {
     const { fileData, mediaType, debug } = req.body;
     if (!fileData) return res.status(400).json({ error: 'No file data' });
@@ -16,197 +67,129 @@ module.exports = async function handler(req, res) {
     const mt = mediaType || 'application/pdf';
     const contentType = isImage ? 'image' : 'document';
 
-    // ─── STEP 1: transcrição fiel do PDF ────────────────────────────────────
-    const step1Response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 8000,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: contentType, source: { type: 'base64', media_type: mt, data: fileData } },
-            { type: 'text', text: `Você está lendo uma escala do app "Minha Escala" da Azul Linhas Aéreas.
+    const callAPI = async (messages) => {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 8000, messages })
+      });
+      const d = await r.json();
+      if (d.error) throw new Error(d.error.message || 'API error');
+      return (d.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+    };
+
+    // ─── STEP 1: TRANSCRIÇÃO CRUA ────────────────────────────────────────────
+    // A IA só copia o que vê. Não calcula nada.
+    const rawText = await callAPI([{
+      role: 'user',
+      content: [
+        { type: contentType, source: { type: 'base64', media_type: mt, data: fileData } },
+        { type: 'text', text: `Você está lendo uma escala do app "Minha Escala" da Azul Linhas Aéreas.
 
 A tabela tem colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
-A coluna Crews tem uma sub-tabela com "Crew" (nome) e "Function" (função).
+A coluna Crews é uma sub-tabela com "Crew" (nome) e "Function" (função).
 
-ATENÇÃO — leia com extremo cuidado cada coluna:
+Sua tarefa é APENAS TRANSCREVER fielmente. Não calcule, não interprete, não invente. Copie exatamente o que está escrito.
 
-COLUNAS E O QUE FAZER COM CADA UMA:
-- "Activity": copie EXATAMENTE como está (ex: AD8750, AD4508, FR, FP, FC, FA, SB18, RHC22)
-- "Checkin": é o horário de APRESENTAÇÃO do tripulante (antes do voo). Use como CHECKIN.
-- "Start": é o horário de DECOLAGEM/INÍCIO do voo. Use como START. NÃO confunda com Checkin!
-- "End": é o horário de POUSO/FIM do voo. Use como END.
-- "Checkout": horário de saída após o voo.
-- "Dep": aeroporto de ORIGEM 3 letras (ex: VCP, LIS, OPO). NUNCA deixe vazio.
-- "Arr": aeroporto de DESTINO 3 letras (ex: LIS, VCP, REC). NUNCA deixe vazio. Copie as 3 letras completas.
-- "AcVer": aeronave EXATAMENTE como está (ex: 763, 772, 32N, 32Q, 32A, ATR, 330).
-- "DD/CAT": copie exatamente (ex: V, COBS, DHD, ou vazio)
-- "Crews": liste TODOS os tripulantes no formato NOME:FUNCAO
-
-EXEMPLO REAL de como ler uma linha de voo:
-Activity=AD8750, Checkin=16:25, Start=17:55, End=04:45, Dep=VCP, Arr=LIS
-→ Saída: 26/06/2026 | AD8750 | 17:55 | 04:45 | VCP | LIS | 763 | | NOMES
-
-Formato de saída — uma linha por atividade:
+Para CADA linha da tabela, gere uma linha no formato (separado por |):
 DATA | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT | CREWS
 
-Onde:
-- DATA = data da coluna Start em DD/MM/AAAA
-- CHECKIN = horário da coluna Checkin (apresentação)
-- START = horário da coluna Start (decolagem)
-- CREWS = NOME1:FUNC1, NOME2:FUNC2, ... (todos os tripulantes)
-- Para Layover: DATA | Layover | | START | END | LOCAL | LOCAL | | |
+Regras de cada campo:
+- DATA: a data da coluna Start, no formato DD/MM/AAAA. NUNCA coloque a data em outro campo.
+- ACTIVITY: o código exato (ex: AD8750, FR, FP, FC, FA, SB12, RHC22, ADP, ADPOB, Layover). Copie letra por letra.
+- CHECKIN: horário da coluna Checkin (formato HH:MM). Se vazio, deixe vazio.
+- START: horário da coluna Start (HH:MM).
+- END: horário da coluna End (HH:MM).
+- DEP: aeroporto origem (3 letras). Copie completo.
+- ARR: aeroporto destino (3 letras). Copie completo.
+- ACVER: aeronave (ex: 763, 772, 32N, 330). Copie exato.
+- DDCAT: coluna DD/CAT (ex: V, COBS, DHD, ou vazio).
+- CREWS: todos os tripulantes no formato NOME:FUNCAO separados por vírgula. Se vazio, deixe vazio.
 
-Transcreva TODAS as linhas sem pular nenhuma. Sem explicações.` }
-          ]
-        }]
-      })
-    });
+IMPORTANTE:
+- CHECKIN, START e END são TRÊS horários diferentes em colunas diferentes. Não troque a ordem.
+- Datas (DD/MM) nunca viram horário (HH:MM). São coisas diferentes.
+- Transcreva TODAS as linhas, inclusive ADP, ADPOB, Layover, folgas. Não pule nenhuma.
+- Para Layover (pernoite): DATA | Layover | | START | END | LOCAL | LOCAL | | |
 
-    const step1Data = await step1Response.json();
-    if (step1Data.error) throw new Error(step1Data.error.message || 'API error step1');
-    const rawText = (step1Data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+Responda apenas com as linhas transcritas, sem explicação.` }
+      ]
+    }]);
 
-    if (debug) {
-      return res.status(200).json({ debug: true, rawText });
-    }
+    if (debug) return res.status(200).json({ debug: true, rawText });
 
-    // ─── STEP 2: converte para JSON ──────────────────────────────────────────
-    const step2Response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 8000,
-        messages: [{
-          role: 'user',
-          content: [{
-            type: 'text',
-            text: `Converta esta transcrição de escala de voo em JSON seguindo EXATAMENTE o formato especificado.
+    // ─── STEP 2: ESTRUTURA EM JSON (sem cálculos) ────────────────────────────
+    // A IA organiza em JSON mas NÃO calcula durações nem apresentação.
+    const jsonText = await callAPI([{
+      role: 'user',
+      content: [{
+        type: 'text',
+        text: `Converta esta transcrição de escala em JSON. NÃO calcule nada — apenas organize os dados crus.
 
-TRANSCRIÇÃO:
+TRANSCRIÇÃO (formato: DATA | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT | CREWS):
 ${rawText}
 
-FORMATO DA TRANSCRIÇÃO: DATA | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT | CREWS
-- CHECKIN = horário de apresentação do tripulante → use como "apres" no JSON do dia
-- START = horário real de decolagem → use como "dp" no voo
-- END = horário real de pouso → use como "ar" no voo
+═══ COMO CLASSIFICAR CADA ATIVIDADE (campo "tipo") ═══
+- FR        → "fr"
+- FP ou PP  → "fp"
+- FC        → "fc"
+- FA (quando é a atividade do dia, não função) → "fa"
+- SB seguido de número (SB12, SB18...) → "sb"
+- RHC ou RHC+número → "rea"
+- ADP       → "adp"
+- ADPOB     → "adpob"
+- AD####, G3###, LA###, JJ### → "voo"
+- DHD       → "voo" com "dhd": true
+- Layover   → NÃO é dia próprio. Vira "pernoite" do dia do voo anterior.
 
-SOBREAVISO — calcule a duração real (END - START):
-Exemplo: START=12:00, END=20:00 → 8h → detalhe: "12:00 - 8h"
-Exemplo: START=18:00, END=06:00 → 12h → detalhe: "18:00 - 12h"
-NUNCA coloque 12h fixo. Sempre calcule do START até o END.
+NUNCA classifique ADP, ADPOB, FC, FA como "fr". Cada código tem seu tipo próprio.
 
-═══ TIPOS DE ATIVIDADE ═══
-FR, FP, PP → tipo: "fr" ou "fp", label: "Folga" ou "Folga Programada"
-FC  → tipo: "fc", label: "Folga Casada"
-FA  → tipo: "fa", label: "Folga Aniversário"  ← só quando FA é a atividade, não função
-SB+número → tipo: "sb", label: "Sobreaviso", detalhe: "HH:MM - Xh" (X = END - START calculado)
-RHC+qualquer → tipo: "rea", label: "Reserva" — NUNCA tem voos
-ADP  → tipo: "adp", label: "Adaptação"
-ADPOB → tipo: "adpob", label: "Adaptação fora da base"
-AD####, G3###, LA###, JJ### → tipo: "voo", label: "Voo"
-DHD → tipo: "voo", label: "DHD · Extra a Serviço", dhd: true
-Layover → NÃO é dia separado, vira pernoite no dia anterior
-DDCAT "COBS" ou "V" → euroAtlantic: true no dia
-
-═══ AGRUPAMENTO ═══
-Múltiplos voos na mesma data → 1 objeto de dia, array "voos" com todos
-Layover → pernoite: {"l":"AEROPORTO","ci":"HH:MM","co":"HH:MM"} no dia anterior
-Dias ausentes → incluir como tipo "fr"
-O mês deve ter TODOS os dias do 1 ao último
-
-═══ FUNÇÕES DE TRIPULAÇÃO ═══
-CA→"CA", FO→"FO", CL→"CL", FA→"FA", FE→"FE", SUP→"SUP", COBS→"SUP", V→"SUP", DHD→"DHD"
-Incluir TODOS os tripulantes listados.
-
-═══ FORMATO OBRIGATÓRIO DOS VOOS ═══
-ATENÇÃO: use EXATAMENTE estes nomes de campos para cada voo:
-- "n"  = número do voo (ex: "AD8750")
-- "o"  = origem 3 letras (ex: "VCP") — NUNCA null
-- "d"  = destino 3 letras (ex: "LIS") — NUNCA null
-- "dp" = horário partida "HH:MM"
-- "ar" = horário chegada "HH:MM"
-- "du" = duração calculada (ex: "11h30")
-- "ae" = aeronave (ex: "763", "32N", "330")
-
-NÃO use: "voo", "partida", "chegada", "origem", "destino", "aeronave" — esses nomes estão ERRADOS.
-Use APENAS: "n", "o", "d", "dp", "ar", "du", "ae"
-
-Retorne APENAS o JSON válido, sem texto antes ou depois, sem markdown, sem backticks:
-
+═══ ESTRUTURA DE SAÍDA ═══
+Para cada DIA, um objeto com os dados CRUS (sem calcular durações ou apresentação):
 {
-  "mes": "Junho 2026",
-  "resumo": {"voos": 0, "pernoites": 0, "folgas": 0, "sb": 0},
-  "dias": [
-    {
-      "dia": 1,
-      "tipo": "fr",
-      "label": "Folga",
-      "detalhe": "",
-      "dhd": false,
-      "euroAtlantic": false,
-      "voos": [],
-      "tripulacao": [],
-      "pernoite": null
-    },
-    {
-      "dia": 26,
-      "tipo": "voo",
-      "label": "Voo",
-      "detalhe": "",
-      "dhd": false,
-      "euroAtlantic": false,
-      "apres": "16:25",
-      "voos": [
-        {"n": "AD8750", "o": "VCP", "d": "LIS", "dp": "17:55", "ar": "04:45+1", "du": "10h50", "ae": "763"}
-      ],
-      "tripulacao": [
-        {"nome": "SCANDUZZI", "funcao": "CA"},
-        {"nome": "SONI", "funcao": "FO"},
-        {"nome": "JULIETTI GALHARDO", "funcao": "CL"},
-        {"nome": "NATALI MICHELLIM", "funcao": "FE"},
-        {"nome": "ERICKSON RODRIGUES", "funcao": "FA"}
-      ],
-      "pernoite": {"l": "LIS", "ci": "17:55", "co": "04:45"}
-    }
-  ]
+  "dia": <número>,
+  "tipo": "<fr|fp|fc|fa|sb|rea|adp|adpob|voo>",
+  "dhd": <true se DHD, senão false>,
+  "checkin": "<CHECKIN cru do primeiro voo, ou vazio>",
+  "ddcat": "<DDCAT cru, ou vazio>",
+  "sbInicio": "<START, só para SB>",
+  "sbFim": "<END, só para SB>",
+  "voos": [
+    {"n":"<ACTIVITY>","o":"<DEP>","d":"<ARR>","dp":"<START>","ar":"<END>","ae":"<ACVER>"}
+  ],
+  "tripulacao": [{"nome":"<NOME>","funcao":"<FUNCAO>"}],
+  "pernoite": {"l":"<LOCAL do Layover>","ci":"<START layover>","co":"<END layover>"} 
+}
+
+REGRAS:
+- Vários voos na mesma DATA → 1 objeto de dia, todos no array "voos".
+- A tripulação é compartilhada pelos voos do mesmo dia.
+- Layover vira "pernoite" do dia do voo imediatamente anterior (não cria dia novo).
+- Funções da tripulação: CA, FO, CL, FA, FE, SUP. Converta COBS→SUP, V→SUP, DHD→DHD.
+- Para dias que não são voo (fr, fp, fc, fa, sb, rea, adp, adpob): "voos" vazio [], "tripulacao" vazio [].
+- Inclua TODOS os dias do mês, do 1 ao último. Dia sem nenhuma linha na transcrição = tipo "fr".
+- NÃO calcule "du" (duração) nem horário de apresentação. O sistema calcula isso depois.
+
+Identifique o mês e ano pelas datas. Responda APENAS o JSON, sem texto nem markdown:
+{
+  "mes": "<Mês AAAA>",
+  "dias": [ ... ]
 }`
-          }]
-        }]
-      })
-    });
+      }]
+    }]);
 
-    const step2Data = await step2Response.json();
-    if (step2Data.error) throw new Error(step2Data.error.message || 'API error step2');
-    const jsonText = (step2Data.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
-
-    // ─── PARSE E REPAIR ──────────────────────────────────────────────────────
+    // ─── PARSE + REPAIR ──────────────────────────────────────────────────────
     const extractAndRepair = (text) => {
       let clean = text.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
       const match = clean.match(/\{[\s\S]*\}/);
       if (!match) return null;
       try { return JSON.parse(match[0]); }
       catch (e) {
-        let t = match[0];
-        t = t.replace(/,\s*([}\]])/g, '$1');
+        let t = match[0].replace(/,\s*([}\]])/g, '$1');
         let opens = 0, objOpens = 0;
         for (let c of t) {
-          if (c === '[') opens++;
-          else if (c === ']') opens--;
-          if (c === '{') objOpens++;
-          else if (c === '}') objOpens--;
+          if (c === '[') opens++; else if (c === ']') opens--;
+          if (c === '{') objOpens++; else if (c === '}') objOpens--;
         }
         while (opens > 0) { t += ']'; opens--; }
         while (objOpens > 0) { t += '}'; objOpens--; }
@@ -215,61 +198,88 @@ Retorne APENAS o JSON válido, sem texto antes ou depois, sem markdown, sem back
     };
 
     const parsed = extractAndRepair(jsonText);
-
-    if (!parsed) {
-      return res.status(500).json({
-        error: 'Falha ao converter JSON',
-        rawExtraction: rawText.substring(0, 2000),
-        rawJson: jsonText.substring(0, 2000)
-      });
+    if (!parsed || !parsed.dias) {
+      return res.status(500).json({ error: 'Falha ao converter JSON', rawExtraction: rawText.substring(0, 2000), rawJson: jsonText.substring(0, 2000) });
     }
 
-    // ─── NORMALIZA E CORRIGE CAMPOS ───────────────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════════
+    // PÓS-PROCESSAMENTO EM CÓDIGO — aqui acontecem TODOS os cálculos.
+    // ═══════════════════════════════════════════════════════════════════════
     const labels = {
       fr: 'Folga', fp: 'Folga Programada', fc: 'Folga Casada',
       fa: 'Folga Aniversário', voo: 'Voo', rea: 'Reserva',
       sb: 'Sobreaviso', adp: 'Adaptação', adpob: 'Adaptação fora da base'
     };
 
-    (parsed.dias || []).forEach(d => {
-      if (!d.voos) d.voos = [];
-      if (!d.tripulacao) d.tripulacao = [];
-      if (!d.pernoite) d.pernoite = null;
-      if (!d.detalhe) d.detalhe = '';
-      if (d.dhd === undefined) d.dhd = false;
-      if (d.euroAtlantic === undefined) d.euroAtlantic = false;
-      if (!d.label) d.label = labels[d.tipo] || d.tipo;
+    parsed.dias.forEach(d => {
+      d.voos = Array.isArray(d.voos) ? d.voos : [];
+      d.tripulacao = Array.isArray(d.tripulacao) ? d.tripulacao : [];
+      d.pernoite = d.pernoite && d.pernoite.l ? d.pernoite : null;
+      d.dhd = d.dhd === true;
+      d.detalhe = d.detalhe || '';
 
-      // Corrige campos com nomes errados nos voos
-      d.voos = d.voos.map(v => {
-        const corrected = {};
-        corrected.n   = v.n   || v.voo    || v.numero   || v.flight || '';
-        corrected.o   = v.o   || v.origem  || v.dep      || v.from   || '';
-        corrected.d   = v.d   || v.destino || v.arr      || v.to     || '';
-        corrected.dp  = v.dp  || (v.partida  ? v.partida.substring(11,16)  : '') || '';
-        corrected.ar  = v.ar  || (v.chegada  ? v.chegada.substring(11,16)  : '') || '';
-        corrected.du  = v.du  || v.duracao  || v.duration || '';
-        corrected.ae  = v.ae  || v.aeronave || v.aircraft || v.acver  || '';
-        return corrected;
-      });
-    });
+      // euroAtlantic pela coluna DD/CAT
+      const ddcat = (d.ddcat || '').toUpperCase();
+      d.euroAtlantic = ddcat === 'COBS' || ddcat === 'V';
 
-    // ─── RECALCULA RESUMO ─────────────────────────────────────────────────────
-    const resumo = { voos: 0, pernoites: 0, folgas: 0, sb: 0 };
-    (parsed.dias || []).forEach(d => {
-      if (d.tipo === 'voo') {
-        resumo.voos += d.voos.length > 0 ? d.voos.length : 1;
-        if (d.pernoite) resumo.pernoites++;
-      } else if (['fr', 'fp', 'fc', 'fa'].includes(d.tipo)) {
-        resumo.folgas++;
-      } else if (d.tipo === 'sb') {
-        resumo.sb++;
+      // ----- VOO: calcula duração de cada trecho e apresentação do dia -----
+      if (d.tipo === 'voo' && d.voos.length > 0) {
+        d.voos.forEach(v => {
+          v.n = v.n || '--';
+          v.o = (v.o || '--').toUpperCase();
+          v.d = (v.d || '--').toUpperCase();
+          v.dp = v.dp || '--';
+          v.ar = v.ar || '--';
+          v.ae = v.ae || '--';
+          v.du = durationStr(v.dp, v.ar) || '--';  // duração calculada em código
+        });
+        // apresentação: do primeiro voo. internacional se origem OU destino for intl
+        const first = d.voos[0];
+        const intl = d.voos.some(v => isIntlAirport(v.o) || isIntlAirport(v.d)) || d.euroAtlantic;
+        d.apres = calcApres(d.checkin, first.dp, intl);
+        d.apresLocal = first.o;
+
+        // pernoite internacional?
+        if (d.pernoite) {
+          d.pernoite.int = isIntlAirport(d.pernoite.l);
+        }
       }
+
+      // ----- SOBREAVISO: calcula horas reais (END - START) -----
+      if (d.tipo === 'sb') {
+        const ini = d.sbInicio || '12:00';
+        const fim = d.sbFim || '';
+        const horas = fim ? durationHoras(ini, fim) : 12;
+        d.sbInicio = ini;
+        d.sbFim = fim || fmtTime(parseTime(ini) + horas * 60);
+        d.sbHoras = horas;
+        d.detalhe = `${d.sbInicio} - ${horas}h`;
+      }
+
+      // label final
+      d.label = labels[d.tipo] || d.tipo;
     });
-    parsed.resumo = resumo;
+
+    // ----- garante todos os dias do mês, sem sobrescrever atividades lidas -----
+    const maxDia = Math.max(...parsed.dias.map(d => d.dia || 0), 28);
+    const porDia = {};
+    parsed.dias.forEach(d => { if (d.dia) porDia[d.dia] = d; });
+    const diasFinal = [];
+    for (let i = 1; i <= maxDia; i++) {
+      if (porDia[i]) diasFinal.push(porDia[i]);
+      else diasFinal.push({ dia: i, tipo: 'fr', label: 'Folga', detalhe: '', dhd: false, euroAtlantic: false, voos: [], tripulacao: [], pernoite: null });
+    }
+
+    // ----- resumo calculado em código -----
+    const resumo = { voos: 0, pernoites: 0, folgas: 0, sb: 0 };
+    diasFinal.forEach(d => {
+      if (d.tipo === 'voo') { resumo.voos += d.voos.length || 1; if (d.pernoite) resumo.pernoites++; }
+      else if (['fr', 'fp', 'fc', 'fa'].includes(d.tipo)) resumo.folgas++;
+      else if (d.tipo === 'sb') resumo.sb++;
+    });
 
     return res.status(200).json({
-      content: [{ type: 'text', text: JSON.stringify(parsed) }]
+      content: [{ type: 'text', text: JSON.stringify({ mes: parsed.mes || 'Junho 2026', resumo, dias: diasFinal }) }]
     });
 
   } catch (err) {
@@ -279,8 +289,5 @@ Retorne APENAS o JSON válido, sem texto antes ou depois, sem markdown, sem back
 };
 
 module.exports.config = {
-  api: {
-    bodyParser: { sizeLimit: '10mb' },
-    maxDuration: 60
-  }
+  api: { bodyParser: { sizeLimit: '10mb' }, maxDuration: 60 }
 };
