@@ -1,5 +1,3 @@
-const { createCanvas, loadImage } = (() => { try { return require('canvas'); } catch(e) { return {}; } })();
-
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -41,60 +39,81 @@ module.exports = async function handler(req, res) {
   };
 
   try {
-    const {fileData, mediaType} = req.body;
+    const {fileData, mediaType, strips} = req.body;
     if (!fileData) return res.status(400).json({error:'No file data'});
 
-    const isImage = (mediaType||'').startsWith('image/');
-    let imgB64 = fileData;
-
-    // Extrai JPEG do PDF
-    if (!isImage) {
-      try {
-        const pdf = Buffer.from(fileData,'base64');
-        const s = pdf.indexOf(Buffer.from([0xFF,0xD8,0xFF]));
-        const e = pdf.lastIndexOf(Buffer.from([0xFF,0xD9]));
-        if (s>=0 && e>s) imgB64 = pdf.slice(s,e+2).toString('base64');
-      } catch(e) {}
-    }
-
-    const prompt = (parte, total, dias) => `Esta é a PARTE ${parte} de ${total} de uma escala da Azul Linhas Aéreas.
-Você deve transcrever APENAS as linhas dos DIAS ${dias} desta imagem.
+    const prompt = (parte, total, dias) => `Esta é a PARTE ${parte} de ${total} de uma escala de voo da Azul Linhas Aéreas.
+Transcreva APENAS as linhas dos DIAS ${dias}.
 
 Colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
-ATENÇÃO: Checkin, Start e End são 3 colunas DIFERENTES. Checkin=apresentação, Start=decolagem, End=pouso.
+ATENÇÃO: Checkin, Start e End são 3 colunas DIFERENTES!
+- Checkin = hora de apresentação (ANTES da decolagem)
+- Start = hora de DECOLAGEM
+- End = hora de POUSO
 
-Aeroportos VÁLIDOS para Dep/Arr (use SEMPRE um destes):
+Aeroportos válidos para Dep/Arr — use SEMPRE um destes:
 ${AEROPORTOS.join(', ')}
-Se ver "US" ou "IS" → é LIS. Se ver "BE" → é BEL.
+Se ver "US" ou "IS" = LIS. Se ver "BE" = BEL.
 
-Para cada linha dos dias ${dias}, gere (separado por |):
+Gere uma linha por atividade (separado por |):
 DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT | CREWS
-- DATA_INI: data do Start (DD/MM/AAAA). DATA_FIM: data do End.
-- CHECKIN/START/END: apenas HH:MM de cada coluna respectiva.
+- DATA_INI: data do Start (DD/MM/AAAA). DATA_FIM: data do End (DD/MM/AAAA).
+- CHECKIN, START, END: só HH:MM de cada coluna respectiva.
 - CREWS: NOME:FUNCAO por vírgula.
-Responda APENAS as linhas, sem explicação.`;
+Responda SÓ as linhas, sem explicação.`;
 
-    // Manda a mesma imagem 3x, cada vez focando em 10 dias
-    const [t1, t2, t3] = await Promise.all([
-      callClaude([
-        {type:'image',source:{type:'base64',media_type:'image/jpeg',data:imgB64}},
-        {type:'text',text:prompt(1,3,'1 a 10')}
-      ]).catch(()=>''),
-      callClaude([
-        {type:'image',source:{type:'base64',media_type:'image/jpeg',data:imgB64}},
-        {type:'text',text:prompt(2,3,'11 a 20')}
-      ]).catch(()=>''),
-      callClaude([
-        {type:'image',source:{type:'base64',media_type:'image/jpeg',data:imgB64}},
-        {type:'text',text:prompt(3,3,'21 ao final do mês')}
-      ]).catch(()=>'')
-    ]);
+    let t1='', t2='', t3='';
+
+    if (strips && strips.length === 3) {
+      // Usa as strips cortadas pelo navegador — NÍTIDAS!
+      console.log('Usando strips do navegador:', strips.map(s=>s.length));
+      [t1, t2, t3] = await Promise.all([
+        callClaude([
+          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:strips[0]}},
+          {type:'text',text:prompt(1,3,'1 a 10')}
+        ]).catch(e=>{console.log('Strip 1 erro:',e.message);return '';}),
+        callClaude([
+          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:strips[1]}},
+          {type:'text',text:prompt(2,3,'11 a 20')}
+        ]).catch(e=>{console.log('Strip 2 erro:',e.message);return '';}),
+        callClaude([
+          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:strips[2]}},
+          {type:'text',text:prompt(3,3,'21 ao final do mês')}
+        ]).catch(e=>{console.log('Strip 3 erro:',e.message);return '';})
+      ]);
+    } else {
+      // Fallback: manda imagem inteira 3x com foco em cada período
+      console.log('Sem strips, usando imagem inteira 3x');
+      const isImage = (mediaType||'').startsWith('image/');
+      let imgB64 = fileData;
+      if (!isImage) {
+        try {
+          const pdf = Buffer.from(fileData,'base64');
+          const s = pdf.indexOf(Buffer.from([0xFF,0xD8,0xFF]));
+          const e = pdf.lastIndexOf(Buffer.from([0xFF,0xD9]));
+          if (s>=0 && e>s) imgB64 = pdf.slice(s,e+2).toString('base64');
+        } catch(e) {}
+      }
+      [t1, t2, t3] = await Promise.all([
+        callClaude([
+          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:imgB64}},
+          {type:'text',text:prompt(1,3,'1 a 10')}
+        ]).catch(()=>''),
+        callClaude([
+          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:imgB64}},
+          {type:'text',text:prompt(2,3,'11 a 20')}
+        ]).catch(()=>''),
+        callClaude([
+          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:imgB64}},
+          {type:'text',text:prompt(3,3,'21 ao final do mês')}
+        ]).catch(()=>'')
+      ]);
+    }
 
     const rawText = [t1,t2,t3].filter(Boolean).join('\n');
-    console.log('Transcrições OK. Total chars:', rawText.length);
-    console.log('Amostra:', rawText.substring(0,300));
+    console.log('Total chars transcritos:', rawText.length);
+    console.log('Amostra:', rawText.substring(0,200));
 
-    // Step 2: JSON
     const jsonText = await callClaude([{type:'text',text:`Converta esta transcrição em JSON. NÃO calcule nada.
 
 TRANSCRIÇÃO:
@@ -113,8 +132,7 @@ POR DIA: {"dia":<dia DATA_INI>,"diaFim":<dia DATA_FIM>,"tipo":"...","dhd":<bool>
 
 Vários voos mesma DATA_INI → 1 objeto. Funções: CA,FO,CL,FA,FE,SUP (COBS→SUP,V→SUP,DHD→DHD).
 Dias não-voo: voos:[] e tripulacao:[]. NÃO calcule duração nem apresentação.
-Se linha repetida, use só uma vez.
-Responda APENAS: {"mes":"<Mês AAAA>","dias":[ ... ]}`}], 8000);
+Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
 
     const extractAndRepair=(t)=>{let c=t.replace(/```json\s*/gi,'').replace(/```\s*/gi,'').trim();const m=c.match(/\{[\s\S]*\}/);if(!m)return null;try{return JSON.parse(m[0]);}catch(e){let x=m[0].replace(/,\s*([}\]])/g,'$1');let o=0,oo=0;for(let ch of x){if(ch==='[')o++;else if(ch===']')o--;if(ch==='{')oo++;else if(ch==='}')oo--;}while(o>0){x+=']';o--;}while(oo>0){x+='}';oo--;}try{return JSON.parse(x);}catch(e2){return null;}}};
 
@@ -183,4 +201,4 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[ ... ]}`}], 8000);
     return res.status(500).json({error:err.message});
   }
 };
-module.exports.config={api:{bodyParser:{sizeLimit:'15mb'},maxDuration:120}};
+module.exports.config={api:{bodyParser:{sizeLimit:'50mb'},maxDuration:120}};
