@@ -126,6 +126,7 @@ Responda só as linhas.`}
     }
 
     // ── STEP 2: Claude converte o texto OCR em JSON ───────────────────────────
+    const rawTextTrunc = rawText.length > 12000 ? rawText.substring(0, 12000) : rawText;
     const jsonText = await callClaude([{
       type:'text',
       text:`O texto abaixo foi extraído por OCR de uma escala da Azul Linhas Aéreas.
@@ -134,7 +135,7 @@ A tabela tem colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | 
 Converta em JSON. NÃO calcule nada — só organize os dados.
 
 TEXTO OCR:
-${rawText}
+${rawTextTrunc}
 
 CLASSIFICAÇÃO:
 FR→"fr"; FP/PP→"fp"; FC→"fc"; FA(atividade)→"fa"; SB+nº→"sb"; RHC...→"rea";
