@@ -27,7 +27,7 @@ module.exports = async function handler(req, res) {
   const isIntl=(i)=>INTL.has((i||'').toUpperCase());
   const calcApres=(checkin,dep,intl)=>{const margin=intl?90:50;const computed=subMinutes(dep,margin);const a=parseTime(checkin),d=parseTime(dep);if(a==null||d==null)return computed;let gap=d-a;if(gap<0)gap+=1440;if(gap<20||gap>240)return computed;return fmtTime(a);};
 
-  const callClaude = async (content, maxTokens=4000) => {
+  const callClaude = async (content, maxTokens=6000) => {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
@@ -42,8 +42,8 @@ module.exports = async function handler(req, res) {
     const {fileData, mediaType, strips} = req.body;
     if (!fileData) return res.status(400).json({error:'No file data'});
 
-    const prompt = (parte, total, dias) => `Esta é a PARTE ${parte} de ${total} de uma escala de voo da Azul Linhas Aéreas.
-Transcreva APENAS as linhas dos DIAS ${dias}.
+    const prompt = (parte, total, dias) => `Esta é uma parte de uma escala de voo da Azul Linhas Aéreas.
+Transcreva TODAS as linhas visíveis nesta imagem.
 
 Colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
 ATENÇÃO: Checkin, Start e End são 3 colunas DIFERENTES!
