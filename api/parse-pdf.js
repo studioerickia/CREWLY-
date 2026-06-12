@@ -6,7 +6,7 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  const googleCredsRaw = process.env.GOOGLE_CREDS;
+  const geminiKey = process.env.GEMINI_KEY;
   if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
   const AEROPORTOS = ['VCP','GRU','CGH','SDU','GIG','BSB','CNF','CWB','POA','FLN','NVT','JOI',
@@ -28,54 +28,13 @@ module.exports = async function handler(req, res) {
   const isIntl=(i)=>INTL.has((i||'').toUpperCase());
   const calcApres=(checkin,dep,intl)=>{const margin=intl?90:50;const computed=subMinutes(dep,margin);const a=parseTime(checkin),d=parseTime(dep);if(a==null||d==null)return computed;let gap=d-a;if(gap<0)gap+=1440;if(gap<20||gap>240)return computed;return fmtTime(a);};
 
-  // ── GOOGLE VISION OCR ──────────────────────────────────────────────────────
-  async function getGoogleToken(creds) {
-    const b64url = (d) => {
-      if (typeof d === 'string') d = Buffer.from(d);
-      return d.toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
-    };
-    const now = Math.floor(Date.now()/1000);
-    const header = b64url(JSON.stringify({alg:'RS256',typ:'JWT'}));
-    const payload = b64url(JSON.stringify({
-      iss: creds.client_email,
-      scope: 'https://www.googleapis.com/auth/cloud-vision',
-      aud: creds.token_uri,
-      exp: now+3600, iat: now
-    }));
-    const crypto = require('crypto');
-    const sign = crypto.createSign('RSA-SHA256');
-    sign.update(`${header}.${payload}`);
-    const sig = b64url(sign.sign(creds.private_key));
-    const jwt = `${header}.${payload}.${sig}`;
-
-    const body = `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`;
-    const r = await fetch(creds.token_uri, {
-      method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body
-    });
-    const d = await r.json();
-    if (!d.access_token) throw new Error('Token error: '+JSON.stringify(d));
-    return d.access_token;
-  }
-
-  async function visionOCR(imgB64, token) {
-    const r = await fetch('https://vision.googleapis.com/v1/images:annotate', {
-      method:'POST',
-      headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
-      body: JSON.stringify({requests:[{image:{content:imgB64},features:[{type:'DOCUMENT_TEXT_DETECTION'}]}]})
-    });
-    const d = await r.json();
-    if (d.error) throw new Error('Vision error: '+d.error.message);
-    return d.responses?.[0]?.fullTextAnnotation?.text || '';
-  }
-
   try {
     const {fileData, mediaType} = req.body;
     if (!fileData) return res.status(400).json({error:'No file data'});
 
     const isImage = (mediaType||'').startsWith('image/');
     let imgB64 = fileData;
+    let imgMT = isImage ? mediaType : 'image/jpeg';
 
     // Extrai JPEG do PDF
     if (!isImage) {
@@ -87,90 +46,122 @@ module.exports = async function handler(req, res) {
       } catch(e) {}
     }
 
-    const callClaude = async (content) => {
-      const r = await fetch('https://api.anthropic.com/v1/messages', {
-        method:'POST',
-        headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
-        body: JSON.stringify({model:'claude-sonnet-4-6',max_tokens:8000,messages:[{role:'user',content}]})
-      });
-      const d = await r.json();
-      if (d.error) throw new Error(d.error.message);
-      return (d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
-    };
-
-    // ── STEP 1: OCR com Google Vision (texto preciso) OU fallback para Claude ─
+    // ── STEP 1: Gemini OCR (lê a imagem com precisão) ─────────────────────────
     let rawText = '';
-    if (googleCredsRaw) {
+    if (geminiKey) {
       try {
-        const creds = JSON.parse(googleCredsRaw);
-        const token = await getGoogleToken(creds);
-        // OCR da imagem completa — Vision API lida com imagens grandes perfeitamente
-        rawText = await visionOCR(imgB64, token);
-        console.log('Vision OCR OK, chars:', rawText.length);
-console.log('RAWTEXT:', rawText.substring(0, 3000));
+        const prompt = `Você está lendo uma tabela de escala de voo da Azul Linhas Aéreas.
+Colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
+
+IMPORTANTE — leia com máxima atenção:
+- Checkin, Start e End são 3 colunas DIFERENTES com horários diferentes
+- Start é a decolagem, Checkin é a apresentação (antes do Start)
+- Dep e Arr são aeroportos de 3 letras. LIS = Lisboa, VCP = Campinas
+- Datas têm formato "DD JUN 2026", horários têm formato "HH:MM"
+
+Para cada linha da tabela, gere (separado por |):
+DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT | CREWS
+
+Onde:
+- DATA_INI = data da coluna Start (DD/MM/AAAA)
+- DATA_FIM = data da coluna End (DD/MM/AAAA)  
+- CHECKIN = só a hora HH:MM da coluna Checkin
+- START = só a hora HH:MM da coluna Start
+- END = só a hora HH:MM da coluna End
+- CREWS = NOME:FUNCAO separados por vírgula
+
+Transcreva TODAS as linhas. Responda apenas as linhas, sem explicação.`;
+
+        const r = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
+          {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+              contents: [{parts: [
+                {inline_data: {mime_type: imgMT, data: imgB64}},
+                {text: prompt}
+              ]}]
+            })
+          }
+        );
+        const d = await r.json();
+        if (d.candidates?.[0]?.content?.parts?.[0]?.text) {
+          rawText = d.candidates[0].content.parts[0].text;
+          console.log('Gemini OCR OK, chars:', rawText.length);
+          console.log('RAWTEXT SAMPLE:', rawText.substring(0, 500));
+        } else {
+          console.log('Gemini sem resultado:', JSON.stringify(d).substring(0,200));
+        }
       } catch(e) {
-        console.log('Vision falhou, usando Claude:', e.message);
+        console.log('Gemini falhou:', e.message);
       }
     }
 
-    // Fallback: Claude lê a imagem diretamente
+    // Fallback: Claude lê direto
     if (!rawText) {
+      console.log('Usando Claude como fallback');
       const ct = isImage ? 'image' : 'document';
       const mt = isImage ? mediaType : 'application/pdf';
-      rawText = await callClaude([
-        {type:ct, source:{type:'base64',media_type:mt,data:fileData}},
-        {type:'text', text:`Transcreva esta escala da Azul linha por linha no formato:
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+        body: JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,messages:[{role:'user',content:[
+          {type:ct,source:{type:'base64',media_type:mt,data:fileData}},
+          {type:'text',text:`Transcreva esta escala da Azul linha por linha:
 DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT | CREWS
 Aeroportos válidos: ${AEROPORTOS.join(', ')}
 Responda só as linhas.`}
-      ]);
+        ]}]})
+      });
+      const d = await r.json();
+      rawText = (d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
     }
 
-    // ── STEP 2: Claude converte o texto OCR em JSON ───────────────────────────
-    const rawTextTrunc = rawText.length > 12000 ? rawText.substring(0, 12000) : rawText;
-    const jsonText = await callClaude([{
-      type:'text',
-      text:`O texto abaixo foi extraído por OCR de uma escala da Azul Linhas Aéreas.
-A tabela tem colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
+    // ── STEP 2: Claude converte texto em JSON ─────────────────────────────────
+    const rawTextTrunc = rawText.length > 12000 ? rawText.substring(0,12000) : rawText;
 
-Converta em JSON. NÃO calcule nada — só organize os dados.
+    const r2 = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+      body: JSON.stringify({model:'claude-sonnet-4-6',max_tokens:8000,messages:[{role:'user',content:[{type:'text',text:`Converta esta transcrição de escala em JSON. NÃO calcule nada.
 
-TEXTO OCR:
+TRANSCRIÇÃO (DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT | CREWS):
 ${rawTextTrunc}
 
-CLASSIFICAÇÃO:
-FR→"fr"; FP/PP→"fp"; FC→"fc"; FA(atividade)→"fa"; SB+nº→"sb"; RHC...→"rea";
+CLASSIFICAÇÃO: FR→"fr"; FP/PP→"fp"; FC→"fc"; FA(atividade)→"fa"; SB+nº→"sb"; RHC...→"rea";
 ADP→"adp"; ADPOB→"adpob"; AD####/G3###/LA###/JJ###→"voo"; DHD→"voo"+"dhd":true;
 Layover→pernoite do dia do voo anterior. NUNCA classifique ADP/ADPOB/FC/FA como "fr".
 
-POR DIA: {"dia":<nº>,"diaFim":<nº>,"tipo":"...","dhd":<bool>,
-"checkin":"<hora checkin>","ddcat":"<ddcat>","local":"<dep só adp/adpob>",
-"sbInicio":"<start sb>","sbFim":"<end sb>",
-"voos":[{"n":"<activity>","o":"<dep>","d":"<arr>","dp":"<start>","ar":"<end>","ae":"<acver>"}],
-"tripulacao":[{"nome":"<nome>","funcao":"<funcao>"}],
-"pernoite":{"l":"<local>","ci":"<start layover>","co":"<end layover>"}}
+POR DIA: {"dia":<dia DATA_INI>,"diaFim":<dia DATA_FIM>,"tipo":"...","dhd":<bool>,
+"checkin":"<CHECKIN 1º voo>","ddcat":"<DDCAT>","local":"<DEP só adp/adpob>",
+"sbInicio":"<START sb>","sbFim":"<END sb>",
+"voos":[{"n":"<ACTIVITY>","o":"<DEP>","d":"<ARR>","dp":"<START>","ar":"<END>","ae":"<ACVER>"}],
+"tripulacao":[{"nome":"<NOME>","funcao":"<FUNCAO>"}],
+"pernoite":{"l":"<LOCAL>","ci":"<START layover>","co":"<END layover>"}}
 
-Vários voos mesma data → 1 objeto. Funções: CA,FO,CL,FA,FE,SUP (COBS→SUP,V→SUP,DHD→DHD).
+Vários voos mesma DATA_INI → 1 objeto. Funções: CA,FO,CL,FA,FE,SUP (COBS→SUP,V→SUP,DHD→DHD).
 Dias não-voo: voos:[] e tripulacao:[]. NÃO calcule duração nem apresentação.
-Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`
-    }]);
+Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}]}]})
+    });
+    const d2 = await r2.json();
+    const jsonText = (d2.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
 
     const extractAndRepair=(t)=>{let c=t.replace(/```json\s*/gi,'').replace(/```\s*/gi,'').trim();const m=c.match(/\{[\s\S]*\}/);if(!m)return null;try{return JSON.parse(m[0]);}catch(e){let x=m[0].replace(/,\s*([}\]])/g,'$1');let o=0,oo=0;for(let ch of x){if(ch==='[')o++;else if(ch===']')o--;if(ch==='{')oo++;else if(ch==='}')oo--;}while(o>0){x+=']';o--;}while(oo>0){x+='}';oo--;}try{return JSON.parse(x);}catch(e2){return null;}}};
 
     const parsed = extractAndRepair(jsonText);
-    if (!parsed||!parsed.dias) return res.status(500).json({error:'Falha JSON',rawText:rawText.substring(0,1000)});
+    if (!parsed||!parsed.dias) return res.status(500).json({error:'Falha JSON',rawSample:rawText.substring(0,500)});
 
     const mesNome=(parsed.mes||'junho 2026').toLowerCase().split(' ')[0];
     const diasNoMes=DIAS_MES[mesNome]||31;
     const labels={fr:'Folga',fp:'Folga Programada',fc:'Folga Casada',fa:'Folga Aniversário',voo:'Voo',rea:'Reserva',sb:'Sobreaviso',adp:'Adaptação',adpob:'Adaptação fora da base'};
 
     parsed.dias=parsed.dias.filter(d=>d&&d.dia>=1&&d.dia<=diasNoMes);
-
     parsed.dias.forEach(d=>{
       d.voos=Array.isArray(d.voos)?d.voos:[];
       d.tripulacao=Array.isArray(d.tripulacao)?d.tripulacao:[];
       d.pernoite=d.pernoite&&d.pernoite.l?d.pernoite:null;
-      d.dhd=d.dhd===true; d.detalhe=d.detalhe||'';
+      d.dhd=d.dhd===true;d.detalhe=d.detalhe||'';
       const ddcat=(d.ddcat||'').toUpperCase();
       d.euroAtlantic=ddcat==='COBS'||ddcat==='V';
       if(d.tipo==='voo'&&d.voos.length>0){
