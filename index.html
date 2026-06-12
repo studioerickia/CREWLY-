@@ -1217,86 +1217,77 @@ function resetUp(){arq=null;const i=document.getElementById('pdf-in');if(i)i.val
 async function processarPDF(){
   if(!arq)return;
   showEst('proc');
-  await dl(1000);
-  setS(2,'ok','Arquivo recebido ✓');setS(3,'ld','Crewly organizando voos...');
+  await dl(500);
+  setS(2,'ok','Arquivo recebido ✓');setS(3,'ld','Crewly preparando imagem...');
   const b64=await toB64(arq);
   const isImg=arq.type.startsWith('image/');
   const mt=isImg?arq.type:'application/pdf';
   try{
+    // Corta a imagem em 3 strips no navegador antes de enviar
+    const strips = await cortarImagemEmStrips(b64, mt);
+    await dl(500);setS(3,'ok','Crewly organizou voos e folgas ✓');setS(4,'ld','Crewly calculando horas...');
+    const body = {fileData:b64, mediaType:mt};
+    if(strips) body.strips = strips;
     const r=await fetch('/api/parse-pdf',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({fileData:b64, mediaType:mt})
+      body:JSON.stringify(body)
     });
-        const data=await r.json();
-    await dl(800);setS(3,'ok','Crewly organizou voos e folgas ✓');setS(4,'ld','Crewly calculando horas...');
+    const data=await r.json();
     await dl(600);setS(4,'ok','Crewly calculou horas e diárias ✓');await dl(400);
     let txt=(data.content&&data.content[0]?data.content[0].text:'').replace(/```json|```/g,'').trim();
-    console.log('Resposta IA:', txt.substring(0,300));
-    
-    // Se a API retornou erro
-    if(data.error){
-      showEst('err');
-      const em=document.getElementById('emsg');
-      if(em)em.textContent='Erro da API: '+(data.error.message||data.error);
-      return;
-    }
-    
+    if(data.error){showEst('err');const em=document.getElementById('emsg');if(em)em.textContent='Erro: '+(data.error.message||data.error);return;}
     let res;
-    try{
-      // Tenta parse direto
-      res = JSON.parse(txt);
-    }catch(e1){
-      try{
-        // Tenta extrair JSON com regex
-        const jsonMatch = txt.match(/\{[\s\S]*\}/);
-        if(jsonMatch) res = JSON.parse(jsonMatch[0]);
-        else throw new Error('no json');
-      }catch(e2){
-        // JSON truncado — tenta reparar fechando arrays/objetos abertos
-        console.log('Parse error, tentando reparar JSON truncado...');
-        try{
-          let truncated = txt;
-          // Conta colchetes e chaves abertas
-          let opens = 0, objOpens = 0;
-          for(let c of truncated){ 
-            if(c==='{') objOpens++; else if(c==='}') objOpens--;
-            if(c==='[') opens++; else if(c===']') opens--;
-          }
-          // Fecha o que estiver aberto
-          // Remove último objeto incompleto (sem fechar)
-          const lastComplete = truncated.lastIndexOf('},');
-          if(lastComplete > 0) truncated = truncated.substring(0, lastComplete+1);
-          // Fecha arrays e objetos
-          while(opens > 0){ truncated += ']'; opens--; }
-          while(objOpens > 0){ truncated += '}'; objOpens--; }
-          res = JSON.parse(truncated);
-          console.log('JSON reparado com sucesso!');
-        }catch(e3){
-          console.error('Falha ao reparar JSON:', e3.message);
-          showEst('err');
-          const em=document.getElementById('emsg');
-          if(em)em.textContent='Não consegui processar o PDF. Erro: '+e3.message.substring(0,100);
-          return;
-        }
-      }
-    }
-    
-    if(!res || !res.dias || res.dias.length === 0){
-      showEst('err');
-      const em=document.getElementById('emsg');
-      if(em)em.textContent='Crewly não encontrou dias na escala. Tente novamente.';
-      return;
-    }
-    
+    try{res=JSON.parse(txt);}catch(e){const m=txt.match(/\{[\s\S]*\}/);if(m)try{res=JSON.parse(m[0]);}catch(e2){}}
+    if(!res||!res.dias||res.dias.length===0){showEst('err');const em=document.getElementById('emsg');if(em)em.textContent='Crewly não encontrou dias na escala. Tente novamente.';return;}
     showRes(res);
   }catch(e){
-    console.error('Erro parser:', e);
-    // Mostra erro real ao usuário
+    console.error('Erro parser:',e);
     showEst('err');
     const em=document.getElementById('emsg');
-    if(em)em.textContent='Erro ao processar: '+e.message+'. Tente novamente.';
+    if(em)em.textContent='Erro ao processar: '+e.message;
   }
+}
+
+async function cortarImagemEmStrips(b64, mediaType) {
+  return new Promise((resolve) => {
+    try {
+      const byteStr = atob(b64);
+      const arr = new Uint8Array(byteStr.length);
+      for(let i=0;i<byteStr.length;i++) arr[i]=byteStr.charCodeAt(i);
+      let imgBytes = arr;
+      if(mediaType === 'application/pdf') {
+        let start=-1;
+        for(let i=0;i<arr.length-2;i++){if(arr[i]===0xFF&&arr[i+1]===0xD8&&arr[i+2]===0xFF){start=i;break;}}
+        let end=-1;
+        for(let i=arr.length-2;i>=0;i--){if(arr[i]===0xFF&&arr[i+1]===0xD9){end=i;break;}}
+        if(start>=0&&end>start) imgBytes=arr.slice(start,end+2);
+        else{resolve(null);return;}
+      }
+      const blob = new Blob([imgBytes],{type:'image/jpeg'});
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        const W=img.width, H=img.height;
+        const N=3, stripH=Math.ceil(H/N), overlap=120;
+        const strips=[];
+        for(let i=0;i<N;i++){
+          const y1=Math.max(0,i*stripH-(i>0?overlap:0));
+          const y2=Math.min(H,(i+1)*stripH+overlap);
+          const canvas=document.createElement('canvas');
+          canvas.width=W;canvas.height=y2-y1;
+          const ctx=canvas.getContext('2d');
+          ctx.drawImage(img,0,y1,W,y2-y1,0,0,W,y2-y1);
+          strips.push(canvas.toDataURL('image/jpeg',0.92).split(',')[1]);
+        }
+        URL.revokeObjectURL(url);
+        console.log('Strips cortadas:',strips.map(s=>Math.round(s.length/1024)+'KB'));
+        resolve(strips);
+      };
+      img.onerror=()=>{URL.revokeObjectURL(url);resolve(null);};
+      img.src=url;
+    }catch(e){console.log('Erro ao cortar:',e);resolve(null);}
+  });
 }
 
 function buildFallback(){
