@@ -107,6 +107,7 @@ module.exports = async function handler(req, res) {
         // OCR da imagem completa — Vision API lida com imagens grandes perfeitamente
         rawText = await visionOCR(imgB64, token);
         console.log('Vision OCR OK, chars:', rawText.length);
+console.log('RAWTEXT:', rawText.substring(0, 3000));
       } catch(e) {
         console.log('Vision falhou, usando Claude:', e.message);
       }
