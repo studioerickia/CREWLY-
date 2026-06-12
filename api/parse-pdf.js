@@ -6,6 +6,7 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
+  const googleCredsRaw = process.env.GOOGLE_CREDS;
   if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
   const AEROPORTOS = ['VCP','GRU','CGH','SDU','GIG','BSB','CNF','CWB','POA','FLN','NVT','JOI',
@@ -15,7 +16,6 @@ module.exports = async function handler(req, res) {
     'VDC','CZS','LIS','OPO','FLL','MCO','MIA','JFK','PUJ','SCL','MVD','EZE','AEP','ASU'];
   const AERO_SET = new Set(AEROPORTOS);
   const INTL = new Set(['LIS','OPO','FLL','MCO','MIA','JFK','PUJ','SCL','MVD','EZE','AEP','ASU']);
-  const AERONAVES = ['ATR','E1','E2','E195','E190','295','290','320','321','32N','32A','32Q','319','330','339','350','763','772'];
   const DIAS_MES = {janeiro:31,fevereiro:29,'março':31,marco:31,abril:30,maio:31,junho:30,julho:31,agosto:31,setembro:30,outubro:31,novembro:30,dezembro:31};
 
   const distLev=(a,b)=>{const m=a.length,n=b.length,d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);for(let j=0;j<=n;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];};
@@ -28,102 +28,135 @@ module.exports = async function handler(req, res) {
   const isIntl=(i)=>INTL.has((i||'').toUpperCase());
   const calcApres=(checkin,dep,intl)=>{const margin=intl?90:50;const computed=subMinutes(dep,margin);const a=parseTime(checkin),d=parseTime(dep);if(a==null||d==null)return computed;let gap=d-a;if(gap<0)gap+=1440;if(gap<20||gap>240)return computed;return fmtTime(a);};
 
+  // ── GOOGLE VISION OCR ──────────────────────────────────────────────────────
+  async function getGoogleToken(creds) {
+    const b64url = (d) => {
+      if (typeof d === 'string') d = Buffer.from(d);
+      return d.toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+    };
+    const now = Math.floor(Date.now()/1000);
+    const header = b64url(JSON.stringify({alg:'RS256',typ:'JWT'}));
+    const payload = b64url(JSON.stringify({
+      iss: creds.client_email,
+      scope: 'https://www.googleapis.com/auth/cloud-vision',
+      aud: creds.token_uri,
+      exp: now+3600, iat: now
+    }));
+    const crypto = require('crypto');
+    const sign = crypto.createSign('RSA-SHA256');
+    sign.update(`${header}.${payload}`);
+    const sig = b64url(sign.sign(creds.private_key));
+    const jwt = `${header}.${payload}.${sig}`;
+
+    const body = `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`;
+    const r = await fetch(creds.token_uri, {
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body
+    });
+    const d = await r.json();
+    if (!d.access_token) throw new Error('Token error: '+JSON.stringify(d));
+    return d.access_token;
+  }
+
+  async function visionOCR(imgB64, token) {
+    const r = await fetch('https://vision.googleapis.com/v1/images:annotate', {
+      method:'POST',
+      headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+      body: JSON.stringify({requests:[{image:{content:imgB64},features:[{type:'DOCUMENT_TEXT_DETECTION'}]}]})
+    });
+    const d = await r.json();
+    if (d.error) throw new Error('Vision error: '+d.error.message);
+    return d.responses?.[0]?.fullTextAnnotation?.text || '';
+  }
+
   try {
     const {fileData, mediaType} = req.body;
     if (!fileData) return res.status(400).json({error:'No file data'});
 
     const isImage = (mediaType||'').startsWith('image/');
     let imgB64 = fileData;
-    let imgMT = mediaType || 'application/pdf';
-    let imgCT = isImage ? 'image' : 'document';
 
-    // Extrai JPEG do PDF se necessário
+    // Extrai JPEG do PDF
     if (!isImage) {
       try {
-        const pdf = Buffer.from(fileData, 'base64');
+        const pdf = Buffer.from(fileData,'base64');
         const s = pdf.indexOf(Buffer.from([0xFF,0xD8,0xFF]));
         const e = pdf.lastIndexOf(Buffer.from([0xFF,0xD9]));
-        if (s >= 0 && e > s) {
-          imgB64 = pdf.slice(s, e+2).toString('base64');
-          imgMT = 'image/jpeg';
-          imgCT = 'image';
-        }
+        if (s>=0 && e>s) imgB64 = pdf.slice(s,e+2).toString('base64');
       } catch(e) {}
     }
 
-    const callAPI = async (msgs) => {
+    const callClaude = async (content) => {
       const r = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
-        body: JSON.stringify({model:'claude-sonnet-4-6', max_tokens:4000, messages:[{role:'user',content:msgs}]})
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+        body: JSON.stringify({model:'claude-sonnet-4-6',max_tokens:8000,messages:[{role:'user',content}]})
       });
       const d = await r.json();
-      if (d.error) throw new Error(d.error.message||'API error');
+      if (d.error) throw new Error(d.error.message);
       return (d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
     };
 
-    const instrucaoBase = `Esta é uma escala da Azul Linhas Aéreas (app "Minha Escala").
-Colunas da tabela: Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
-IMPORTANTE: Checkin, Start e End são 3 colunas com horários DIFERENTES. Checkin é a apresentação. Start é a DECOLAGEM. End é o POUSO.
+    // ── STEP 1: OCR com Google Vision (texto preciso) OU fallback para Claude ─
+    let rawText = '';
+    if (googleCredsRaw) {
+      try {
+        const creds = JSON.parse(googleCredsRaw);
+        const token = await getGoogleToken(creds);
+        // OCR da imagem completa — Vision API lida com imagens grandes perfeitamente
+        rawText = await visionOCR(imgB64, token);
+        console.log('Vision OCR OK, chars:', rawText.length);
+      } catch(e) {
+        console.log('Vision falhou, usando Claude:', e.message);
+      }
+    }
 
-AEROPORTOS válidos para Dep/Arr (escolha SEMPRE um desta lista):
-${AEROPORTOS.join(', ')}
-
-Para cada linha, gere (separado por |):
+    // Fallback: Claude lê a imagem diretamente
+    if (!rawText) {
+      const ct = isImage ? 'image' : 'document';
+      const mt = isImage ? mediaType : 'application/pdf';
+      rawText = await callClaude([
+        {type:ct, source:{type:'base64',media_type:mt,data:fileData}},
+        {type:'text', text:`Transcreva esta escala da Azul linha por linha no formato:
 DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT | CREWS
-- DATA_INI: data do Start (DD/MM/AAAA). DATA_FIM: data do End.
-- CHECKIN/START/END: só a hora HH:MM de cada coluna respectiva.
-- CREWS: NOME:FUNCAO por vírgula.
-- Para Layover: DATA_INI | DATA_FIM | Layover | | START | END | LOCAL | LOCAL | | |
-Responda APENAS as linhas transcritas, sem explicação.`;
+Aeroportos válidos: ${AEROPORTOS.join(', ')}
+Responda só as linhas.`}
+      ]);
+    }
 
-    // Manda 3 requests pedindo partes diferentes da escala
-    const [t1, t2, t3] = await Promise.all([
-      callAPI([
-        {type:imgCT, source:{type:'base64',media_type:imgMT,data:imgB64}},
-        {type:'text', text:`${instrucaoBase}\n\nTranscreva APENAS as linhas dos DIAS 1 a 10 do mês. Ignore o resto.`}
-      ]).catch(()=>''),
-      callAPI([
-        {type:imgCT, source:{type:'base64',media_type:imgMT,data:imgB64}},
-        {type:'text', text:`${instrucaoBase}\n\nTranscreva APENAS as linhas dos DIAS 11 a 20 do mês. Ignore o resto.`}
-      ]).catch(()=>''),
-      callAPI([
-        {type:imgCT, source:{type:'base64',media_type:imgMT,data:imgB64}},
-        {type:'text', text:`${instrucaoBase}\n\nTranscreva APENAS as linhas dos DIAS 21 ao FIM do mês. Ignore o resto.`}
-      ]).catch(()=>'')
-    ]);
-
-    const rawText = [t1, t2, t3].filter(Boolean).join('\n');
-
-    // Step 2: JSON
-    const jsonText = await callAPI([{
+    // ── STEP 2: Claude converte o texto OCR em JSON ───────────────────────────
+    const jsonText = await callClaude([{
       type:'text',
-      text:`Converta esta transcrição em JSON. NÃO calcule nada.
+      text:`O texto abaixo foi extraído por OCR de uma escala da Azul Linhas Aéreas.
+A tabela tem colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
 
-TRANSCRIÇÃO (DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT | CREWS):
+Converta em JSON. NÃO calcule nada — só organize os dados.
+
+TEXTO OCR:
 ${rawText}
 
-CLASSIFICAÇÃO: FR→"fr"; FP/PP→"fp"; FC→"fc"; FA(atividade)→"fa"; SB+nº→"sb"; RHC...→"rea";
+CLASSIFICAÇÃO:
+FR→"fr"; FP/PP→"fp"; FC→"fc"; FA(atividade)→"fa"; SB+nº→"sb"; RHC...→"rea";
 ADP→"adp"; ADPOB→"adpob"; AD####/G3###/LA###/JJ###→"voo"; DHD→"voo"+"dhd":true;
 Layover→pernoite do dia do voo anterior. NUNCA classifique ADP/ADPOB/FC/FA como "fr".
-Se a mesma linha aparecer repetida, use apenas uma vez.
 
-POR DIA: {"dia":<dia DATA_INI>,"diaFim":<dia DATA_FIM>,"tipo":"...","dhd":<bool>,
-"checkin":"<CHECKIN 1º voo>","ddcat":"<DDCAT>","local":"<DEP só adp/adpob>",
-"sbInicio":"<START sb>","sbFim":"<END sb>",
-"voos":[{"n":"<ACTIVITY>","o":"<DEP>","d":"<ARR>","dp":"<START>","ar":"<END>","ae":"<ACVER>"}],
-"tripulacao":[{"nome":"<NOME>","funcao":"<FUNCAO>"}],
-"pernoite":{"l":"<LOCAL>","ci":"<START layover>","co":"<END layover>"}}
+POR DIA: {"dia":<nº>,"diaFim":<nº>,"tipo":"...","dhd":<bool>,
+"checkin":"<hora checkin>","ddcat":"<ddcat>","local":"<dep só adp/adpob>",
+"sbInicio":"<start sb>","sbFim":"<end sb>",
+"voos":[{"n":"<activity>","o":"<dep>","d":"<arr>","dp":"<start>","ar":"<end>","ae":"<acver>"}],
+"tripulacao":[{"nome":"<nome>","funcao":"<funcao>"}],
+"pernoite":{"l":"<local>","ci":"<start layover>","co":"<end layover>"}}
 
-Vários voos na mesma DATA_INI → 1 objeto. Funções: CA,FO,CL,FA,FE,SUP (COBS→SUP,V→SUP,DHD→DHD).
+Vários voos mesma data → 1 objeto. Funções: CA,FO,CL,FA,FE,SUP (COBS→SUP,V→SUP,DHD→DHD).
 Dias não-voo: voos:[] e tripulacao:[]. NÃO calcule duração nem apresentação.
 Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`
     }]);
 
-    const extractAndRepair=(text)=>{let clean=text.replace(/```json\s*/gi,'').replace(/```\s*/gi,'').trim();const match=clean.match(/\{[\s\S]*\}/);if(!match)return null;try{return JSON.parse(match[0]);}catch(e){let t=match[0].replace(/,\s*([}\]])/g,'$1');let o=0,oo=0;for(let c of t){if(c==='[')o++;else if(c===']')o--;if(c==='{')oo++;else if(c==='}')oo--;}while(o>0){t+=']';o--;}while(oo>0){t+='}';oo--;}try{return JSON.parse(t);}catch(e2){return null;}}};
+    const extractAndRepair=(t)=>{let c=t.replace(/```json\s*/gi,'').replace(/```\s*/gi,'').trim();const m=c.match(/\{[\s\S]*\}/);if(!m)return null;try{return JSON.parse(m[0]);}catch(e){let x=m[0].replace(/,\s*([}\]])/g,'$1');let o=0,oo=0;for(let ch of x){if(ch==='[')o++;else if(ch===']')o--;if(ch==='{')oo++;else if(ch==='}')oo--;}while(o>0){x+=']';o--;}while(oo>0){x+='}';oo--;}try{return JSON.parse(x);}catch(e2){return null;}}};
 
     const parsed = extractAndRepair(jsonText);
-    if (!parsed||!parsed.dias) return res.status(500).json({error:'Falha ao converter JSON',rawExtraction:rawText.substring(0,2000),rawJson:jsonText.substring(0,2000)});
+    if (!parsed||!parsed.dias) return res.status(500).json({error:'Falha JSON',rawText:rawText.substring(0,1000)});
 
     const mesNome=(parsed.mes||'junho 2026').toLowerCase().split(' ')[0];
     const diasNoMes=DIAS_MES[mesNome]||31;
@@ -135,7 +168,7 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`
       d.voos=Array.isArray(d.voos)?d.voos:[];
       d.tripulacao=Array.isArray(d.tripulacao)?d.tripulacao:[];
       d.pernoite=d.pernoite&&d.pernoite.l?d.pernoite:null;
-      d.dhd=d.dhd===true;d.detalhe=d.detalhe||'';
+      d.dhd=d.dhd===true; d.detalhe=d.detalhe||'';
       const ddcat=(d.ddcat||'').toUpperCase();
       d.euroAtlantic=ddcat==='COBS'||ddcat==='V';
       if(d.tipo==='voo'&&d.voos.length>0){
@@ -184,9 +217,8 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`
 
     return res.status(200).json({content:[{type:'text',text:JSON.stringify({mes:parsed.mes||'Junho 2026',resumo,dias:diasFinal})}]});
   } catch(err) {
-    console.error('Parser error:', err);
+    console.error('Parser error:',err);
     return res.status(500).json({error:err.message});
   }
 };
-
 module.exports.config={api:{bodyParser:{sizeLimit:'15mb'},maxDuration:120}};
