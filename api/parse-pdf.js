@@ -1,8 +1,3 @@
-const { execSync, execFileSync } = require('child_process');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -24,128 +19,81 @@ module.exports = async function handler(req, res) {
   const DIAS_MES = {janeiro:31,fevereiro:29,'março':31,marco:31,abril:30,maio:31,junho:30,julho:31,agosto:31,setembro:30,outubro:31,novembro:30,dezembro:31};
 
   const distLev=(a,b)=>{const m=a.length,n=b.length,d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);for(let j=0;j<=n;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];};
-  const validarAero=(code)=>{if(!code)return'--';code=String(code).toUpperCase().trim().replace(/[^A-Z0-9]/g,'');if(AERO_SET.has(code))return code;let melhor=code,menor=99;for(const a of AEROPORTOS){const dd=distLev(code,a);if(dd<menor){menor=dd;melhor=a;}}return menor<=1?melhor:code;};
+  const validarAero=(c)=>{if(!c)return'--';c=String(c).toUpperCase().trim().replace(/[^A-Z0-9]/g,'');if(AERO_SET.has(c))return c;let b=c,n=99;for(const a of AEROPORTOS){const d=distLev(c,a);if(d<n){n=d;b=a;}}return n<=1?b:c;};
   const parseTime=(t)=>{if(!t)return null;const m=String(t).match(/(\d{1,2}):(\d{2})/);if(!m)return null;let x=parseInt(m[1])*60+parseInt(m[2]);if(/\+1/.test(String(t)))x+=1440;return x;};
   const fmtTime=(x)=>{x=((x%1440)+1440)%1440;return`${String(Math.floor(x/60)).padStart(2,'0')}:${String(x%60).padStart(2,'0')}`;};
   const durationStr=(s,e)=>{let a=parseTime(s),b=parseTime(e);if(a==null||b==null)return'';let d=b-a;if(d<0)d+=1440;return`${Math.floor(d/60)}h${String(d%60).padStart(2,'0')}`;};
   const durationHoras=(s,e)=>{let a=parseTime(s),b=parseTime(e);if(a==null||b==null)return 0;let d=b-a;if(d<0)d+=1440;return Math.round(d/60);};
-  const subMinutes=(t,mins)=>{let v=parseTime(t);if(v==null)return'';return fmtTime(v-mins);};
-  const isIntl=(iata)=>INTL.has((iata||'').toUpperCase());
+  const subMinutes=(t,m)=>{let v=parseTime(t);if(v==null)return'';return fmtTime(v-m);};
+  const isIntl=(i)=>INTL.has((i||'').toUpperCase());
   const calcApres=(checkin,dep,intl)=>{const margin=intl?90:50;const computed=subMinutes(dep,margin);const a=parseTime(checkin),d=parseTime(dep);if(a==null||d==null)return computed;let gap=d-a;if(gap<0)gap+=1440;if(gap<20||gap>240)return computed;return fmtTime(a);};
 
   try {
     const {fileData, mediaType} = req.body;
     if (!fileData) return res.status(400).json({error:'No file data'});
 
-    // ── EXTRAI JPEG DO PDF E CORTA EM 3 TIRAS COM PYTHON ──────────────────
     const isImage = (mediaType||'').startsWith('image/');
-    let strips = []; // array de {b64, mediaType}
+    let imgB64 = fileData;
+    let imgMT = mediaType || 'application/pdf';
+    let imgCT = isImage ? 'image' : 'document';
 
-    try {
-      const tmpDir = os.tmpdir();
-      const pdfPath = path.join(tmpDir, 'escala_input.bin');
-      fs.writeFileSync(pdfPath, Buffer.from(fileData, 'base64'));
-
-      const pythonScript = `
-import sys, base64, json, struct, zlib
-try:
-    from PIL import Image
-    import io
-
-    data = open('${pdfPath}', 'rb').read()
-
-    # Extrai JPEG do PDF
-    start = data.find(b'\\xff\\xd8\\xff')
-    end = data.rfind(b'\\xff\\xd9')
-    if start >= 0 and end > start:
-        jpeg_data = data[start:end+2]
-    else:
-        jpeg_data = data  # é imagem direta
-
-    img = Image.open(io.BytesIO(jpeg_data))
-    W, H = img.size
-
-    N = 3
-    strip_h = H // N
-    overlap = 100
-    result = []
-
-    for i in range(N):
-        y1 = max(0, i * strip_h - overlap)
-        y2 = min(H, (i+1) * strip_h + overlap)
-        strip = img.crop((0, y1, W, y2))
-        buf = io.BytesIO()
-        strip.save(buf, format='JPEG', quality=88)
-        b64 = base64.b64encode(buf.getvalue()).decode()
-        result.append(b64)
-
-    print(json.dumps({'ok': True, 'strips': result}))
-except Exception as e:
-    print(json.dumps({'ok': False, 'error': str(e)}))
-`;
-      const scriptPath = path.join(tmpDir, 'crop.py');
-      fs.writeFileSync(scriptPath, pythonScript);
-
-      const pyOut = execFileSync('python3', [scriptPath], {timeout: 30000}).toString();
-      const pyResult = JSON.parse(pyOut.trim());
-
-      if (pyResult.ok && pyResult.strips && pyResult.strips.length > 0) {
-        strips = pyResult.strips.map(b64 => ({b64, mt: 'image/jpeg', ct: 'image'}));
-      }
-    } catch(e) {
-      console.log('Python crop failed, using original:', e.message);
+    // Extrai JPEG do PDF se necessário
+    if (!isImage) {
+      try {
+        const pdf = Buffer.from(fileData, 'base64');
+        const s = pdf.indexOf(Buffer.from([0xFF,0xD8,0xFF]));
+        const e = pdf.lastIndexOf(Buffer.from([0xFF,0xD9]));
+        if (s >= 0 && e > s) {
+          imgB64 = pdf.slice(s, e+2).toString('base64');
+          imgMT = 'image/jpeg';
+          imgCT = 'image';
+        }
+      } catch(e) {}
     }
 
-    // fallback: manda o arquivo direto se o corte falhou
-    if (strips.length === 0) {
-      const isImg = (mediaType||'').startsWith('image/');
-      const pdf = Buffer.from(fileData, 'base64');
-      const start = pdf.indexOf(Buffer.from([0xFF,0xD8,0xFF]));
-      const end = pdf.lastIndexOf(Buffer.from([0xFF,0xD9]));
-      if (!isImg && start >= 0 && end > start) {
-        strips = [{b64: pdf.slice(start, end+2).toString('base64'), mt: 'image/jpeg', ct: 'image'}];
-      } else {
-        strips = [{b64: fileData, mt: mediaType||'application/pdf', ct: isImg?'image':'document'}];
-      }
-    }
-
-    const callAPI = async (content) => {
+    const callAPI = async (msgs) => {
       const r = await fetch('https://api.anthropic.com/v1/messages', {
-        method:'POST',
-        headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
-        body: JSON.stringify({model:'claude-sonnet-4-6', max_tokens:4000, messages:[{role:'user',content}]})
+        method: 'POST',
+        headers: {'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+        body: JSON.stringify({model:'claude-sonnet-4-6', max_tokens:4000, messages:[{role:'user',content:msgs}]})
       });
       const d = await r.json();
       if (d.error) throw new Error(d.error.message||'API error');
       return (d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
     };
 
-    const promptTira = (parte, total) => `Você está lendo a PARTE ${parte} de ${total} de uma escala da Azul (app "Minha Escala"). Esta é uma foto de tabela — leia com MÁXIMA atenção, especialmente os horários.
+    const instrucaoBase = `Esta é uma escala da Azul Linhas Aéreas (app "Minha Escala").
+Colunas da tabela: Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
+IMPORTANTE: Checkin, Start e End são 3 colunas com horários DIFERENTES. Checkin é a apresentação. Start é a DECOLAGEM. End é o POUSO.
 
-Colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
-ATENÇÃO: são 4 colunas de horário diferentes — Checkin, Start, End, Checkout — nessa ordem da esquerda pra direita.
-O horário de DECOLAGEM está na coluna Start. O horário de CHECKIN está na coluna Checkin (antes do Start).
-
-AEROPORTOS (Dep/Arr) — escolha SEMPRE um desta lista:
+AEROPORTOS válidos para Dep/Arr (escolha SEMPRE um desta lista):
 ${AEROPORTOS.join(', ')}
 
-Para cada linha COMPLETA visível, gere (separado por |):
+Para cada linha, gere (separado por |):
 DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT | CREWS
-
 - DATA_INI: data do Start (DD/MM/AAAA). DATA_FIM: data do End.
-- CHECKIN: hora da coluna Checkin. START: hora da coluna Start. END: hora da coluna End.
+- CHECKIN/START/END: só a hora HH:MM de cada coluna respectiva.
 - CREWS: NOME:FUNCAO por vírgula.
-- Se uma linha estiver cortada no topo ou base, IGNORE ela.
-Responda só as linhas, sem explicação.`;
+- Para Layover: DATA_INI | DATA_FIM | Layover | | START | END | LOCAL | LOCAL | | |
+Responda APENAS as linhas transcritas, sem explicação.`;
 
-    // lê as tiras em paralelo
-    const transcricoes = await Promise.all(
-      strips.map((s, i) => callAPI([
-        {type: s.ct, source: {type:'base64', media_type:s.mt, data:s.b64}},
-        {type:'text', text: promptTira(i+1, strips.length)}
-      ]).catch(() => ''))
-    );
-    const rawText = transcricoes.join('\n');
+    // Manda 3 requests pedindo partes diferentes da escala
+    const [t1, t2, t3] = await Promise.all([
+      callAPI([
+        {type:imgCT, source:{type:'base64',media_type:imgMT,data:imgB64}},
+        {type:'text', text:`${instrucaoBase}\n\nTranscreva APENAS as linhas dos DIAS 1 a 10 do mês. Ignore o resto.`}
+      ]).catch(()=>''),
+      callAPI([
+        {type:imgCT, source:{type:'base64',media_type:imgMT,data:imgB64}},
+        {type:'text', text:`${instrucaoBase}\n\nTranscreva APENAS as linhas dos DIAS 11 a 20 do mês. Ignore o resto.`}
+      ]).catch(()=>''),
+      callAPI([
+        {type:imgCT, source:{type:'base64',media_type:imgMT,data:imgB64}},
+        {type:'text', text:`${instrucaoBase}\n\nTranscreva APENAS as linhas dos DIAS 21 ao FIM do mês. Ignore o resto.`}
+      ]).catch(()=>'')
+    ]);
+
+    const rawText = [t1, t2, t3].filter(Boolean).join('\n');
 
     // Step 2: JSON
     const jsonText = await callAPI([{
@@ -158,6 +106,7 @@ ${rawText}
 CLASSIFICAÇÃO: FR→"fr"; FP/PP→"fp"; FC→"fc"; FA(atividade)→"fa"; SB+nº→"sb"; RHC...→"rea";
 ADP→"adp"; ADPOB→"adpob"; AD####/G3###/LA###/JJ###→"voo"; DHD→"voo"+"dhd":true;
 Layover→pernoite do dia do voo anterior. NUNCA classifique ADP/ADPOB/FC/FA como "fr".
+Se a mesma linha aparecer repetida, use apenas uma vez.
 
 POR DIA: {"dia":<dia DATA_INI>,"diaFim":<dia DATA_FIM>,"tipo":"...","dhd":<bool>,
 "checkin":"<CHECKIN 1º voo>","ddcat":"<DDCAT>","local":"<DEP só adp/adpob>",
@@ -168,7 +117,6 @@ POR DIA: {"dia":<dia DATA_INI>,"diaFim":<dia DATA_FIM>,"tipo":"...","dhd":<bool>
 
 Vários voos na mesma DATA_INI → 1 objeto. Funções: CA,FO,CL,FA,FE,SUP (COBS→SUP,V→SUP,DHD→DHD).
 Dias não-voo: voos:[] e tripulacao:[]. NÃO calcule duração nem apresentação.
-Se a mesma linha aparecer em mais de uma parte, use apenas uma vez.
 Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`
     }]);
 
@@ -177,11 +125,11 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`
     const parsed = extractAndRepair(jsonText);
     if (!parsed||!parsed.dias) return res.status(500).json({error:'Falha ao converter JSON',rawExtraction:rawText.substring(0,2000),rawJson:jsonText.substring(0,2000)});
 
-    const mesNome = (parsed.mes||'junho 2026').toLowerCase().split(' ')[0];
-    const diasNoMes = DIAS_MES[mesNome]||31;
-    const labels = {fr:'Folga',fp:'Folga Programada',fc:'Folga Casada',fa:'Folga Aniversário',voo:'Voo',rea:'Reserva',sb:'Sobreaviso',adp:'Adaptação',adpob:'Adaptação fora da base'};
+    const mesNome=(parsed.mes||'junho 2026').toLowerCase().split(' ')[0];
+    const diasNoMes=DIAS_MES[mesNome]||31;
+    const labels={fr:'Folga',fp:'Folga Programada',fc:'Folga Casada',fa:'Folga Aniversário',voo:'Voo',rea:'Reserva',sb:'Sobreaviso',adp:'Adaptação',adpob:'Adaptação fora da base'};
 
-    parsed.dias = parsed.dias.filter(d=>d&&d.dia>=1&&d.dia<=diasNoMes);
+    parsed.dias=parsed.dias.filter(d=>d&&d.dia>=1&&d.dia<=diasNoMes);
 
     parsed.dias.forEach(d=>{
       d.voos=Array.isArray(d.voos)?d.voos:[];
@@ -190,7 +138,6 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`
       d.dhd=d.dhd===true;d.detalhe=d.detalhe||'';
       const ddcat=(d.ddcat||'').toUpperCase();
       d.euroAtlantic=ddcat==='COBS'||ddcat==='V';
-
       if(d.tipo==='voo'&&d.voos.length>0){
         d.voos.forEach(v=>{v.n=v.n||'--';v.o=validarAero(v.o);v.d=validarAero(v.d);v.dp=v.dp||'--';v.ar=v.ar||'--';v.ae=v.ae||'--';v.du=durationStr(v.dp,v.ar)||'--';});
         const first=d.voos[0];
@@ -214,7 +161,6 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`
 
     const porDia={};
     parsed.dias.forEach(d=>{if(!porDia[d.dia]||porDia[d.dia].tipo!=='voo')porDia[d.dia]=d;});
-
     parsed.dias.forEach(d=>{
       if((d.tipo==='adp'||d.tipo==='adpob')&&d.diaFim&&d.diaFim>d.dia){
         const fim=Math.min(d.diaFim,diasNoMes);
@@ -243,4 +189,4 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`
   }
 };
 
-module.exports.config = {api:{bodyParser:{sizeLimit:'15mb'},maxDuration:120}};
+module.exports.config={api:{bodyParser:{sizeLimit:'15mb'},maxDuration:120}};
