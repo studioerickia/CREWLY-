@@ -1,3 +1,5 @@
+const { createCanvas, loadImage } = (() => { try { return require('canvas'); } catch(e) { return {}; } })();
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -6,7 +8,6 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  const geminiKey = process.env.GEMINI_KEY;
   if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
   const AEROPORTOS = ['VCP','GRU','CGH','SDU','GIG','BSB','CNF','CWB','POA','FLN','NVT','JOI',
@@ -28,13 +29,23 @@ module.exports = async function handler(req, res) {
   const isIntl=(i)=>INTL.has((i||'').toUpperCase());
   const calcApres=(checkin,dep,intl)=>{const margin=intl?90:50;const computed=subMinutes(dep,margin);const a=parseTime(checkin),d=parseTime(dep);if(a==null||d==null)return computed;let gap=d-a;if(gap<0)gap+=1440;if(gap<20||gap>240)return computed;return fmtTime(a);};
 
+  const callClaude = async (content, maxTokens=4000) => {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+      body: JSON.stringify({model:'claude-sonnet-4-6',max_tokens:maxTokens,messages:[{role:'user',content}]})
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error.message);
+    return (d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+  };
+
   try {
     const {fileData, mediaType} = req.body;
     if (!fileData) return res.status(400).json({error:'No file data'});
 
     const isImage = (mediaType||'').startsWith('image/');
     let imgB64 = fileData;
-    let imgMT = isImage ? mediaType : 'image/jpeg';
 
     // Extrai JPEG do PDF
     if (!isImage) {
@@ -46,88 +57,48 @@ module.exports = async function handler(req, res) {
       } catch(e) {}
     }
 
-    // ── STEP 1: Gemini OCR (lê a imagem com precisão) ─────────────────────────
-    let rawText = '';
-    if (geminiKey) {
-      try {
-        const prompt = `Você está lendo uma tabela de escala de voo da Azul Linhas Aéreas.
+    const prompt = (parte, total, dias) => `Esta é a PARTE ${parte} de ${total} de uma escala da Azul Linhas Aéreas.
+Você deve transcrever APENAS as linhas dos DIAS ${dias} desta imagem.
+
 Colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
+ATENÇÃO: Checkin, Start e End são 3 colunas DIFERENTES. Checkin=apresentação, Start=decolagem, End=pouso.
 
-IMPORTANTE — leia com máxima atenção:
-- Checkin, Start e End são 3 colunas DIFERENTES com horários diferentes
-- Start é a decolagem, Checkin é a apresentação (antes do Start)
-- Dep e Arr são aeroportos de 3 letras. LIS = Lisboa, VCP = Campinas
-- Datas têm formato "DD JUN 2026", horários têm formato "HH:MM"
+Aeroportos VÁLIDOS para Dep/Arr (use SEMPRE um destes):
+${AEROPORTOS.join(', ')}
+Se ver "US" ou "IS" → é LIS. Se ver "BE" → é BEL.
 
-Para cada linha da tabela, gere (separado por |):
+Para cada linha dos dias ${dias}, gere (separado por |):
 DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT | CREWS
+- DATA_INI: data do Start (DD/MM/AAAA). DATA_FIM: data do End.
+- CHECKIN/START/END: apenas HH:MM de cada coluna respectiva.
+- CREWS: NOME:FUNCAO por vírgula.
+Responda APENAS as linhas, sem explicação.`;
 
-Onde:
-- DATA_INI = data da coluna Start (DD/MM/AAAA)
-- DATA_FIM = data da coluna End (DD/MM/AAAA)  
-- CHECKIN = só a hora HH:MM da coluna Checkin
-- START = só a hora HH:MM da coluna Start
-- END = só a hora HH:MM da coluna End
-- CREWS = NOME:FUNCAO separados por vírgula
+    // Manda a mesma imagem 3x, cada vez focando em 10 dias
+    const [t1, t2, t3] = await Promise.all([
+      callClaude([
+        {type:'image',source:{type:'base64',media_type:'image/jpeg',data:imgB64}},
+        {type:'text',text:prompt(1,3,'1 a 10')}
+      ]).catch(()=>''),
+      callClaude([
+        {type:'image',source:{type:'base64',media_type:'image/jpeg',data:imgB64}},
+        {type:'text',text:prompt(2,3,'11 a 20')}
+      ]).catch(()=>''),
+      callClaude([
+        {type:'image',source:{type:'base64',media_type:'image/jpeg',data:imgB64}},
+        {type:'text',text:prompt(3,3,'21 ao final do mês')}
+      ]).catch(()=>'')
+    ]);
 
-Transcreva TODAS as linhas. Responda apenas as linhas, sem explicação.`;
+    const rawText = [t1,t2,t3].filter(Boolean).join('\n');
+    console.log('Transcrições OK. Total chars:', rawText.length);
+    console.log('Amostra:', rawText.substring(0,300));
 
-        const r = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
-          {
-            method: 'POST',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({
-              contents: [{parts: [
-                {inline_data: {mime_type: imgMT, data: imgB64}},
-                {text: prompt}
-              ]}]
-            })
-          }
-        );
-        const d = await r.json();
-        if (d.candidates?.[0]?.content?.parts?.[0]?.text) {
-          rawText = d.candidates[0].content.parts[0].text;
-          console.log('Gemini OCR OK, chars:', rawText.length);
-          console.log('RAWTEXT SAMPLE:', rawText.substring(0, 500));
-        } else {
-          console.log('Gemini sem resultado:', JSON.stringify(d).substring(0,200));
-        }
-      } catch(e) {
-        console.log('Gemini falhou:', e.message);
-      }
-    }
+    // Step 2: JSON
+    const jsonText = await callClaude([{type:'text',text:`Converta esta transcrição em JSON. NÃO calcule nada.
 
-    // Fallback: Claude lê direto
-    if (!rawText) {
-      console.log('Usando Claude como fallback');
-      const ct = isImage ? 'image' : 'document';
-      const mt = isImage ? mediaType : 'application/pdf';
-      const r = await fetch('https://api.anthropic.com/v1/messages', {
-        method:'POST',
-        headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
-        body: JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,messages:[{role:'user',content:[
-          {type:ct,source:{type:'base64',media_type:mt,data:fileData}},
-          {type:'text',text:`Transcreva esta escala da Azul linha por linha:
-DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT | CREWS
-Aeroportos válidos: ${AEROPORTOS.join(', ')}
-Responda só as linhas.`}
-        ]}]})
-      });
-      const d = await r.json();
-      rawText = (d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
-    }
-
-    // ── STEP 2: Claude converte texto em JSON ─────────────────────────────────
-    const rawTextTrunc = rawText.length > 12000 ? rawText.substring(0,12000) : rawText;
-
-    const r2 = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
-      body: JSON.stringify({model:'claude-sonnet-4-6',max_tokens:8000,messages:[{role:'user',content:[{type:'text',text:`Converta esta transcrição de escala em JSON. NÃO calcule nada.
-
-TRANSCRIÇÃO (DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT | CREWS):
-${rawTextTrunc}
+TRANSCRIÇÃO:
+${rawText.substring(0,14000)}
 
 CLASSIFICAÇÃO: FR→"fr"; FP/PP→"fp"; FC→"fc"; FA(atividade)→"fa"; SB+nº→"sb"; RHC...→"rea";
 ADP→"adp"; ADPOB→"adpob"; AD####/G3###/LA###/JJ###→"voo"; DHD→"voo"+"dhd":true;
@@ -142,15 +113,13 @@ POR DIA: {"dia":<dia DATA_INI>,"diaFim":<dia DATA_FIM>,"tipo":"...","dhd":<bool>
 
 Vários voos mesma DATA_INI → 1 objeto. Funções: CA,FO,CL,FA,FE,SUP (COBS→SUP,V→SUP,DHD→DHD).
 Dias não-voo: voos:[] e tripulacao:[]. NÃO calcule duração nem apresentação.
-Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}]}]})
-    });
-    const d2 = await r2.json();
-    const jsonText = (d2.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+Se linha repetida, use só uma vez.
+Responda APENAS: {"mes":"<Mês AAAA>","dias":[ ... ]}`}], 8000);
 
     const extractAndRepair=(t)=>{let c=t.replace(/```json\s*/gi,'').replace(/```\s*/gi,'').trim();const m=c.match(/\{[\s\S]*\}/);if(!m)return null;try{return JSON.parse(m[0]);}catch(e){let x=m[0].replace(/,\s*([}\]])/g,'$1');let o=0,oo=0;for(let ch of x){if(ch==='[')o++;else if(ch===']')o--;if(ch==='{')oo++;else if(ch==='}')oo--;}while(o>0){x+=']';o--;}while(oo>0){x+='}';oo--;}try{return JSON.parse(x);}catch(e2){return null;}}};
 
     const parsed = extractAndRepair(jsonText);
-    if (!parsed||!parsed.dias) return res.status(500).json({error:'Falha JSON',rawSample:rawText.substring(0,500)});
+    if (!parsed||!parsed.dias) return res.status(500).json({error:'Falha JSON',amostra:rawText.substring(0,500)});
 
     const mesNome=(parsed.mes||'junho 2026').toLowerCase().split(' ')[0];
     const diasNoMes=DIAS_MES[mesNome]||31;
