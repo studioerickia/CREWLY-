@@ -53,89 +53,58 @@ module.exports = async function handler(req, res) {
       } catch(e) {}
     }
 
-    // Prompt SEM tripulação — muito mais compacto
-    const promptSemTrip = `Você está lendo uma tabela de escala de voo da Azul Linhas Aéreas.
+    const prompt = `Transcreva esta parte de uma escala de voo da Azul Linhas Aéreas.
 Colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
 
-REGRAS CRÍTICAS:
-- Checkin = apresentação (hora ANTES da decolagem)
-- Start = hora de DECOLAGEM
-- End = hora de POUSO
-- São 3 horários DIFERENTES — não confunda!
-- Aeroportos válidos: ${AEROPORTOS.join(',')}
-- Se ver "US" ou "IS" = LIS. Se ver "BE" = BEL.
+REGRAS:
+- Checkin = apresentação. Start = DECOLAGEM. End = POUSO. São 3 horários DIFERENTES!
+- Aeroportos Dep/Arr — use SEMPRE um destes: ${AEROPORTOS.join(',')}
+- Se ver "US" = LIS. "BE" = BEL.
 
-Para cada linha da tabela, gere (separado por |):
-DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT
+Formato por linha (separado por |):
+DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT | CREWS
+- DATA_INI: data do Start (DD/MM/AAAA)
+- DATA_FIM: data do End (DD/MM/AAAA)
+- CHECKIN/START/END: só HH:MM
+- CREWS: NOME:FUNCAO por vírgula
 
-NÃO inclua a coluna Crews/tripulação — apenas os 10 campos acima.
-Transcreva TODAS as linhas visíveis. Responda só as linhas, sem explicação.`;
+Transcreva TODAS as linhas visíveis. Se uma linha estiver cortada no topo ou base, IGNORE-A.
+Responda só as linhas, sem explicação.`;
 
-    let strips_arr = [];
-    if (strips && strips.length === 3) {
-      strips_arr = strips.map(s => ({type:'image', source:{type:'base64',media_type:'image/jpeg',data:s}}));
-      console.log('Usando strips do navegador');
+    let stripsArr = [];
+    if (strips && strips.length >= 3) {
+      stripsArr = strips;
+      console.log('Strips do navegador:', strips.length, 'strips,', strips.map(s=>Math.round(s.length/1024)+'KB').join(', '));
     } else {
-      // Fallback: usa imagem inteira
-      strips_arr = [{type:'image', source:{type:'base64',media_type:'image/jpeg',data:imgB64}}];
-      console.log('Usando imagem inteira');
+      stripsArr = [imgB64];
+      console.log('Usando imagem completa (sem strips)');
     }
 
-    // Lê todas as strips em paralelo SEM tripulação
+    // Processa todas as strips em paralelo
     const transcricoes = await Promise.all(
-      strips_arr.map((img, i) =>
-        callClaude([img, {type:'text', text:promptSemTrip}], 4000)
-          .then(t => { console.log(`Strip ${i+1}: ${t.length} chars`); return t; })
-          .catch(e => { console.log(`Strip ${i+1} erro:`, e.message); return ''; })
+      stripsArr.map((s, i) =>
+        callClaude([
+          {type:'image', source:{type:'base64', media_type:'image/jpeg', data:s}},
+          {type:'text', text:prompt}
+        ], 4000)
+        .then(t => { console.log(`Strip ${i+1}: ${t.length} chars`); return t; })
+        .catch(e => { console.log(`Strip ${i+1} erro:`, e.message); return ''; })
       )
     );
 
     const rawText = transcricoes.filter(Boolean).join('\n');
     console.log('Total chars:', rawText.length);
-    console.log('Amostra:', rawText.substring(0, 300));
 
-    // Agora busca tripulação só dos voos (muito menos dados)
-    // Identifica quais dias têm voo
-    const diasComVoo = [];
-    rawText.split('\n').forEach(line => {
-      const p = line.split('|').map(x=>x.trim());
-      if (p.length >= 3 && /^AD|^G3|^LA|^JJ/.test(p[2])) {
-        const dia = p[0] ? parseInt(p[0].split('/')[0]) : 0;
-        if (dia && !diasComVoo.includes(dia)) diasComVoo.push(dia);
-      }
-    });
-    console.log('Dias com voo:', diasComVoo);
+    // Converte para JSON
+    const jsonText = await callClaude([{type:'text', text:`Converta esta transcrição de escala da Azul em JSON. NÃO calcule nada.
 
-    // Busca tripulação para os dias com voo
-    let tripulacaoText = '';
-    if (diasComVoo.length > 0 && strips_arr.length > 0) {
-      // Usa a strip que provavelmente tem esses voos
-      const promptTrip = `Nesta escala de voo, busque a tripulação (coluna Crews) APENAS para os voos dos dias: ${diasComVoo.join(', ')}.
-Para cada voo encontrado, gere:
-DIA | NUMERO_VOO | NOME:FUNCAO,NOME:FUNCAO,...
-Responda só as linhas, sem explicação.`;
-
-      const tripResults = await Promise.all(
-        strips_arr.map(img =>
-          callClaude([img, {type:'text', text:promptTrip}], 3000).catch(()=>'')
-        )
-      );
-      tripulacaoText = tripResults.join('\n');
-      console.log('Tripulação chars:', tripulacaoText.length);
-    }
-
-    // Step 2: Claude converte tudo em JSON
-    const jsonText = await callClaude([{type:'text', text:`Converta esta transcrição em JSON. NÃO calcule nada.
-
-TRANSCRIÇÃO (DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT):
-${rawText.substring(0,10000)}
-
-TRIPULAÇÃO (DIA | VOO | NOME:FUNCAO,...):
-${tripulacaoText.substring(0,3000)}
+TRANSCRIÇÃO:
+${rawText.substring(0,14000)}
 
 CLASSIFICAÇÃO: FR→"fr"; FP/PP→"fp"; FC→"fc"; FA(atividade)→"fa"; SB+nº→"sb"; RHC...→"rea"; SEA→"rea";
 ADP→"adp"; ADPOB→"adpob"; AD####/G3###/LA###/JJ###→"voo"; DHD→"voo"+"dhd":true;
 Layover→pernoite do dia do voo anterior. NUNCA classifique ADP/ADPOB/FC/FA/SEA como "fr".
+Linhas duplicadas → use só uma vez.
 
 POR DIA: {"dia":<dia DATA_INI>,"diaFim":<dia DATA_FIM>,"tipo":"...","dhd":<bool>,
 "checkin":"<CHECKIN 1º voo>","ddcat":"<DDCAT>","local":"<DEP só adp/adpob>",
@@ -144,14 +113,14 @@ POR DIA: {"dia":<dia DATA_INI>,"diaFim":<dia DATA_FIM>,"tipo":"...","dhd":<bool>
 "tripulacao":[{"nome":"<NOME>","funcao":"<FUNCAO>"}],
 "pernoite":{"l":"<LOCAL>","ci":"<START layover>","co":"<END layover>"}}
 
-Vários voos mesma DATA_INI → 1 objeto. Funções: CA,FO,CL,FA,FE,SUP.
+Vários voos mesma DATA_INI → 1 objeto. Funções: CA,FO,CL,FA,FE,SUP (COBS→SUP,V→SUP).
 Dias não-voo: voos:[] e tripulacao:[].
 Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
 
     const extractAndRepair=(t)=>{let c=t.replace(/```json\s*/gi,'').replace(/```\s*/gi,'').trim();const m=c.match(/\{[\s\S]*\}/);if(!m)return null;try{return JSON.parse(m[0]);}catch(e){let x=m[0].replace(/,\s*([}\]])/g,'$1');let o=0,oo=0;for(let ch of x){if(ch==='[')o++;else if(ch===']')o--;if(ch==='{')oo++;else if(ch==='}')oo--;}while(o>0){x+=']';o--;}while(oo>0){x+='}';oo--;}try{return JSON.parse(x);}catch(e2){return null;}}};
 
     const parsed = extractAndRepair(jsonText);
-    if (!parsed||!parsed.dias) return res.status(500).json({error:'Falha JSON',amostra:rawText.substring(0,500)});
+    if (!parsed||!parsed.dias) return res.status(500).json({error:'Falha JSON',rawSample:rawText.substring(0,500)});
 
     const mesNome=(parsed.mes||'junho 2026').toLowerCase().split(' ')[0];
     const diasNoMes=DIAS_MES[mesNome]||31;
