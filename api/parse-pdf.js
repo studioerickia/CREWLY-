@@ -140,6 +140,21 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
     const diasNoMes=DIAS_MES[mesNome]||31;
     const labels={fr:'Folga',fp:'Folga Programada',fc:'Folga Casada',fa:'Folga Aniversário',voo:'Voo',rea:'Reserva',sb:'Sobreaviso',adp:'Adaptação',adpob:'Adaptação fora da base'};
 
+    // Normaliza campo dia: converte "08/06/2026" → 8
+    parsed.dias = parsed.dias.map(d => {
+      if (!d) return d;
+      if (typeof d.dia === 'string' && d.dia.includes('/')) {
+        d.dia = parseInt(d.dia.split('/')[0]) || 0;
+      } else {
+        d.dia = parseInt(d.dia) || 0;
+      }
+      if (typeof d.diaFim === 'string' && d.diaFim.includes('/')) {
+        d.diaFim = parseInt(d.diaFim.split('/')[0]) || d.dia;
+      } else {
+        d.diaFim = parseInt(d.diaFim) || d.dia;
+      }
+      return d;
+    });
     parsed.dias=parsed.dias.filter(d=>d&&d.dia>=1&&d.dia<=diasNoMes);
     parsed.dias.forEach(d=>{
       d.voos=Array.isArray(d.voos)?d.voos:[];
