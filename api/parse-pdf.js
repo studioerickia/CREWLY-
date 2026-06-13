@@ -88,7 +88,6 @@ Transcreva TODAS as linhas visíveis. Responda só as linhas.`;
 
     const rawText = transcricoes.filter(Boolean).join('\n');
     console.log('Total chars:', rawText.length);
-    console.log('RAWTEXT COMPLETO:', rawText.substring(0, 8000));
 
     const jsonText = await callClaude([{type:'text', text:`Converta esta transcrição de escala da Azul em JSON. NÃO calcule nada.
 
