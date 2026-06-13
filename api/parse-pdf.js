@@ -38,7 +38,6 @@ module.exports = async function handler(req, res) {
     return (d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
   };
 
-  // PROMPT TESTADO E VALIDADO — lê tudo certo
   const PROMPT = `Transcreva esta parte de uma escala de voo da Azul Linhas Aéreas.
 Colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
 - Checkin = apresentação. Start = DECOLAGEM. End = POUSO. São 3 horários DIFERENTES!
@@ -75,6 +74,7 @@ Transcreva TODAS as linhas visíveis. Responda só as linhas.`;
       console.log('Sem strips, usando imagem inteira');
     }
 
+    // STEP 1: transcreve cada strip
     const transcricoes = await Promise.all(
       stripsArr.map((s, i) =>
         callClaude([
@@ -89,9 +89,8 @@ Transcreva TODAS as linhas visíveis. Responda só as linhas.`;
     const rawText = transcricoes.filter(Boolean).join('\n');
     console.log('Total chars:', rawText.length);
 
-    let jsonText = '';
-    try {
-      jsonText = await callClaude([{type:'text', text:`Converta esta transcrição de escala da Azul em JSON. NÃO calcule nada.
+    // STEP 2: converte para JSON
+    const jsonText = await callClaude([{type:'text', text:`Converta esta transcrição de escala da Azul em JSON. NÃO calcule nada.
 
 TRANSCRIÇÃO:
 ${rawText.substring(0,14000)}
@@ -108,20 +107,34 @@ POR DIA: {"dia":<dia DATA_INI>,"diaFim":<dia DATA_FIM>,"tipo":"...","dhd":<bool>
 "tripulacao":[{"nome":"<NOME>","funcao":"<FUNCAO>"}],
 "pernoite":{"l":"<LOCAL>","ci":"<START layover>","co":"<END layover>"}}
 
-Vários voos mesma DATA_INI → 1 objeto. Funções: CA,FO,CL,FA,FE,SUP (COBS→SUP,V→SUP).
+Vários voos mesma DATA_INI → 1 objeto. Funções: CA,FO,CL,FA,FE,SUP.
 Dias não-voo: voos:[] e tripulacao:[].
 Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
 
-    console.log('Step 2 jsonText length:', jsonText.length);
-    console.log('Step 2 amostra:', jsonText.substring(0,200));
-    const extractAndRepair=(t)=>{let c=t.replace(/```json\s*/gi,'').replace(/```\s*/gi,'').trim();const m=c.match(/\{[\s\S]*\}/);if(!m)return null;try{return JSON.parse(m[0]);}catch(e){let x=m[0].replace(/,\s*([}\]])/g,'$1');let o=0,oo=0;for(let ch of x){if(ch==='[')o++;else if(ch===']')o--;if(ch==='{')oo++;else if(ch==='}')oo--;}while(o>0){x+=']';o--;}while(oo>0){x+='}';oo--;}try{return JSON.parse(x);}catch(e2){return null;}}};
+    console.log('Step 2 chars:', jsonText.length);
+
+    // Parse JSON
+    const extractAndRepair=(t)=>{
+      let c=t.replace(/```json\s*/gi,'').replace(/```\s*/gi,'').trim();
+      const m=c.match(/\{[\s\S]*\}/);
+      if(!m) return null;
+      try{return JSON.parse(m[0]);}
+      catch(e){
+        let x=m[0].replace(/,\s*([}\]])/g,'$1');
+        let o=0,oo=0;
+        for(let ch of x){if(ch==='[')o++;else if(ch===']')o--;if(ch==='{')oo++;else if(ch==='}')oo--;}
+        while(o>0){x+=']';o--;}while(oo>0){x+='}';oo--;}
+        try{return JSON.parse(x);}catch(e2){return null;}
+      }
+    };
 
     const parsed = extractAndRepair(jsonText);
-    } catch(step2err) {
-      console.log('ERRO STEP 2:', step2err.message);
-      return res.status(500).json({error:'Step 2 falhou: '+step2err.message, rawSample:rawText.substring(0,500)});
+    if (!parsed||!parsed.dias) {
+      console.log('Falha JSON. jsonText amostra:', jsonText.substring(0,300));
+      return res.status(500).json({error:'Falha JSON', jsonSample:jsonText.substring(0,500)});
     }
-    if (!parsed||!parsed.dias) return res.status(500).json({error:'Falha JSON',rawSample:rawText.substring(0,500)});
+
+    console.log('Dias parseados:', parsed.dias.length);
 
     const mesNome=(parsed.mes||'junho 2026').toLowerCase().split(' ')[0];
     const diasNoMes=DIAS_MES[mesNome]||31;
@@ -179,9 +192,11 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
       else if(d.tipo==='sb')resumo.sb++;
     });
 
+    console.log('Resumo:', JSON.stringify(resumo));
     return res.status(200).json({content:[{type:'text',text:JSON.stringify({mes:parsed.mes||'Junho 2026',resumo,dias:diasFinal})}]});
+
   } catch(err) {
-    console.error('Parser error:',err);
+    console.error('Parser error:', err.message);
     return res.status(500).json({error:err.message});
   }
 };
