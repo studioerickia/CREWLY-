@@ -27,7 +27,7 @@ module.exports = async function handler(req, res) {
   const isIntl=(i)=>INTL.has((i||'').toUpperCase());
   const calcApres=(checkin,dep,intl)=>{const margin=intl?90:50;const computed=subMinutes(dep,margin);const a=parseTime(checkin),d=parseTime(dep);if(a==null||d==null)return computed;let gap=d-a;if(gap<0)gap+=1440;if(gap<20||gap>240)return computed;return fmtTime(a);};
 
-  const callClaude = async (content, maxTokens=6000) => {
+  const callClaude = async (content, maxTokens=4000) => {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
@@ -42,86 +42,100 @@ module.exports = async function handler(req, res) {
     const {fileData, mediaType, strips} = req.body;
     if (!fileData) return res.status(400).json({error:'No file data'});
 
-    const prompt = (parte, total, dias) => `Esta é uma parte de uma escala de voo da Azul Linhas Aéreas.
-Transcreva TODAS as linhas visíveis nesta imagem.
-
-Colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
-ATENÇÃO: Checkin, Start e End são 3 colunas DIFERENTES!
-- Checkin = hora de apresentação (ANTES da decolagem)
-- Start = hora de DECOLAGEM
-- End = hora de POUSO
-
-Aeroportos válidos para Dep/Arr — use SEMPRE um destes:
-${AEROPORTOS.join(', ')}
-Se ver "US" ou "IS" = LIS. Se ver "BE" = BEL.
-
-Gere uma linha por atividade (separado por |):
-DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT | CREWS
-- DATA_INI: data do Start (DD/MM/AAAA). DATA_FIM: data do End (DD/MM/AAAA).
-- CHECKIN, START, END: só HH:MM de cada coluna respectiva.
-- CREWS: NOME:FUNCAO por vírgula.
-Responda SÓ as linhas, sem explicação.`;
-
-    let t1='', t2='', t3='';
-
-    if (strips && strips.length === 3) {
-      // Usa as strips cortadas pelo navegador — NÍTIDAS!
-      console.log('Usando strips do navegador:', strips.map(s=>s.length));
-      [t1, t2, t3] = await Promise.all([
-        callClaude([
-          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:strips[0]}},
-          {type:'text',text:prompt(1,3,'1 a 10')}
-        ]).catch(e=>{console.log('Strip 1 erro:',e.message);return '';}),
-        callClaude([
-          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:strips[1]}},
-          {type:'text',text:prompt(2,3,'11 a 20')}
-        ]).catch(e=>{console.log('Strip 2 erro:',e.message);return '';}),
-        callClaude([
-          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:strips[2]}},
-          {type:'text',text:prompt(3,3,'21 ao final do mês')}
-        ]).catch(e=>{console.log('Strip 3 erro:',e.message);return '';})
-      ]);
-    } else {
-      // Fallback: manda imagem inteira 3x com foco em cada período
-      console.log('Sem strips, usando imagem inteira 3x');
-      const isImage = (mediaType||'').startsWith('image/');
-      let imgB64 = fileData;
-      if (!isImage) {
-        try {
-          const pdf = Buffer.from(fileData,'base64');
-          const s = pdf.indexOf(Buffer.from([0xFF,0xD8,0xFF]));
-          const e = pdf.lastIndexOf(Buffer.from([0xFF,0xD9]));
-          if (s>=0 && e>s) imgB64 = pdf.slice(s,e+2).toString('base64');
-        } catch(e) {}
-      }
-      [t1, t2, t3] = await Promise.all([
-        callClaude([
-          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:imgB64}},
-          {type:'text',text:prompt(1,3,'1 a 10')}
-        ]).catch(()=>''),
-        callClaude([
-          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:imgB64}},
-          {type:'text',text:prompt(2,3,'11 a 20')}
-        ]).catch(()=>''),
-        callClaude([
-          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:imgB64}},
-          {type:'text',text:prompt(3,3,'21 ao final do mês')}
-        ]).catch(()=>'')
-      ]);
+    const isImage = (mediaType||'').startsWith('image/');
+    let imgB64 = fileData;
+    if (!isImage) {
+      try {
+        const pdf = Buffer.from(fileData,'base64');
+        const s = pdf.indexOf(Buffer.from([0xFF,0xD8,0xFF]));
+        const e = pdf.lastIndexOf(Buffer.from([0xFF,0xD9]));
+        if (s>=0 && e>s) imgB64 = pdf.slice(s,e+2).toString('base64');
+      } catch(e) {}
     }
 
-    const rawText = [t1,t2,t3].filter(Boolean).join('\n');
-    console.log('Total chars transcritos:', rawText.length);
-    console.log('Amostra:', rawText.substring(0,200));
+    // Prompt SEM tripulação — muito mais compacto
+    const promptSemTrip = `Você está lendo uma tabela de escala de voo da Azul Linhas Aéreas.
+Colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
 
-    const jsonText = await callClaude([{type:'text',text:`Converta esta transcrição em JSON. NÃO calcule nada.
+REGRAS CRÍTICAS:
+- Checkin = apresentação (hora ANTES da decolagem)
+- Start = hora de DECOLAGEM
+- End = hora de POUSO
+- São 3 horários DIFERENTES — não confunda!
+- Aeroportos válidos: ${AEROPORTOS.join(',')}
+- Se ver "US" ou "IS" = LIS. Se ver "BE" = BEL.
 
-TRANSCRIÇÃO:
-${rawText.substring(0,14000)}
+Para cada linha da tabela, gere (separado por |):
+DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT
 
-CLASSIFICAÇÃO: FR→"fr"; FP/PP→"fp"; FC→"fc"; FA(atividade)→"fa"; SB+nº→"sb"; RHC...→"rea";
+NÃO inclua a coluna Crews/tripulação — apenas os 10 campos acima.
+Transcreva TODAS as linhas visíveis. Responda só as linhas, sem explicação.`;
+
+    let strips_arr = [];
+    if (strips && strips.length === 3) {
+      strips_arr = strips.map(s => ({type:'image', source:{type:'base64',media_type:'image/jpeg',data:s}}));
+      console.log('Usando strips do navegador');
+    } else {
+      // Fallback: usa imagem inteira
+      strips_arr = [{type:'image', source:{type:'base64',media_type:'image/jpeg',data:imgB64}}];
+      console.log('Usando imagem inteira');
+    }
+
+    // Lê todas as strips em paralelo SEM tripulação
+    const transcricoes = await Promise.all(
+      strips_arr.map((img, i) =>
+        callClaude([img, {type:'text', text:promptSemTrip}], 4000)
+          .then(t => { console.log(`Strip ${i+1}: ${t.length} chars`); return t; })
+          .catch(e => { console.log(`Strip ${i+1} erro:`, e.message); return ''; })
+      )
+    );
+
+    const rawText = transcricoes.filter(Boolean).join('\n');
+    console.log('Total chars:', rawText.length);
+    console.log('Amostra:', rawText.substring(0, 300));
+
+    // Agora busca tripulação só dos voos (muito menos dados)
+    // Identifica quais dias têm voo
+    const diasComVoo = [];
+    rawText.split('\n').forEach(line => {
+      const p = line.split('|').map(x=>x.trim());
+      if (p.length >= 3 && /^AD|^G3|^LA|^JJ/.test(p[2])) {
+        const dia = p[0] ? parseInt(p[0].split('/')[0]) : 0;
+        if (dia && !diasComVoo.includes(dia)) diasComVoo.push(dia);
+      }
+    });
+    console.log('Dias com voo:', diasComVoo);
+
+    // Busca tripulação para os dias com voo
+    let tripulacaoText = '';
+    if (diasComVoo.length > 0 && strips_arr.length > 0) {
+      // Usa a strip que provavelmente tem esses voos
+      const promptTrip = `Nesta escala de voo, busque a tripulação (coluna Crews) APENAS para os voos dos dias: ${diasComVoo.join(', ')}.
+Para cada voo encontrado, gere:
+DIA | NUMERO_VOO | NOME:FUNCAO,NOME:FUNCAO,...
+Responda só as linhas, sem explicação.`;
+
+      const tripResults = await Promise.all(
+        strips_arr.map(img =>
+          callClaude([img, {type:'text', text:promptTrip}], 3000).catch(()=>'')
+        )
+      );
+      tripulacaoText = tripResults.join('\n');
+      console.log('Tripulação chars:', tripulacaoText.length);
+    }
+
+    // Step 2: Claude converte tudo em JSON
+    const jsonText = await callClaude([{type:'text', text:`Converta esta transcrição em JSON. NÃO calcule nada.
+
+TRANSCRIÇÃO (DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT):
+${rawText.substring(0,10000)}
+
+TRIPULAÇÃO (DIA | VOO | NOME:FUNCAO,...):
+${tripulacaoText.substring(0,3000)}
+
+CLASSIFICAÇÃO: FR→"fr"; FP/PP→"fp"; FC→"fc"; FA(atividade)→"fa"; SB+nº→"sb"; RHC...→"rea"; SEA→"rea";
 ADP→"adp"; ADPOB→"adpob"; AD####/G3###/LA###/JJ###→"voo"; DHD→"voo"+"dhd":true;
-Layover→pernoite do dia do voo anterior. NUNCA classifique ADP/ADPOB/FC/FA como "fr".
+Layover→pernoite do dia do voo anterior. NUNCA classifique ADP/ADPOB/FC/FA/SEA como "fr".
 
 POR DIA: {"dia":<dia DATA_INI>,"diaFim":<dia DATA_FIM>,"tipo":"...","dhd":<bool>,
 "checkin":"<CHECKIN 1º voo>","ddcat":"<DDCAT>","local":"<DEP só adp/adpob>",
@@ -130,8 +144,8 @@ POR DIA: {"dia":<dia DATA_INI>,"diaFim":<dia DATA_FIM>,"tipo":"...","dhd":<bool>
 "tripulacao":[{"nome":"<NOME>","funcao":"<FUNCAO>"}],
 "pernoite":{"l":"<LOCAL>","ci":"<START layover>","co":"<END layover>"}}
 
-Vários voos mesma DATA_INI → 1 objeto. Funções: CA,FO,CL,FA,FE,SUP (COBS→SUP,V→SUP,DHD→DHD).
-Dias não-voo: voos:[] e tripulacao:[]. NÃO calcule duração nem apresentação.
+Vários voos mesma DATA_INI → 1 objeto. Funções: CA,FO,CL,FA,FE,SUP.
+Dias não-voo: voos:[] e tripulacao:[].
 Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
 
     const extractAndRepair=(t)=>{let c=t.replace(/```json\s*/gi,'').replace(/```\s*/gi,'').trim();const m=c.match(/\{[\s\S]*\}/);if(!m)return null;try{return JSON.parse(m[0]);}catch(e){let x=m[0].replace(/,\s*([}\]])/g,'$1');let o=0,oo=0;for(let ch of x){if(ch==='[')o++;else if(ch===']')o--;if(ch==='{')oo++;else if(ch==='}')oo--;}while(o>0){x+=']';o--;}while(oo>0){x+='}';oo--;}try{return JSON.parse(x);}catch(e2){return null;}}};
