@@ -1428,8 +1428,8 @@ async function salvarEscalaImportada(){
           p: pernoiteParser
         };
       }
-    } else if(tipo === 'adp' || tipo === 'adpob'){
-      novaEscala[d.dia] = {t: tipo, info: d.detalhe||'Adaptação', local: d.local||''};
+    } else if(tipo === 'adp'){
+      novaEscala[d.dia] = {t:'adp', info: d.detalhe||'Adaptação'};
     } else if(tipo === 'pernoite'){
       novaEscala[d.dia] = {t:'pernoite', info: d.detalhe||'Pernoite'};
     } else {
@@ -1471,6 +1471,7 @@ let cV=0, cP=0, cF=0;
 for(let d=1;d<=31;d++){
   const e=E[d]||{};
   if(e.t==='voo'){cV+=(e.v||[]).length;if(e.p)cP++;}
+  else if(e.t==='adpob'&&e.local&&['LIS','OPO','FLL','MCO','MIA','JFK','PUJ','SCL','MVD','EZE','AEP','ASU'].includes(e.local))cP++;
   else if(e.t==='fr'||e.t==='fp'||e.t==='fc'||e.t==='fa')cF++;
 }
 document.getElementById('h-voos').textContent=cV;
