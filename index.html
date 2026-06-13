@@ -1269,7 +1269,7 @@ async function cortarImagemEmStrips(b64, mediaType) {
       const img = new Image();
       img.onload = () => {
         const W=img.width, H=img.height;
-        const N=3, stripH=Math.ceil(H/N), overlap=120;
+        const N=6, stripH=Math.ceil(H/N), overlap=60;
         const strips=[];
         for(let i=0;i<N;i++){
           const y1=Math.max(0,i*stripH-(i>0?overlap:0));
