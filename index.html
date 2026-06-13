@@ -1946,7 +1946,7 @@ function abrirPernoites(){
   const cidadeCount = {};
   const INTL_PERN = new Set(['LIS','OPO','FLL','MCO','MIA','JFK','PUJ','SCL','MVD','EZE','AEP','ASU']);
   Object.entries(E).forEach(([d, e]) => {
-    if(e && e.p && e.p.l && e.p.l !== '--'){
+    if(e && e.p && e.p.l && e.p.l !== '--' && e.p.co && e.p.co !== '--'){
       const cidade = e.p.l;
       cidadeCount[cidade] = (cidadeCount[cidade]||0) + 1;
       pernoites.push({dia: parseInt(d), cidade, ci: e.p.ci||'--', co: e.p.co||'--', int: e.p.int});
