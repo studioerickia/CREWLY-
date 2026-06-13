@@ -38,6 +38,19 @@ module.exports = async function handler(req, res) {
     return (d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
   };
 
+  // PROMPT TESTADO E VALIDADO — lê tudo certo
+  const PROMPT = `Transcreva esta parte de uma escala de voo da Azul Linhas Aéreas.
+Colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
+- Checkin = apresentação. Start = DECOLAGEM. End = POUSO. São 3 horários DIFERENTES!
+- Aeroportos válidos: ${AEROPORTOS.join(',')}
+- Se ver "US" = LIS
+
+Formato: DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT | CREWS
+- DATA_INI e DATA_FIM: apenas DD/MM/AAAA (nunca inclua a hora na data)
+- CHECKIN/START/END: apenas HH:MM
+- CREWS: NOME:FUNCAO por vírgula
+Transcreva TODAS as linhas visíveis. Responda só as linhas.`;
+
   try {
     const {fileData, mediaType, strips} = req.body;
     if (!fileData) return res.status(400).json({error:'No file data'});
@@ -53,39 +66,20 @@ module.exports = async function handler(req, res) {
       } catch(e) {}
     }
 
-    const prompt = `Transcreva esta parte de uma escala de voo da Azul Linhas Aéreas.
-Colunas: Activity | Checkin | Start | End | Checkout | Dep | Arr | AcVer | DD/CAT | Crews
-
-REGRAS:
-- Checkin = apresentação. Start = DECOLAGEM. End = POUSO. São 3 horários DIFERENTES!
-- Aeroportos Dep/Arr — use SEMPRE um destes: ${AEROPORTOS.join(',')}
-- Se ver "US" = LIS. "BE" = BEL.
-
-Formato por linha (separado por |):
-DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | ACVER | DDCAT | CREWS
-- DATA_INI: data do Start (DD/MM/AAAA)
-- DATA_FIM: data do End (DD/MM/AAAA)
-- CHECKIN/START/END: só HH:MM
-- CREWS: NOME:FUNCAO por vírgula
-
-Transcreva TODAS as linhas visíveis. Se uma linha estiver cortada no topo ou base, IGNORE-A.
-Responda só as linhas, sem explicação.`;
-
     let stripsArr = [];
     if (strips && strips.length >= 3) {
       stripsArr = strips;
-      console.log('Strips do navegador:', strips.length, 'strips,', strips.map(s=>Math.round(s.length/1024)+'KB').join(', '));
+      console.log('Strips do navegador:', strips.length, strips.map(s=>Math.round(s.length/1024)+'KB').join(', '));
     } else {
       stripsArr = [imgB64];
-      console.log('Usando imagem completa (sem strips)');
+      console.log('Sem strips, usando imagem inteira');
     }
 
-    // Processa todas as strips em paralelo
     const transcricoes = await Promise.all(
       stripsArr.map((s, i) =>
         callClaude([
           {type:'image', source:{type:'base64', media_type:'image/jpeg', data:s}},
-          {type:'text', text:prompt}
+          {type:'text', text:PROMPT}
         ], 4000)
         .then(t => { console.log(`Strip ${i+1}: ${t.length} chars`); return t; })
         .catch(e => { console.log(`Strip ${i+1} erro:`, e.message); return ''; })
@@ -95,7 +89,6 @@ Responda só as linhas, sem explicação.`;
     const rawText = transcricoes.filter(Boolean).join('\n');
     console.log('Total chars:', rawText.length);
 
-    // Converte para JSON
     const jsonText = await callClaude([{type:'text', text:`Converta esta transcrição de escala da Azul em JSON. NÃO calcule nada.
 
 TRANSCRIÇÃO:
