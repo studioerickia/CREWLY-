@@ -1943,21 +1943,17 @@ function abrirPernoites(){
   // Coleta todos os pernoites da escala
   const pernoites = [];
   const cidadeCount = {};
-  const INTL_SET = new Set(['LIS','OPO','FLL','MCO','MIA','JFK','PUJ','SCL','MVD','EZE','AEP','ASU']);
+  const INTL_PERN = new Set(['LIS','OPO','FLL','MCO','MIA','JFK','PUJ','SCL','MVD','EZE','AEP','ASU']);
   Object.entries(E).forEach(([d, e]) => {
-    // Pernoites normais (layover)
     if(e && e.p && e.p.l && e.p.l !== '--'){
       const cidade = e.p.l;
       cidadeCount[cidade] = (cidadeCount[cidade]||0) + 1;
       pernoites.push({dia: parseInt(d), cidade, ci: e.p.ci||'--', co: e.p.co||'--', int: e.p.int});
     }
-    // ADPOB internacional também conta como pernoite
-    if(e && e.t === 'adpob' && e.info && e.info.includes('·')){
-      const loc = e.info.split('·')[1].trim();
-      if(loc && INTL_SET.has(loc)){
-        cidadeCount[loc] = (cidadeCount[loc]||0) + 1;
-        pernoites.push({dia: parseInt(d), cidade: loc, ci: '--', co: '--', int: true});
-      }
+    // ADPOB com local internacional = pernoite fora da base
+    if(e && e.t === 'adpob' && e.local && INTL_PERN.has(e.local)){
+      cidadeCount[e.local] = (cidadeCount[e.local]||0) + 1;
+      pernoites.push({dia: parseInt(d), cidade: e.local, ci: '--', co: '--', int: true});
     }
   });
   
