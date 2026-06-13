@@ -1428,8 +1428,8 @@ async function salvarEscalaImportada(){
           p: pernoiteParser
         };
       }
-    } else if(tipo === 'adp'){
-      novaEscala[d.dia] = {t:'adp', info: d.detalhe||'Adaptação'};
+    } else if(tipo === 'adp' || tipo === 'adpob'){
+      novaEscala[d.dia] = {t: tipo, info: d.detalhe||'Adaptação', local: d.local||''};
     } else if(tipo === 'pernoite'){
       novaEscala[d.dia] = {t:'pernoite', info: d.detalhe||'Pernoite'};
     } else {
