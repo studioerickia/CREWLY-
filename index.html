@@ -2061,6 +2061,11 @@ async function salvarMesNoHistorico(){
 }
 
 // ===== INIT =====
+  // ===== SPLASH =====
+setTimeout(()=>{
+  const s=document.getElementById('splash');
+  if(s){s.classList.add('hide');setTimeout(()=>s.remove(),700);}
+},2500);
 (async function init(){
   initDark();
   buscarCotacao();
