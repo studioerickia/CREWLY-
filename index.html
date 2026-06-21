@@ -1481,10 +1481,9 @@ async function salvarEscalaImportada(){
           voosArr = [{n:detalhe,o:'--',d:'--',dp:'--',ar:'--',du:'--',ae:'--',fn:'FA'}];
         }
         
-        // Pernoite do parser
-        let pernoiteParser = undefined;
+       let pernoiteParser = undefined;
         if(d.pernoite && d.pernoite.l){
-          pernoiteParser = {l:d.pernoite.l, ci:d.pernoite.ci||'--', co:d.pernoite.co||'--'};
+          pernoiteParser = {l:d.pernoite.l, ci:d.pernoite.ci||'--', co:d.pernoite.co||'--', int: !!regiaoPernoite(d.pernoite.l)};
         }
 
         novaEscala[d.dia] = {
