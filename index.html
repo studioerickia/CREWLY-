@@ -1025,7 +1025,7 @@ async function fazerLogin(){
   
   if(error){
     if(btn){ btn.innerHTML = '<i class="ti ti-login"></i>Entrar'; btn.disabled = false; }
-    alert('Email ou senha incorretos. Tente novamente.');
+    alert('ERRO REAL: '+error.message);
     return;
   }
   
