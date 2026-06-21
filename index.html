@@ -312,6 +312,23 @@ body.dark [style*="border-color:#e8ecf0"]{border-color:#30363d!important}
   </div>
 </div>
 
+<!-- NOVA SENHA -->
+<div class="screen" id="s-nova-senha" style="background:url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80') center/cover no-repeat;">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,0.45)"></div>
+  <div class="lw" style="position:relative;z-index:1">
+    <div class="logo"><i class="ti ti-lock"></i></div>
+    <div style="font-size:24px;font-weight:800;color:#fff;margin-bottom:4px">Nova senha</div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:28px">Digite sua nova senha de acesso</div>
+    <div class="lcard" style="background:rgba(255,255,255,0.12);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.2);color:#fff">
+      <div class="lbl">Nova senha</div>
+      <div class="fi"><i class="ti ti-lock"></i><input placeholder="Mínimo 6 caracteres" type="password" id="inp-nova-senha"></div>
+      <div class="lbl">Confirme a nova senha</div>
+      <div class="fi" style="margin-bottom:0"><i class="ti ti-lock-check"></i><input placeholder="Repita a senha" type="password" id="inp-nova-senha2"></div>
+      <button class="btn" style="margin-top:16px" onclick="definirNovaSenha()"><i class="ti ti-check"></i>Salvar nova senha</button>
+    </div>
+  </div>
+</div>
+
 <!-- HOME -->
 <div class="screen" id="s-home">
   <div class="tb">
