@@ -1095,6 +1095,19 @@ async function criarConta(){
   if(btn){btn.innerHTML='<i class="ti ti-check"></i>Criar minha conta';btn.disabled=false;}
   go('home');
 }
+async function definirNovaSenha(){
+  const p1El = document.getElementById('inp-nova-senha');
+  const p2El = document.getElementById('inp-nova-senha2');
+  const p1 = p1El ? p1El.value : '';
+  const p2 = p2El ? p2El.value : '';
+  if(!p1 || p1.length<6){ alert('Senha deve ter pelo menos 6 caracteres'); return; }
+  if(p1!==p2){ alert('As senhas não coincidem'); return; }
+  const {error} = await supa.auth.updateUser({password: p1});
+  if(error){ alert('Erro ao salvar senha: '+error.message); return; }
+  alert('Senha alterada com sucesso! Faça login com a nova senha.');
+  await supa.auth.signOut();
+  go('login');
+}
 async function fazerLogout(){
   await supa.auth.signOut();
   USER.logado=false; USER.nome=''; USER.mat=''; USER.id=null;
