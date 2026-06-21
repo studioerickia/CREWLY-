@@ -1037,6 +1037,16 @@ async function fazerLogin(){
   if(btn){ btn.innerHTML = '<i class="ti ti-login"></i>Entrar'; btn.disabled = false; }
   go('home');
 }
+async function esqueciSenha(){
+  const emailEl = document.getElementById('inp-email');
+  const email = emailEl && emailEl.value ? emailEl.value.trim() : '';
+  if(!email){ alert('Digite seu email no campo acima primeiro.'); return; }
+  const {error} = await supa.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin
+  });
+  if(error){ alert('Erro ao enviar email: '+error.message); return; }
+  alert('Enviamos um link para '+email+'. Abra o email no celular e clique no link para definir uma nova senha.');
+}
 async function criarConta(){
   const nEl=document.getElementById('inp-nome');
   const mEl=document.getElementById('inp-mat');
