@@ -851,6 +851,11 @@ let OBS=1, dA=19, arq=null, fnSel='FA', ciaSel='AZUL';
 const SUPA_URL = 'https://cboctlowabgmxnuxdhzb.supabase.co';
 const SUPA_KEY = 'sb_publishable_kZ0S5IEWWDJP1tSo94YGlQ_3B-ayGyH';
 const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+supa.auth.onAuthStateChange((event, session) => {
+  if(event === 'PASSWORD_RECOVERY'){
+    go('nova-senha');
+  }
+});
 
 const USER = {nome:'',mat:'',base:'VCP',fn:'FA',cia:'AZUL',logado:false,id:null};
 
