@@ -1937,6 +1937,60 @@ function fmtBRL(v){ return 'R$ ' + v.toFixed(2).replace('.',','); }
 function usdToBrl(usd){ return fmtBRL(usd * cotacao.usd); }
 function eurToBrl(eur){ return fmtBRL(eur * cotacao.eur); }
 
+// ===== DIÁRIAS — classificação por região =====
+// Lista provisória baseada nos destinos internacionais já validados pelo parser.
+// Revisar conforme testarmos escalas reais de outros tripulantes.
+const REGIAO_AEROPORTO = {
+  LIS:'europa', OPO:'europa',
+  FLL:'eua', MCO:'eua', MIA:'eua', JFK:'eua',
+  PUJ:'amsul', SCL:'amsul', MVD:'amsul', EZE:'amsul', AEP:'amsul', ASU:'amsul'
+};
+function regiaoPernoite(codigo){
+  if(!codigo) return null;
+  return REGIAO_AEROPORTO[String(codigo).toUpperCase().trim()] || null;
+}
+
+// ===== DIÁRIAS — cálculo real a partir da escala importada =====
+const VALOR_DIARIA_NAC = 109.95;
+const VALOR_DIARIA_EUROPA_USD = 23;
+const VALOR_DIARIA_EUA_USD = 25;
+const VALOR_DIARIA_AMSUL_USD = 21;
+
+function calcularDiarias(){
+  let nac=0, eur=0, eua=0, ams=0;
+  for(let d=1; d<=31; d++){
+    const e = E[d];
+    if(!e) continue;
+    let local=null;
+    if(e.t==='voo' && e.p) local = e.p.l;
+    else if(e.t==='adpob' && e.local) local = e.local;
+    if(!local) continue;
+    const reg = regiaoPernoite(local);
+    if(reg==='europa') eur++;
+    else if(reg==='eua') eua++;
+    else if(reg==='amsul') ams++;
+    else nac++;
+  }
+  const valNac = nac * VALOR_DIARIA_NAC;
+  const valEur = eur * VALOR_DIARIA_EUROPA_USD * cotacao.usd;
+  const valEua = eua * VALOR_DIARIA_EUA_USD * cotacao.usd;
+  const valAms = ams * VALOR_DIARIA_AMSUL_USD * cotacao.usd;
+  const total = valNac + valEur + valEua + valAms;
+
+  const setEl = (id, txt) => { const el=document.getElementById(id); if(el) el.textContent = txt; };
+  setEl('est-diaria', fmtBRL(valNac));
+  setEl('val-eur-diaria', fmtBRL(valEur));
+  setEl('val-usd-diaria', fmtBRL(valEua));
+  setEl('val-sul-diaria', fmtBRL(valAms));
+  setEl('est-cafe', fmtBRL(0));
+  setEl('val-eur-cafe', fmtBRL(0));
+  setEl('val-usd-cafe', fmtBRL(0));
+  setEl('home-diarias', (nac+eur+eua+ams)+' diárias');
+  setEl('home-diarias-val', fmtBRL(total)+' este mês');
+
+  return {nac, eur, eua, ams, valNac, valEur, valEua, valAms, total};
+}
+
 // ===== SIMULADOR DE TROCA =====
 function abrirPaises(){
   const modal = document.getElementById('modal-paises');
