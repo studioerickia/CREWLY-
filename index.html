@@ -1431,10 +1431,11 @@ async function salvarEscalaImportada(){
             fn: 'FA'
           })),
           tr: tripulacao.length>0 ? tripulacao : undefined,
-          p: d.pernoite ? {
+         p: d.pernoite ? {
             l: d.pernoite.l||d.pernoite.local||'--',
             ci: d.pernoite.ci||d.pernoite.checkin||'--',
-            co: d.pernoite.co||d.pernoite.checkout||'--'
+            co: d.pernoite.co||d.pernoite.checkout||'--',
+            int: !!regiaoPernoite(d.pernoite.l||d.pernoite.local)
           } : undefined
         };
       } else {
