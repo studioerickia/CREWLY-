@@ -1028,6 +1028,11 @@ function selFn(fn,el){
   document.querySelectorAll('.fn-card').forEach(c=>c.classList.remove('sel'));
   el.classList.add('sel');
   el.querySelector('i').style.color='#1e6fef';
+  const labels={FA:'Comissário (FA)',CL:'Comissário Líder (CL)',CA:'Comandante (CA)',FO:'Copiloto (FO)'};
+  const cfgLabel=document.getElementById('cfg-fn-label');
+  if(cfgLabel) cfgLabel.textContent=labels[fn]||fn;
+  const stlLabel=document.getElementById('cfg-stl-label');
+  if(stlLabel) stlLabel.textContent='Salário Base ('+fn+')';
 }
 function confirmarFn(){
   USER.fn=fnSel;
