@@ -215,4 +215,19 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
     return res.status(500).json({error:err.message});
   }
 };
-module.exports.config={api:{bodyParser:{sizeLimit:'50mb'},maxDuration:120}};
+module.exports.config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '50mb'
+    },
+    maxDuration: 120
+  }
+};
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '50mb'
+    }
+  }
+};
