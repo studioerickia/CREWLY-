@@ -1408,11 +1408,12 @@ const scaleW = W > 1200 ? 1200/W : 1;
         for(let i=0;i<N;i++){
           const y1=Math.max(0,i*stripH-(i>0?overlap:0));
           const y2=Math.min(H,(i+1)*stripH+overlap);
+          const scaleW = W > 1000 ? 1000/W : 1;
           const canvas=document.createElement('canvas');
-          canvas.width=W;canvas.height=y2-y1;
+          canvas.width=Math.round(W*scaleW);canvas.height=Math.round((y2-y1)*scaleW);
           const ctx=canvas.getContext('2d');
-          ctx.drawImage(img,0,y1,W,y2-y1,0,0,W,y2-y1);
-  strips.push(canvas.toDataURL('image/jpeg',0.5).split(',')[1]);
+          ctx.drawImage(img,0,y1,W,y2-y1,0,0,canvas.width,canvas.height);
+          strips.push(canvas.toDataURL('image/jpeg',0.35).split(',')[1]);
         }
         URL.revokeObjectURL(url);
         console.log('Strips cortadas:',strips.map(s=>Math.round(s.length/1024)+'KB'));
