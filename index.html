@@ -1047,6 +1047,7 @@ function obNext(){
 // ===== SELEÇÃO DE FUNÇÃO =====
 function selFn(fn,el){
   fnSel=fn;
+  USER.fn=fn;
   document.querySelectorAll('.fn-card').forEach(c=>c.classList.remove('sel'));
   el.classList.add('sel');
   el.querySelector('i').style.color='#1e6fef';
@@ -1055,6 +1056,11 @@ function selFn(fn,el){
   if(cfgLabel) cfgLabel.textContent=labels[fn]||fn;
   const stlLabel=document.getElementById('cfg-stl-label');
   if(stlLabel) stlLabel.textContent='Salário Base ('+fn+')';
+  // Mostra ou esconde seletor de equipamento
+  const eqRow=document.getElementById('eq-selector');
+  if(eqRow) eqRow.style.display=(fn==='CA'||fn==='FO')?'block':'none';
+  // Atualiza valores nos inputs de configuração
+  atualizarValoresConfig();
 }
 function confirmarFn(){
   USER.fn=fnSel;
