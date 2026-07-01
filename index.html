@@ -850,7 +850,29 @@ body.dark [style*="border-color:#e8ecf0"]{border-color:#30363d!important}
 
 <script>
 // ===== ESTADO GLOBAL (persiste na sessão) =====
-let OBS=1, dA=19, arq=null, fnSel='FA', ciaSel='AZUL';
+let OBS=1, dA=19, arq=null, fnSel='FA', eqSel='330', ciaSel='AZUL';
+
+const VALORES_FUNCAO = {
+  FA: { base:3474.13, pericul:1042.24, org:694.83, f1:26.43, f2:31.68, lider:0, bon:0 },
+  CL: { base:3474.13, pericul:1042.24, org:694.83, f1:26.43, f2:31.68, lider:9.60, bon:0 },
+  CA: {
+    '330': { base:11535.22, pericul:3460.57, org:2307.04, f1:159.63, f2:191.55, lider:0, bon:5590.05 },
+    '320': { base:11535.22, pericul:3460.57, org:2307.04, f1:151.89, f2:182.27, lider:0, bon:2795.03 },
+    'ERJ': { base:11535.22, pericul:3460.57, org:2307.04, f1:135.63, f2:162.75, lider:0, bon:1570.21 },
+  },
+  FO: {
+    '330': { base:6016.21, pericul:1804.86, org:1203.24, f1:59.28, f2:71.13, lider:0, bon:5590.12 },
+    '320': { base:6016.21, pericul:1804.86, org:1203.24, f1:59.28, f2:71.13, lider:0, bon:2795.06 },
+    'ERJ': { base:6016.21, pericul:1804.86, org:1203.24, f1:59.28, f2:71.13, lider:0, bon:1570.21 },
+  }
+};
+
+function getValores(){
+  const fn = USER.fn || fnSel || 'FA';
+  const eq = USER.eq || eqSel || '330';
+  if(fn==='FA'||fn==='CL') return VALORES_FUNCAO[fn];
+  return (VALORES_FUNCAO[fn]&&VALORES_FUNCAO[fn][eq]) || VALORES_FUNCAO['FA'];
+}
 
 // ===== SUPABASE =====
 const SUPA_URL = 'https://cboctlowabgmxnuxdhzb.supabase.co';
