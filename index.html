@@ -1411,7 +1411,7 @@ async function cortarImagemEmStrips(b64, mediaType) {
           canvas.width=W;canvas.height=y2-y1;
           const ctx=canvas.getContext('2d');
           ctx.drawImage(img,0,y1,W,y2-y1,0,0,W,y2-y1);
-          strips.push(canvas.toDataURL('image/jpeg',0.92).split(',')[1]);
+  strips.push(canvas.toDataURL('image/jpeg',0.5).split(',')[1]);
         }
         URL.revokeObjectURL(url);
         console.log('Strips cortadas:',strips.map(s=>Math.round(s.length/1024)+'KB'));
