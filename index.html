@@ -874,6 +874,19 @@ function getValores(){
   return (VALORES_FUNCAO[fn]&&VALORES_FUNCAO[fn][eq]) || VALORES_FUNCAO['FA'];
 }
 
+function atualizarValoresConfig(){
+  const v = getValores();
+  if(!v) return;
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.value=val.toFixed(2).replace('.',','); };
+  set('cfg-base', v.base);
+  set('cfg-pericul', v.pericul);
+  set('cfg-org', v.org);
+  set('cfg-f1', v.f1);
+  set('cfg-f2', v.f2);
+  set('cfg-lider', v.lider);
+  set('cfg-bon', v.bon);
+}
+
 // ===== SUPABASE =====
 const SUPA_URL = 'https://cboctlowabgmxnuxdhzb.supabase.co';
 const SUPA_KEY = 'sb_publishable_kZ0S5IEWWDJP1tSo94YGlQ_3B-ayGyH';
