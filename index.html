@@ -688,7 +688,30 @@ body.dark [style*="border-color:#e8ecf0"]{border-color:#30363d!important}
   <div class="ph"><i class="ti ti-arrow-left bk" onclick="go('perfil')"></i><div><div class="ttl">Configurações</div></div></div>
   <div class="sa">
     <div style="padding:12px 16px 0">
-  <div class="stl" id="cfg-stl-label">Salário Base (FA)</div>
+<div class="stl" id="cfg-stl-label">Salário Base (FA)</div>
+<div style="background:#e3f0ff;border-radius:10px;padding:10px 14px;margin:0 0 10px;display:flex;gap:8px;align-items:center">
+  <i class="ti ti-info-circle" style="font-size:16px;color:#1e6fef;flex-shrink:0"></i>
+  <div style="font-size:12px;color:#1e6fef;line-height:1.5">Valores atualizados para <strong id="cfg-fn-label">Comissário (FA)</strong>. Personalize conforme seu holerite.</div>
+</div>
+<div class="card">
+  <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Salário fixo</div></div><input id="cfg-base" value="3.474,13"></div>
+  <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Periculosidade</div></div><input id="cfg-pericul" value="1.042,24"></div>
+  <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Comp. Orgânica</div></div><input id="cfg-org" value="694,83"></div>
+  <div class="cfgr" id="cfg-bon-row" style="display:none"><div><div style="font-size:14px;color:#1a1a2e">Bon. Equipamento</div><div style="font-size:12px;color:#8a94a6">CA e FO · varia por aeronave</div></div><input id="cfg-bon" value="0,00"></div>
+</div>
+<div id="eq-selector" style="display:none;margin-bottom:10px">
+  <div class="stl">Equipamento</div>
+  <div class="card">
+    <div class="cfgr">
+      <div><div style="font-size:14px;color:#1a1a2e">Aeronave principal</div></div>
+      <select id="cfg-eq" onchange="eqSel=this.value;USER.eq=this.value;atualizarValoresConfig()" style="background:#f5f6fa;border:1px solid #e8ecf0;border-radius:10px;padding:8px 12px;font-size:14px;color:#1a1a2e;font-family:inherit;outline:none">
+        <option value="330">330 / 350</option>
+        <option value="320">320</option>
+        <option value="ERJ">ERJ / ATR</option>
+      </select>
+    </div>
+  </div>
+</div>
 <div style="background:#e3f0ff;border-radius:10px;padding:10px 14px;margin:0 0 10px;display:flex;gap:8px;align-items:center">
   <i class="ti ti-info-circle" style="font-size:16px;color:#1e6fef;flex-shrink:0"></i>
  <div style="font-size:12px;color:#1e6fef;line-height:1.5">Valores atualizados para <strong id="cfg-fn-label">Comissário (FA)</strong>. Personalize conforme seu holerite.</div>
