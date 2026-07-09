@@ -1407,11 +1407,23 @@ async function processarPDF(){
       return;
     }
     showRes(res, rawTextDetectado);
-  }catch(e){
+ }catch(e){
     console.error('Erro parser:',e);
-    showEst('err');
-    const em=document.getElementById('emsg');
-    if(em)em.textContent='Erro ao processar: '+e.message;
+    mostrarErroImport('Erro inesperado ao processar.', e.message, '');
+  }
+}
+
+function mostrarErroImport(mensagem, detalhes, rawText){
+  showEst('err');
+  const em=document.getElementById('emsg');
+  if(em) em.innerHTML=
+    (mensagem||'Erro desconhecido')+
+    (detalhes?`<details style="margin-top:8px"><summary style="cursor:pointer;font-size:11px;opacity:.7">Ver detalhes técnicos</summary><pre style="font-size:10px;margin-top:6px;white-space:pre-wrap;word-break:break-all;opacity:.8">${detalhes}</pre></details>`:'');
+  const eb=document.getElementById('err-raw-box');
+  if(eb&&rawText){
+    eb.style.display='block';
+    const et=document.getElementById('err-raw-txt');
+    if(et) et.textContent=rawText;
   }
 }
 
