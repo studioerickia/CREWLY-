@@ -453,12 +453,18 @@ body.dark [style*="border-color:#e8ecf0"]{border-color:#30363d!important}
 <div style="margin-top:12px;text-align:center;font-size:11px;color:#b0b8c1;line-height:1.7">
   ⚠️ O Crewly pode cometer erros. Confira sempre sua escala oficial.
 </div>      </div>
-      <div id="est-err" style="display:none">
+     <div id="est-err" style="display:none">
         <div style="background:#ffeaea;border-radius:16px;padding:16px;margin-bottom:14px;display:flex;gap:12px">
           <i class="ti ti-alert-circle" style="font-size:24px;color:#e53935;flex-shrink:0;margin-top:1px"></i>
           <div><div style="font-size:15px;font-weight:700;color:#c62828;margin-bottom:4px">Não consegui ler</div><div style="font-size:13px;color:#b71c1c;line-height:1.5" id="emsg">Tente outro arquivo.</div></div>
         </div>
         <button class="btn" onclick="resetUp()"><i class="ti ti-upload"></i>Tentar novamente</button>
+        <button class="btn g" style="margin-top:10px" onclick="go('calendar')"><i class="ti ti-edit"></i>Preencher manualmente</button>
+        <div id="err-raw-box" style="display:none;margin-top:14px">
+          <div style="font-size:11px;font-weight:700;color:#8a94a6;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px">Texto detectado (debug)</div>
+          <div id="err-raw-txt" style="background:#f5f6fa;border:1px solid #e8ecf0;border-radius:10px;padding:12px;font-size:11px;color:#4a5568;font-family:monospace;white-space:pre-wrap;max-height:180px;overflow-y:auto;line-height:1.6"></div>
+          <button onclick="navigator.clipboard.writeText(document.getElementById('err-raw-txt').textContent).then(()=>alert('Copiado!'))" style="margin-top:8px;background:none;border:1px solid #e8ecf0;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;color:#8a94a6;cursor:pointer"><i class="ti ti-copy"></i> Copiar texto</button>
+        </div>
       </div>
     </div>
   </div>
