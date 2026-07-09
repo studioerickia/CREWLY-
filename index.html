@@ -1476,7 +1476,115 @@ const scaleW = W > 1200 ? 1200/W : 1;
     }catch(e){console.log('Erro ao cortar:',e);resolve(null);}
   });
 }
-   function mostrarErroImport(mensagem, detalhes, rawText){
+   // ===== MODO MANUAL =====
+function abrirManual(mes, ano){
+  mes = mes || ESCALA_MES || (new Date().getMonth()+1);
+  ano = ano || ESCALA_ANO || new Date().getFullYear();
+  const mesEl=document.getElementById('manual-mes');
+  const anoEl=document.getElementById('manual-ano');
+  if(mesEl) mesEl.value=mes;
+  if(anoEl) anoEl.value=ano;
+  rebuildManualDays();
+  go('manual');
+}
+function rebuildManualDays(){
+  const mes=parseInt(document.getElementById('manual-mes')?.value||(new Date().getMonth()+1));
+  const ano=parseInt(document.getElementById('manual-ano')?.value||new Date().getFullYear());
+  const diasNoMes=new Date(ano,mes,0).getDate();
+  const meses=['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const sub=document.getElementById('manual-sub');
+  if(sub) sub.textContent=`${meses[mes]} ${ano} · ${diasNoMes} dias`;
+  const container=document.getElementById('manual-days');
+  if(!container) return;
+  container.innerHTML='';
+  const TIPOS=[['fr','Folga'],['fp','Folga Prog.'],['sb','Sobreaviso'],['rea','Reserva'],['voo','Voo'],['adp','ADP'],['adpob','ADPOB']];
+  for(let d=1;d<=diasNoMes;d++){
+    const ex=E[d]||{};
+    const t=ex.t||'fr';
+    const voos=ex.v||[];
+    const v0=voos[0]||{};
+    const dow=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][new Date(ano,mes-1,d).getDay()];
+    const wknd=[0,6].includes(new Date(ano,mes-1,d).getDay());
+    const opts=TIPOS.map(([v,l])=>`<option value="${v}"${t===v?' selected':''}>${l}</option>`).join('');
+    const div=document.createElement('div');
+    div.style.cssText='background:#fff;border:1px solid #e8ecf0;border-radius:12px;margin-bottom:8px;overflow:hidden';
+    div.innerHTML=`
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:${wknd?'#f5f8ff':'#fff'}">
+        <div style="min-width:38px;text-align:center">
+          <div style="font-size:9px;color:#8a94a6;font-weight:700;letter-spacing:.5px">${dow}</div>
+          <div style="font-size:19px;font-weight:900;color:${wknd?'#1e6fef':'#1a1a2e'};line-height:1.1">${d}</div>
+        </div>
+        <select id="tipo-${d}" onchange="toggleManualFields(${d})" style="flex:1;padding:7px 8px;border:1px solid #e8ecf0;border-radius:8px;font-size:13px;font-weight:600;font-family:inherit;background:#f5f6fa">${opts}</select>
+      </div>
+      <div id="fields-${d}" style="display:${t==='voo'||t==='sb'?'block':'none'};padding:0 12px 12px;border-top:1px solid #f5f6fa">
+        <div id="voo-fields-${d}" style="display:${t==='voo'?'grid':'none'};grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">Nº VOO</div><input id="vnum-${d}" value="${v0.n||''}" placeholder="AD4070" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+          <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">APRESENTAÇÃO</div><input id="vapres-${d}" value="${ex.a||''}" placeholder="05:20" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+          <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">ORIGEM</div><input id="vorg-${d}" value="${v0.o||''}" placeholder="VCP" maxlength="3" oninput="this.value=this.value.toUpperCase()" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+          <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">DESTINO</div><input id="vdest-${d}" value="${v0.d||''}" placeholder="CGH" maxlength="3" oninput="this.value=this.value.toUpperCase()" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+          <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">PARTIDA</div><input id="vdep-${d}" value="${v0.dp||''}" placeholder="06:10" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+          <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">CHEGADA</div><input id="varr-${d}" value="${v0.ar||''}" placeholder="07:25" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+        </div>
+        <div id="sb-fields-${d}" style="display:${t==='sb'?'grid':'none'};grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">INÍCIO</div><input id="sbini-${d}" value="${ex.i||''}" placeholder="06:00" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+          <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">FIM</div><input id="sbfim-${d}" value="${ex.f||''}" placeholder="18:00" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+        </div>
+      </div>`;
+    container.appendChild(div);
+  }
+}
+function toggleManualFields(d){
+  const t=document.getElementById('tipo-'+d)?.value;
+  const f=document.getElementById('fields-'+d);
+  const vf=document.getElementById('voo-fields-'+d);
+  const sf=document.getElementById('sb-fields-'+d);
+  if(!f) return;
+  if(t==='voo'){f.style.display='block';if(vf)vf.style.display='grid';if(sf)sf.style.display='none';}
+  else if(t==='sb'){f.style.display='block';if(vf)vf.style.display='none';if(sf)sf.style.display='grid';}
+  else{f.style.display='none';}
+}
+async function salvarManual(){
+  const mes=parseInt(document.getElementById('manual-mes')?.value);
+  const ano=parseInt(document.getElementById('manual-ano')?.value);
+  const diasNoMes=new Date(ano,mes,0).getDate();
+  const novaEscala={};
+  for(let d=1;d<=diasNoMes;d++){
+    const t=document.getElementById('tipo-'+d)?.value||'fr';
+    if(t==='voo'){
+      const n=document.getElementById('vnum-'+d)?.value?.trim()||'--';
+      const o=(document.getElementById('vorg-'+d)?.value||'').toUpperCase().trim()||'--';
+      const dest=(document.getElementById('vdest-'+d)?.value||'').toUpperCase().trim()||'--';
+      const dp=document.getElementById('vdep-'+d)?.value?.trim()||'--';
+      const ar=document.getElementById('varr-'+d)?.value?.trim()||'--';
+      const apres=document.getElementById('vapres-'+d)?.value?.trim()||'--';
+      novaEscala[d]={t:'voo',a:apres,al:o,v:[{n,o,d:dest,dp,ar,du:'--',ae:'--',fn:'FA'}]};
+    } else if(t==='sb'){
+      const ini=document.getElementById('sbini-'+d)?.value?.trim()||'06:00';
+      const fim=document.getElementById('sbfim-'+d)?.value?.trim()||'18:00';
+      novaEscala[d]={t:'sb',i:ini,f:fim,h:12,b:USER.base||'VCP'};
+    } else {
+      novaEscala[d]={t};
+    }
+  }
+  ESCALA_MES=mes; ESCALA_ANO=ano; ESCALA_IMPORTADA=true;
+  Object.keys(E).forEach(k=>delete E[k]);
+  Object.assign(E,novaEscala);
+  await salvarEscala(mes,ano,novaEscala);
+  setTimeout(salvarMesNoHistorico,500);
+  buildCal();
+  setTimeout(()=>{
+    updateHome();
+    let cV=0,cP=0,cF=0;
+    for(let d=1;d<=31;d++){const e=E[d]||{};if(e.t==='voo'){cV+=(e.v||[]).length;if(e.p)cP++;}else if(['fr','fp','fc','fa'].includes(e.t))cF++;}
+    document.getElementById('h-voos').textContent=cV;
+    document.getElementById('h-pern').textContent=cP;
+    document.getElementById('h-folgas').textContent=cF;
+    calcularDiarias();
+    go('home');
+  },100);
+}
+
+function mostrarErroImport(mensagem, detalhes, rawText){(mensagem, detalhes, rawText){
   showEst('err');
   const em=document.getElementById('emsg');
   if(em) em.innerHTML=
