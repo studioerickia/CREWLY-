@@ -208,7 +208,7 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
     });
 
     console.log('Resumo:', JSON.stringify(resumo));
-    return res.status(200).json({content:[{type:'text',text:JSON.stringify({mes:parsed.mes||'Junho 2026',resumo,dias:diasFinal})}]});
+    return res.status(200).json({content:[{type:'text',text:JSON.stringify({mes:parsed.mes||'Junho 2026',resumo,dias:diasFinal})}], rawText: rawText.substring(0,8000)});
 
   } catch(err) {
     console.error('Parser error:', err.message);
