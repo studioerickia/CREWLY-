@@ -2042,7 +2042,7 @@ function calcularDiarias(){
     else nac++;
   }
   const valNac = nac * VALOR_DIARIA_NAC;
-  const valEur = eur * VALOR_DIARIA_EUROPA_USD * cotacao.usd;
+ const valEur = eur * VALOR_DIARIA_EUROPA_EUR * cotacao.eur;
   const valEua = eua * VALOR_DIARIA_EUA_USD * cotacao.usd;
   const valAms = ams * VALOR_DIARIA_AMSUL_USD * cotacao.usd;
   const total = valNac + valEur + valEua + valAms;
