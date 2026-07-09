@@ -330,6 +330,26 @@ body.dark [style*="border-color:#e8ecf0"]{border-color:#30363d!important}
   </div>
 </div>
 
+<!-- MANUAL ENTRY -->
+<div class="screen" id="s-manual">
+  <div class="ph" style="display:flex;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:10px">
+      <i class="ti ti-arrow-left bk" onclick="go('import')"></i>
+      <div><div class="ttl">Escala Manual</div><div class="sub" id="manual-sub">Julho 2026</div></div>
+    </div>
+    <button onclick="salvarManual()" style="background:#1e6fef;color:#fff;border:none;border-radius:10px;padding:9px 18px;font-weight:700;font-size:13px;cursor:pointer"><i class="ti ti-check"></i> Salvar</button>
+  </div>
+  <div style="background:#fff;border-bottom:1px solid #e8ecf0;padding:10px 16px;display:flex;gap:10px;align-items:center;flex-shrink:0">
+    <select id="manual-mes" onchange="rebuildManualDays()" style="flex:1;padding:8px 10px;border:1px solid #e8ecf0;border-radius:8px;font-size:14px;font-family:inherit;background:#f5f6fa">
+      <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option><option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option><option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+    </select>
+    <select id="manual-ano" onchange="rebuildManualDays()" style="width:88px;padding:8px 10px;border:1px solid #e8ecf0;border-radius:8px;font-size:14px;font-family:inherit;background:#f5f6fa">
+      <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
+    </select>
+  </div>
+  <div class="sa nn" style="padding:12px 16px 40px" id="manual-days"></div>
+</div>
+
 <!-- HOME -->
 <div class="screen" id="s-home">
   <div class="tb">
