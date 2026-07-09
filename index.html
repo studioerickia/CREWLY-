@@ -1650,12 +1650,18 @@ function mapearTipo(tipo){
   };
   return map[tipo?.toLowerCase()] || tipo || 'fr';
 }
-function showRes(r){
-  ultimaEscalaProcessada = r; // Guarda para salvar depois
+function showRes(r, rawText){
+  ultimaEscalaProcessada = r;
   showEst('res');
   const s=r.resumo||{};
   const rr=document.getElementById('rres');
   if(rr)rr.textContent=`${r.mes||'Junho 2026'} · ${s.voos||0} voos · ${s.pernoites||0} pernoites · ${s.folgas||0} folgas`;
+  // Injeta caixa de raw text se houver conteúdo
+  const rprev=document.getElementById('rprev');
+  if(rprev&&rawText){
+    const rawBox=`<div style="margin-top:14px"><div style="font-size:11px;font-weight:700;color:#8a94a6;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px">Texto detectado (debug)</div><div style="background:#f5f6fa;border:1px solid #e8ecf0;border-radius:10px;padding:12px;font-size:11px;color:#4a5568;font-family:monospace;white-space:pre-wrap;max-height:180px;overflow-y:auto;line-height:1.6" id="suc-raw-txt">${rawText.replace(/</g,'&lt;')}</div><button onclick="navigator.clipboard.writeText(document.getElementById('suc-raw-txt').textContent).then(()=>alert('Copiado!'))" style="margin-top:8px;background:none;border:1px solid #e8ecf0;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;color:#8a94a6;cursor:pointer"><i class='ti ti-copy'></i> Copiar texto</button></div>`;
+    setTimeout(()=>{const el=document.getElementById('rprev');if(el)el.insertAdjacentHTML('beforeend',rawBox);},50);
+  }
   const cors={voo:'#e3f0ff',fr:'#e8f5e9',fp:'#e8f5e9',sb:'#f3e8ff',rea:'#e0f7fa',adp:'#ede9fe'};
   const tcs={voo:'#1e6fef',fr:'#2e7d32',fp:'#2e7d32',sb:'#7c3aed',rea:'#00838f',adp:'#6d28d9'};
   const dias=(r.dias||[]).slice(0,8);
