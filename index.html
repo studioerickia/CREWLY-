@@ -1368,12 +1368,27 @@ async function processarPDF(){
     });
     const data=await r.json();
     await dl(600);setS(4,'ok','Crewly calculou horas e diárias ✓');await dl(400);
+    const rawTextDetectado = data.rawText || '';
     let txt=(data.content&&data.content[0]?data.content[0].text:'').replace(/```json|```/g,'').trim();
-    if(data.error){showEst('err');const em=document.getElementById('emsg');if(em)em.textContent='Erro: '+(data.error.message||data.error);return;}
+    if(data.error){
+      showEst('err');
+      const em=document.getElementById('emsg');
+      if(em)em.innerHTML='Crewly não conseguiu ler a escala.<br><small style="opacity:.7">'+((data.error.message||data.error)||'Erro desconhecido')+'</small>';
+      const eb=document.getElementById('err-raw-box');
+      if(eb&&rawTextDetectado){eb.style.display='block';document.getElementById('err-raw-txt').textContent=rawTextDetectado;}
+      return;
+    }
     let res;
     try{res=JSON.parse(txt);}catch(e){const m=txt.match(/\{[\s\S]*\}/);if(m)try{res=JSON.parse(m[0]);}catch(e2){}}
-    if(!res||!res.dias||res.dias.length===0){showEst('err');const em=document.getElementById('emsg');if(em)em.textContent='Crewly não encontrou dias na escala. Tente novamente.';return;}
-    showRes(res);
+    if(!res||!res.dias||res.dias.length===0){
+      showEst('err');
+      const em=document.getElementById('emsg');
+      if(em)em.innerHTML='Crewly não encontrou dias na escala.<br><small style="opacity:.7">Tente novamente ou preencha manualmente.</small>';
+      const eb=document.getElementById('err-raw-box');
+      if(eb&&rawTextDetectado){eb.style.display='block';document.getElementById('err-raw-txt').textContent=rawTextDetectado;}
+      return;
+    }
+    showRes(res, rawTextDetectado);
   }catch(e){
     console.error('Erro parser:',e);
     showEst('err');
