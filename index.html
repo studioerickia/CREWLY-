@@ -1586,6 +1586,16 @@ async function salvarManual(){
   const mes=parseInt(document.getElementById('manual-mes')?.value);
   const ano=parseInt(document.getElementById('manual-ano')?.value);
   const diasNoMes=new Date(ano,mes,0).getDate();
+  const diasSemCidade=[];
+  for(let d=1;d<=diasNoMes;d++){
+    if(document.getElementById('tipo-'+d)?.value==='voo' && document.getElementById('pern-'+d)?.checked){
+      if(!document.getElementById('pcid-'+d)?.value?.trim()) diasSemCidade.push(d);
+    }
+  }
+  if(diasSemCidade.length>0){
+    alert('Informe a cidade do pernoite no(s) dia(s): '+diasSemCidade.join(', '));
+    return;
+  }
   const novaEscala={};
   for(let d=1;d<=diasNoMes;d++){
     const t=document.getElementById('tipo-'+d)?.value||'fr';
