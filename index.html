@@ -976,38 +976,80 @@ async function carregarPerfil(userId){
 // Salva escala no Supabase
 async function salvarEscala(mes, ano, dados){
   if(!USER.id) return;
-  await supa.from('escalas').upsert({
+  console.log('[salvarEscala] enviando', {mes, ano, userId: USER.id});
+  const {error, status, statusText} = await supa.from('escalas').upsert({
     user_id: USER.id,
     mes, ano,
     dados: dados,
     updated_at: new Date().toISOString()
   }, {onConflict: 'user_id,mes,ano'});
+  if(error){
+    console.error('[salvarEscala] ERRO ao salvar', {
+      message:error.message, details:error.details, hint:error.hint, code:error.code, status, statusText
+    });
+  }
   try{ localStorage.setItem('crewly_escala_'+mes+'_'+ano, JSON.stringify(dados)); }catch(e){}
 }
 
 // Carrega escala do Supabase
 async function carregarEscala(mes, ano){
-  if(!USER.id) return null;
-  const {data} = await supa.from('escalas').select('dados').eq('user_id', USER.id).eq('mes', mes).eq('ano', ano).single();
-  return data ? data.dados : null;
+  if(!USER.id) return {data:null, error:null, status:null, statusText:'sem usuário logado'};
+
+  // Confirma que a sessão está restaurada ANTES de consultar
+  const {data:{session}, error:sessionError} = await supa.auth.getSession();
+  console.log('[auth antes de carregar escala]', {
+    possuiSessao: Boolean(session),
+    userId: session?.user?.id,
+    possuiAccessToken: Boolean(session?.access_token),
+    sessionError
+  });
+  if(!session){
+    console.warn('[carregarEscala] SEM SESSÃO — abortando consulta para não bater como anônimo');
+    return {data:null, error:{message:'Sem sessão ativa. Faça login novamente.'}, status:null, statusText:'sem sessão'};
+  }
+
+  console.log('[carregarEscala] consulta', {mes, ano, userId: session.user?.id});
+  const {data, error, status, statusText} = await supa
+    .from('escalas')
+    .select('dados')
+    .eq('user_id', USER.id)
+    .eq('mes', mes)
+    .eq('ano', ano)
+    .maybeSingle(); // maybeSingle: 0 linhas = data:null,error:null (não confunde "vazio" com "erro")
+  console.log('[carregarEscala] resultado', {
+    data,
+    error: error ? {message:error.message, details:error.details, hint:error.hint, code:error.code} : null,
+    status,
+    statusText
+  });
+  return {data: data ? data.dados : null, error, status, statusText};
 }
 
 // ===== TROCA DE MÊS ATIVO =====
 // Função central: é a ÚNICA responsável por decidir qual mês está carregado em E.
-// Qualquer lugar que precise mudar de mês (seletor manual, navegação de calendário,
-// reload) deve chamar esta função — nunca ler/escrever E diretamente para trocar de mês.
+// Retorna um dos 3 estados: 'loaded' (achou escala), 'empty' (mês sem escala salva,
+// não é erro), 'error' (falha de rede/autorização — NUNCA deve virar folga).
+let ESCALA_ERRO = null; // null = sem erro. String = mensagem de erro pra mostrar na tela.
 async function carregarMes(mes, ano){
-  const dados = await carregarEscala(mes, ano);
+  ESCALA_ERRO = null;
+  const resultado = await carregarEscala(mes, ano);
   Object.keys(E).forEach(k => delete E[k]);
-  if(dados && Object.keys(dados).length > 0){
-    Object.assign(E, dados);
-    ESCALA_IMPORTADA = true;
-  } else {
-    ESCALA_IMPORTADA = false;
-  }
   ESCALA_MES = mes;
   ESCALA_ANO = ano;
-  return ESCALA_IMPORTADA;
+
+  if(resultado.error){
+    ESCALA_IMPORTADA = false;
+    ESCALA_ERRO = resultado.error.message || resultado.statusText || 'Não foi possível carregar sua escala.';
+    console.error('[carregarMes] ERRO ao carregar', {mes, ano, erro: resultado.error, status: resultado.status});
+    return 'error';
+  }
+  if(resultado.data && Object.keys(resultado.data).length > 0){
+    Object.assign(E, resultado.data);
+    ESCALA_IMPORTADA = true;
+    return 'loaded';
+  }
+  ESCALA_IMPORTADA = false;
+  return 'empty';
 }
 
 // Backup local
@@ -1290,9 +1332,20 @@ function updateHome(){
   const cardAmanha = document.getElementById('card-amanha');
 
   if(!ESCALA_IMPORTADA){
-    // Mostra card de importar escala
+    // Mostra card de importar escala OU card de erro, dependendo da causa
     if(emptyCard){
       emptyCard.style.display='block';
+      if(ESCALA_ERRO){
+        emptyCard.innerHTML=`
+<div style="background:linear-gradient(135deg,#e53935,#c62828);border-radius:24px;padding:28px 24px;color:#fff;text-align:center;margin-bottom:12px">
+  <i class="ti ti-alert-circle" style="font-size:44px;margin-bottom:14px;display:block"></i>
+  <div style="font-size:18px;font-weight:800;margin-bottom:8px">Não foi possível carregar sua escala</div>
+  <div style="font-size:13px;opacity:.9;line-height:1.7;margin-bottom:20px">${ESCALA_ERRO}<br>Verifique sua sessão e tente novamente.</div>
+  <div onclick="carregarMes(ESCALA_MES,ESCALA_ANO).then(()=>updateHome())" style="background:#fff;color:#c62828;border-radius:14px;padding:14px 20px;font-size:15px;font-weight:800;cursor:pointer;display:inline-block">
+    <i class="ti ti-refresh"></i> Tentar novamente
+  </div>
+</div>`;
+      } else {
      emptyCard.innerHTML=`
 <div style="background:linear-gradient(135deg,#1e6fef,#1458cc);border-radius:24px;padding:28px 24px;color:#fff;text-align:center;margin-bottom:12px">
   <div style="font-size:52px;margin-bottom:16px">✈️</div>
@@ -1315,6 +1368,7 @@ function updateHome(){
     <div style="font-size:13px;color:#1a1a2e">Envie aqui e o Crewly faz o resto! 🚀</div>
   </div>
 </div>`;
+      }
     }
    if(cardHoje) cardHoje.innerHTML='';
 if(cardAmanha) cardAmanha.innerHTML='';
@@ -1511,11 +1565,27 @@ function rebuildManualDays(){
   if(sub) sub.textContent=`${meses[mes]} ${ano} · ${diasNoMes} dias`;
   const container=document.getElementById('manual-days');
   if(!container) return;
+
+  // NUNCA renderiza os dias como se fossem folga quando o carregamento falhou.
+  // Mostra um estado de erro explícito com opção de tentar de novo.
+  if(ESCALA_ERRO){
+    container.innerHTML=`
+      <div style="background:#ffeaea;border:1px solid #ffd5d5;border-radius:16px;padding:20px;text-align:center">
+        <i class="ti ti-alert-circle" style="font-size:32px;color:#e53935;margin-bottom:10px;display:block"></i>
+        <div style="font-size:15px;font-weight:700;color:#c62828;margin-bottom:6px">Não foi possível carregar sua escala</div>
+        <div style="font-size:13px;color:#8a94a6;margin-bottom:16px;line-height:1.6">${ESCALA_ERRO}<br>Verifique sua sessão e tente novamente.</div>
+        <button onclick="onMesAnoManualChange()" style="background:#1e6fef;color:#fff;border:none;border-radius:10px;padding:10px 20px;font-weight:700;font-size:13px;cursor:pointer">
+          <i class="ti ti-refresh"></i> Tentar novamente
+        </button>
+      </div>`;
+    return;
+  }
+
   container.innerHTML='';
-  const TIPOS=[['fr','Folga'],['fp','Folga Prog.'],['sb','Sobreaviso'],['rea','Reserva'],['voo','Voo'],['adp','ADP'],['adpob','ADPOB']];
+  const TIPOS=[['','Não selecionado'],['fr','Folga'],['fp','Folga Prog.'],['sb','Sobreaviso'],['rea','Reserva'],['voo','Voo'],['adp','ADP'],['adpob','ADPOB']];
   for(let d=1;d<=diasNoMes;d++){
     const ex=E[d]||{};
-    const t=ex.t||'fr';
+    const t=ex.t||'';
     const voos=ex.v||[];
     const v0=voos[0]||{};
     const dow=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][new Date(ano,mes-1,d).getDay()];
