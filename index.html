@@ -1599,14 +1599,24 @@ async function salvarManual(){
   const novaEscala={};
   for(let d=1;d<=diasNoMes;d++){
     const t=document.getElementById('tipo-'+d)?.value||'fr';
-    if(t==='voo'){
+   if(t==='voo'){
       const n=document.getElementById('vnum-'+d)?.value?.trim()||'--';
       const o=(document.getElementById('vorg-'+d)?.value||'').toUpperCase().trim()||'--';
       const dest=(document.getElementById('vdest-'+d)?.value||'').toUpperCase().trim()||'--';
       const dp=document.getElementById('vdep-'+d)?.value?.trim()||'--';
       const ar=document.getElementById('varr-'+d)?.value?.trim()||'--';
       const apres=document.getElementById('vapres-'+d)?.value?.trim()||'--';
-      novaEscala[d]={t:'voo',a:apres,al:o,v:[{n,o,d:dest,dp,ar,du:'--',ae:'--',fn:'FA'}]};
+      let p=undefined;
+      if(document.getElementById('pern-'+d)?.checked){
+        const cidade=document.getElementById('pcid-'+d)?.value?.trim()||'';
+        const aero=(document.getElementById('paero-'+d)?.value||'').toUpperCase().trim();
+        const pais=document.getElementById('ppais-'+d)?.value?.trim()||'';
+        const moeda=document.getElementById('pmoeda-'+d)?.value||'BRL';
+        const hotel=document.getElementById('photel-'+d)?.value?.trim()||'';
+        const obs=document.getElementById('pobs-'+d)?.value?.trim()||'';
+        p={l:aero||cidade||'--',ci:'--',co:'--',int:moeda!=='BRL',cidade,aero,pais,moeda,hotel,obs};
+      }
+      novaEscala[d]={t:'voo',a:apres,al:o,v:[{n,o,d:dest,dp,ar,du:'--',ae:'--',fn:'FA'}],p};
     } else if(t==='sb'){
       const ini=document.getElementById('sbini-'+d)?.value?.trim()||'06:00';
       const fim=document.getElementById('sbfim-'+d)?.value?.trim()||'18:00';
