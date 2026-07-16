@@ -345,10 +345,10 @@ body.dark [style*="border-color:#e8ecf0"]{border-color:#30363d!important}
     <button onclick="salvarManual()" style="background:#1e6fef;color:#fff;border:none;border-radius:10px;padding:9px 18px;font-weight:700;font-size:13px;cursor:pointer"><i class="ti ti-check"></i> Salvar</button>
   </div>
   <div style="background:#fff;border-bottom:1px solid #e8ecf0;padding:10px 16px;display:flex;gap:10px;align-items:center;flex-shrink:0">
-    <select id="manual-mes" onchange="rebuildManualDays()" style="flex:1;padding:8px 10px;border:1px solid #e8ecf0;border-radius:8px;font-size:14px;font-family:inherit;background:#f5f6fa">
+    <select id="manual-mes" onchange="onMesAnoManualChange()" style="flex:1;padding:8px 10px;border:1px solid #e8ecf0;border-radius:8px;font-size:14px;font-family:inherit;background:#f5f6fa">
       <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option><option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option><option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
     </select>
-    <select id="manual-ano" onchange="rebuildManualDays()" style="width:88px;padding:8px 10px;border:1px solid #e8ecf0;border-radius:8px;font-size:14px;font-family:inherit;background:#f5f6fa">
+    <select id="manual-ano" onchange="onMesAnoManualChange()" style="width:88px;padding:8px 10px;border:1px solid #e8ecf0;border-radius:8px;font-size:14px;font-family:inherit;background:#f5f6fa">
       <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
     </select>
   </div>
@@ -992,6 +992,24 @@ async function carregarEscala(mes, ano){
   return data ? data.dados : null;
 }
 
+// ===== TROCA DE MÊS ATIVO =====
+// Função central: é a ÚNICA responsável por decidir qual mês está carregado em E.
+// Qualquer lugar que precise mudar de mês (seletor manual, navegação de calendário,
+// reload) deve chamar esta função — nunca ler/escrever E diretamente para trocar de mês.
+async function carregarMes(mes, ano){
+  const dados = await carregarEscala(mes, ano);
+  Object.keys(E).forEach(k => delete E[k]);
+  if(dados && Object.keys(dados).length > 0){
+    Object.assign(E, dados);
+    ESCALA_IMPORTADA = true;
+  } else {
+    ESCALA_IMPORTADA = false;
+  }
+  ESCALA_MES = mes;
+  ESCALA_ANO = ano;
+  return ESCALA_IMPORTADA;
+}
+
 // Backup local
 function salvarUser(){ try{ localStorage.setItem('crewly_user', JSON.stringify(USER)); }catch(e){} }
 function carregarUser(){
@@ -1046,39 +1064,7 @@ const TR_LIS2=[
   {m:'',n:'RAFAEL CUNHA',f:'FA',av:'RC',c:'#e8f5e9',tc:'#2e7d32'},
   {m:'23628',n:'ERICKSON RODRIGUES',f:'FA',s:1288,av:'ER',c:'#1e6fef',tc:'#fff',eu:true}
 ];
-const E={
-  1:{t:'fr'},2:{t:'fr'},3:{t:'fp'},4:{t:'fp'},5:{t:'fp'},6:{t:'fr'},7:{t:'fr'},
-  8:{t:'sb',h:6,i:'18:00',b:'VCP'},9:{t:'sb',h:3,i:'21:00',b:'VCP'},
-  10:{t:'sb',h:12,i:'12:00',b:'VCP'},11:{t:'sb',h:12,i:'12:00',b:'VCP'},
-  12:{t:'sb',h:12,i:'12:00',b:'VCP'},13:{t:'sb',h:12,i:'12:00',b:'VCP'},
-  14:{t:'sb',h:12,i:'12:00',b:'VCP'},15:{t:'fp'},16:{t:'fr'},17:{t:'fr'},18:{t:'fr'},
-  19:{t:'voo',a:'12:00',al:'VCP',v:[
-    {n:'AD4070',o:'VCP',d:'BEL',dp:'12:50',ar:'16:15',du:'3h25',ae:'32N',fn:'FA'},
-    {n:'AD4577',o:'BEL',d:'CNF',dp:'16:55',ar:'20:00',du:'3h05',ae:'32N',fn:'FA'},
-    {n:'AD4455',o:'CNF',d:'CGH',dp:'21:00',ar:'22:25',du:'1h25',ae:'32N',fn:'FA'}
-  ],p:{l:'CGH',ci:'22:55',co:'17:00+1'},tr:TR_DEFAULT},
-  20:{t:'voo',a:'17:00',al:'CGH',v:[
-    {n:'AD4243',o:'CGH',d:'REC',dp:'17:50',ar:'20:55',du:'3h05',ae:'32N',fn:'FA'},
-    {n:'AD4949',o:'REC',d:'BEL',dp:'22:40',ar:'01:20+1',du:'2h40',ae:'32N',fn:'FA'}
-  ],p:{l:'BEL',ci:'01:50',co:'17:15'},tr:TR_DEFAULT},
-  21:{t:'voo',a:'17:15',al:'BEL',v:[
-    {n:'AD4433',o:'BEL',d:'REC',dp:'17:15',ar:'20:25',du:'3h10',ae:'32N',fn:'FA'},
-    {n:'AD4314',o:'REC',d:'VIX',dp:'22:10',ar:'00:30+1',du:'2h20',ae:'32N',fn:'FA'}
-  ],p:{l:'VIX',ci:'01:00',co:'14:45'},tr:TR_DEFAULT},
-  22:{t:'voo',a:'14:45',al:'VIX',v:[
-    {n:'AD4281',o:'VIX',d:'VCP',dp:'15:25',ar:'17:05',du:'1h40',ae:'32A',fn:'FA'},
-    {n:'AD2886',o:'VCP',d:'VIX',dp:'17:45',ar:'19:13',du:'1h28',ae:'32A',fn:'FA'}
-  ],tr:TR_DEFAULT},
-  23:{t:'fr'},24:{t:'fr'},25:{t:'fr'},
-  26:{t:'voo',a:'16:25',al:'VCP',v:[
-    {n:'AD8750',o:'VCP',d:'LIS',dp:'17:55',ar:'04:00+1',du:'7h05',ae:'330',fn:'FA'}
-  ],p:{l:'LIS',ci:'04:45',co:'09:00',int:true},tr:TR_LIS},
-  27:{t:'adp',info:'Adaptação Internacional · LIS'},
-  28:{t:'voo',a:'04:45',al:'LIS',v:[
-    {n:'AD8751',o:'LIS',d:'VCP',dp:'06:00',ar:'17:20',du:'10h20',ae:'33A',fn:'FA'}
-  ],tr:TR_LIS},
-  29:{t:'fr'},30:{t:'adp',info:'Adaptação · VCP'}
-};
+const E={};
 
 // ===== NAVEGAÇÃO =====
 function go(n){
@@ -1496,15 +1482,25 @@ const scaleW = W > 1200 ? 1200/W : 1;
   });
 }
    // ===== MODO MANUAL =====
-function abrirManual(mes, ano){
-  mes = mes || ESCALA_MES || (new Date().getMonth()+1);
-  ano = ano || ESCALA_ANO || new Date().getFullYear();
+async function abrirManual(mes, ano){
+  const hoje = new Date();
+  mes = mes || (ESCALA_IMPORTADA ? ESCALA_MES : hoje.getMonth()+1);
+  ano = ano || (ESCALA_IMPORTADA ? ESCALA_ANO : hoje.getFullYear());
+  if(mes!==ESCALA_MES || ano!==ESCALA_ANO || !ESCALA_IMPORTADA){
+    await carregarMes(mes, ano);
+  }
   const mesEl=document.getElementById('manual-mes');
   const anoEl=document.getElementById('manual-ano');
   if(mesEl) mesEl.value=mes;
   if(anoEl) anoEl.value=ano;
   rebuildManualDays();
   go('manual');
+}
+async function onMesAnoManualChange(){
+  const mes=parseInt(document.getElementById('manual-mes')?.value);
+  const ano=parseInt(document.getElementById('manual-ano')?.value);
+  await carregarMes(mes, ano);
+  rebuildManualDays();
 }
 function rebuildManualDays(){
   const mes=parseInt(document.getElementById('manual-mes')?.value||(new Date().getMonth()+1));
@@ -2496,16 +2492,9 @@ setTimeout(()=>{
     USER.logado = true;
     await carregarPerfil(session.user.id);
     salvarUser();
-    // Tenta carregar escala do mês atual
+    // Carrega o mês real atual do dispositivo
     const hoje = new Date();
-    const escData = await carregarEscala(hoje.getMonth()+1, hoje.getFullYear());
-    if(escData && Object.keys(escData).length > 0){
-      Object.keys(E).forEach(k => delete E[k]);
-      Object.assign(E, escData);
-      ESCALA_IMPORTADA = true;
-      ESCALA_MES = hoje.getMonth()+1;
-      ESCALA_ANO = hoje.getFullYear();
-    }
+    await carregarMes(hoje.getMonth()+1, hoje.getFullYear());
     updateHome();
     buildCal();
     go('home');
