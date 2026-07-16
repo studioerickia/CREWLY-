@@ -1615,23 +1615,32 @@ async function salvarManual(){
         const hotel=document.getElementById('photel-'+d)?.value?.trim()||'';
         const obs=document.getElementById('pobs-'+d)?.value?.trim()||'';
         p={l:aero||cidade||'--',ci:'--',co:'--',int:moeda!=='BRL',cidade,aero,pais,moeda,hotel,obs};
-      }
-      novaEscala[d]={t:'voo',a:apres,al:o,v:[{n,o,d:dest,dp,ar,du:'--',ae:'--',fn:'FA'}],p};
-    } else if(t==='sb'){
-      const ini=document.getElementById('sbini-'+d)?.value?.trim()||'06:00';
-      const fim=document.getElementById('sbfim-'+d)?.value?.trim()||'18:00';
-      novaEscala[d]={t:'sb',i:ini,f:fim,h:12,b:USER.base||'VCP'};
-    } else {
-      novaEscala[d]={t};
-    }
-  }
-  ESCALA_MES=mes; ESCALA_ANO=ano; ESCALA_IMPORTADA=true;
+     ESCALA_MES=mes; ESCALA_ANO=ano; ESCALA_IMPORTADA=true;
   Object.keys(E).forEach(k=>delete E[k]);
   Object.assign(E,novaEscala);
   await salvarEscala(mes,ano,novaEscala);
-  setTimeout(salvarMesNoHistorico,500);
+  recalcularTudo();
+  setTimeout(()=>go('home'),100);
+}
+
+// ===== RECÁLCULO CENTRAL =====
+// Chamar sempre que E (escala) mudar: import, salvamento manual, edição de pernoite, etc.
+function recalcularTudo(){
   buildCal();
-  setTimeout(()=>{
+  updateHome();
+  calcularDiarias();
+  let cV=0,cP=0,cF=0;
+  for(let d=1;d<=31;d++){
+    const e=E[d]||{};
+    if(e.t==='voo'){cV+=(e.v||[]).length;if(e.p)cP++;}
+    else if(['fr','fp','fc','fa'].includes(e.t))cF++;
+  }
+  const setEl=(id,txt)=>{const el=document.getElementById(id);if(el)el.textContent=txt;};
+  setEl('h-voos',cV);
+  setEl('h-pern',cP);
+  setEl('h-folgas',cF);
+  salvarMesNoHistorico();
+}
     updateHome();
     let cV=0,cP=0,cF=0;
     for(let d=1;d<=31;d++){const e=E[d]||{};if(e.t==='voo'){cV+=(e.v||[]).length;if(e.p)cP++;}else if(['fr','fp','fc','fa'].includes(e.t))cF++;}
