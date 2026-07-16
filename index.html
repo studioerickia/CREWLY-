@@ -2164,16 +2164,20 @@ function buildHist(){
   const totalHoras = data.reduce((a,d)=>a+d.h,0);
   const totalVoos = data.reduce((a,d)=>a+d.v,0);
 
-  hm.innerHTML = `
-    <!-- Resumo anual -->
-    <div style="margin:0 16px 16px;background:linear-gradient(135deg,#1e6fef,#1458cc);border-radius:20px;padding:20px;color:#fff">
-      <div style="font-size:11px;opacity:.8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">2026 · Resumo anual</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px">
-        <div><div style="font-size:22px;font-weight:800">${totalVoos}</div><div style="font-size:10px;opacity:.7">voos</div></div>
-        <div><div style="font-size:22px;font-weight:800">${totalHoras}h</div><div style="font-size:10px;opacity:.7">voadas</div></div>
-        <div><div style="font-size:22px;font-weight:800">R$${Math.round(totalAnual/1000)}k</div><div style="font-size:10px;opacity:.7">recebidos</div></div>
-      </div>
-    </div>
+ function calcularDiarias(){
+  let nac=0, eur=0, eua=0, ams=0;
+  for(let d=1; d<=31; d++){
+    const e = E[d];
+    if(!e) continue;
+    let reg=null;
+    if(e.t==='voo' && e.p){
+      reg = regiaoPernoite(e.p.aero || e.p.l);
+      if(!reg && e.p.moeda && e.p.moeda!=='BRL'){
+        reg = e.p.moeda==='EUR' ? 'europa' : 'eua';
+      }
+    } else if(e.t==='adpob' && e.local){
+      reg = regiaoPernoite(e.local);
+    }
     <!-- Gráfico -->
     <div style="margin:0 16px 16px;background:#fff;border-radius:16px;padding:16px;border:1px solid #e8ecf0">
       <div style="font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:16px">Horas voadas por mês</div>
