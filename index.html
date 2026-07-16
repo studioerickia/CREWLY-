@@ -1937,8 +1937,8 @@ function buildCal(){
     else if(e.t==='fr'||e.t==='fp')cFolgas++;
     else if(e.t==='sb')cSB++;
   }
-  if(cr)cr.innerHTML=`<div class="row"><div class="rk"><i class="ti ti-plane" style="color:#1e6fef"></i>Voos</div><div class="rv">${cVoos} voos</div></div><div class="row"><div class="rk"><i class="ti ti-bed" style="color:#f59e0b"></i>Pernoites</div><div class="rv">${cPern} noites</div></div><div class="row"><div class="rk"><i class="ti ti-circle-check" style="color:#10b981"></i>Folgas</div><div class="rv">${cFolgas} dias</div></div><div class="row"><div class="rk"><i class="ti ti-bell" style="color:#7c3aed"></i>Sobreavisos</div><div class="rv">${cSB} dias</div></div><div class="row"><div class="rk"><i class="ti ti-clock" style="color:#8b5cf6"></i>Horas voadas</div><div class="rv">38h</div></div><div class="row"><div class="rk"><i class="ti ti-currency-dollar" style="color:#10b981"></i>Estimativa</div><div class="rv" style="color:#10b981">R$ 5.211,16</div></div>`;
-}
+const diariasCalc = calcularDiarias();
+  if(cr)cr.innerHTML=`<div class="row"><div class="rk"><i class="ti ti-plane" style="color:#1e6fef"></i>Voos</div><div class="rv">${cVoos} voos</div></div><div class="row"><div class="rk"><i class="ti ti-bed" style="color:#f59e0b"></i>Pernoites</div><div class="rv">${cPern} noites</div></div><div class="row"><div class="rk"><i class="ti ti-circle-check" style="color:#10b981"></i>Folgas</div><div class="rv">${cFolgas} dias</div></div><div class="row"><div class="rk"><i class="ti ti-bell" style="color:#7c3aed"></i>Sobreavisos</div><div class="rv">${cSB} dias</div></div><div class="row"><div class="rk"><i class="ti ti-currency-dollar" style="color:#10b981"></i>Diárias estimadas</div><div class="rv" style="color:#10b981">${fmtBRL(diariasCalc.total)}</div></div>`;}
 
 function getDiaDemo(){
   const hoje = new Date();
