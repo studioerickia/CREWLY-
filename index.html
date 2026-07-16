@@ -1542,10 +1542,25 @@ function toggleManualFields(d){
   const f=document.getElementById('fields-'+d);
   const vf=document.getElementById('voo-fields-'+d);
   const sf=document.getElementById('sb-fields-'+d);
+  const pf=document.getElementById('pern-wrap-'+d);
   if(!f) return;
-  if(t==='voo'){f.style.display='block';if(vf)vf.style.display='grid';if(sf)sf.style.display='none';}
-  else if(t==='sb'){f.style.display='block';if(vf)vf.style.display='none';if(sf)sf.style.display='grid';}
+  if(t==='voo'){f.style.display='block';if(vf)vf.style.display='grid';if(sf)sf.style.display='none';if(pf)pf.style.display='block';}
+  else if(t==='sb'){f.style.display='block';if(vf)vf.style.display='none';if(sf)sf.style.display='grid';if(pf)pf.style.display='none';}
   else{f.style.display='none';}
+}
+function togglePernoite(d){
+  const chk=document.getElementById('pern-'+d);
+  const box=document.getElementById('pern-fields-'+d);
+  if(box) box.style.display = (chk&&chk.checked) ? 'grid' : 'none';
+}
+function sugerirMoeda(d){
+  const aero=document.getElementById('paero-'+d)?.value?.trim();
+  const sel=document.getElementById('pmoeda-'+d);
+  if(!aero||!sel) return;
+  const reg=regiaoPernoite(aero);
+  if(reg==='europa') sel.value='EUR';
+  else if(reg==='eua'||reg==='amsul') sel.value='USD';
+  else if(reg===null && aero.length>=3) sel.value='BRL';
 }
 async function salvarManual(){
   const mes=parseInt(document.getElementById('manual-mes')?.value);
