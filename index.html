@@ -1,3 +1,8 @@
+bash
+
+cat /mnt/user-data/outputs/index.html
+Saída
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -1221,10 +1226,20 @@ function getSaudacao(){
   if(h<18)return'Boa tarde';
   return'Boa noite';
 }
-function getDiaDemo(){
-  // Para demo usa dia 19 (dia com voos na escala de junho)
-  // Em produção: return new Date().getDate()
-  return 19;
+function getDiaHoje(){
+  const hoje = new Date();
+  if(ESCALA_MES===(hoje.getMonth()+1) && ESCALA_ANO===hoje.getFullYear()){
+    return hoje.getDate();
+  }
+  return null;
+}
+function getDiaAmanha(){
+  const hoje = new Date();
+  const amanhaDt = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()+1);
+  if(ESCALA_MES===(amanhaDt.getMonth()+1) && ESCALA_ANO===amanhaDt.getFullYear()){
+    return amanhaDt.getDate();
+  }
+  return null;
 }
 
 function updateHome(){
@@ -1243,9 +1258,9 @@ function updateHome(){
   if(pf)pf.textContent=USER.fn||'FA';
   if(pb)pb.textContent=USER.base||'VCP';
 
-  const hoje=getDiaDemo();
-  const amanha=hoje<30?hoje+1:null;
-  const eH=E[hoje];
+  const hoje=getDiaHoje();
+  const amanha=getDiaAmanha();
+  const eH=hoje?E[hoje]:null;
   const eA=amanha?E[amanha]:null;
   const cardH=document.getElementById('card-hoje');
   const cardA=document.getElementById('card-amanha');
@@ -1615,7 +1630,17 @@ async function salvarManual(){
         const hotel=document.getElementById('photel-'+d)?.value?.trim()||'';
         const obs=document.getElementById('pobs-'+d)?.value?.trim()||'';
         p={l:aero||cidade||'--',ci:'--',co:'--',int:moeda!=='BRL',cidade,aero,pais,moeda,hotel,obs};
-     ESCALA_MES=mes; ESCALA_ANO=ano; ESCALA_IMPORTADA=true;
+      }
+      novaEscala[d]={t:'voo',a:apres,al:o,v:[{n,o,d:dest,dp,ar,du:'--',ae:'--',fn:'FA'}],p};
+    } else if(t==='sb'){
+      const ini=document.getElementById('sbini-'+d)?.value?.trim()||'06:00';
+      const fim=document.getElementById('sbfim-'+d)?.value?.trim()||'18:00';
+      novaEscala[d]={t:'sb',i:ini,f:fim,h:12,b:USER.base||'VCP'};
+    } else {
+      novaEscala[d]={t};
+    }
+  }
+  ESCALA_MES=mes; ESCALA_ANO=ano; ESCALA_IMPORTADA=true;
   Object.keys(E).forEach(k=>delete E[k]);
   Object.assign(E,novaEscala);
   await salvarEscala(mes,ano,novaEscala);
@@ -1640,16 +1665,6 @@ function recalcularTudo(){
   setEl('h-pern',cP);
   setEl('h-folgas',cF);
   salvarMesNoHistorico();
-}
-    updateHome();
-    let cV=0,cP=0,cF=0;
-    for(let d=1;d<=31;d++){const e=E[d]||{};if(e.t==='voo'){cV+=(e.v||[]).length;if(e.p)cP++;}else if(['fr','fp','fc','fa'].includes(e.t))cF++;}
-    document.getElementById('h-voos').textContent=cV;
-    document.getElementById('h-pern').textContent=cP;
-    document.getElementById('h-folgas').textContent=cF;
-    calcularDiarias();
-    go('home');
-  },100);
 }
 
 function mostrarErroImport(mensagem, detalhes, rawText){
@@ -1940,16 +1955,6 @@ function buildCal(){
 const diariasCalc = calcularDiarias();
   if(cr)cr.innerHTML=`<div class="row"><div class="rk"><i class="ti ti-plane" style="color:#1e6fef"></i>Voos</div><div class="rv">${cVoos} voos</div></div><div class="row"><div class="rk"><i class="ti ti-bed" style="color:#f59e0b"></i>Pernoites</div><div class="rv">${cPern} noites</div></div><div class="row"><div class="rk"><i class="ti ti-circle-check" style="color:#10b981"></i>Folgas</div><div class="rv">${cFolgas} dias</div></div><div class="row"><div class="rk"><i class="ti ti-bell" style="color:#7c3aed"></i>Sobreavisos</div><div class="rv">${cSB} dias</div></div><div class="row"><div class="rk"><i class="ti ti-currency-dollar" style="color:#10b981"></i>Diárias estimadas</div><div class="rv" style="color:#10b981">${fmtBRL(diariasCalc.total)}</div></div>`;}
 
-function getDiaDemo(){
-  const hoje = new Date();
-  // Se a escala importada é do mês atual, usa dia real
-  if(ESCALA_MES===(hoje.getMonth()+1) && ESCALA_ANO===hoje.getFullYear()){
-    return hoje.getDate();
-  }
-  // Se não tem escala importada, usa dia 19 como demo
-  return 19;
-}
-
 // ===== ABRIR DIA =====
 function diaAnterior(){
   const diasNoMes = new Date(ESCALA_ANO, ESCALA_MES, 0).getDate();
@@ -2164,20 +2169,7 @@ function buildHist(){
   const totalHoras = data.reduce((a,d)=>a+d.h,0);
   const totalVoos = data.reduce((a,d)=>a+d.v,0);
 
- function calcularDiarias(){
-  let nac=0, eur=0, eua=0, ams=0;
-  for(let d=1; d<=31; d++){
-    const e = E[d];
-    if(!e) continue;
-    let reg=null;
-    if(e.t==='voo' && e.p){
-      reg = regiaoPernoite(e.p.aero || e.p.l);
-      if(!reg && e.p.moeda && e.p.moeda!=='BRL'){
-        reg = e.p.moeda==='EUR' ? 'europa' : 'eua';
-      }
-    } else if(e.t==='adpob' && e.local){
-      reg = regiaoPernoite(e.local);
-    }
+  hm.innerHTML = `
     <!-- Gráfico -->
     <div style="margin:0 16px 16px;background:#fff;border-radius:16px;padding:16px;border:1px solid #e8ecf0">
       <div style="font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:16px">Horas voadas por mês</div>
@@ -2282,11 +2274,15 @@ function calcularDiarias(){
   for(let d=1; d<=31; d++){
     const e = E[d];
     if(!e) continue;
-    let local=null;
-    if(e.t==='voo' && e.p) local = e.p.l;
-    else if(e.t==='adpob' && e.local) local = e.local;
-    if(!local) continue;
-    const reg = regiaoPernoite(local);
+    let reg=null;
+    if(e.t==='voo' && e.p){
+      reg = regiaoPernoite(e.p.aero || e.p.l);
+      if(!reg && e.p.moeda && e.p.moeda!=='BRL'){
+        reg = e.p.moeda==='EUR' ? 'europa' : 'eua';
+      }
+    } else if(e.t==='adpob' && e.local){
+      reg = regiaoPernoite(e.local);
+    }
     if(reg==='europa') eur++;
     else if(reg==='eua') eua++;
     else if(reg==='amsul') ams++;
