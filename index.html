@@ -1529,9 +1529,29 @@ function rebuildManualDays(){
           <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">PARTIDA</div><input id="vdep-${d}" value="${v0.dp||''}" placeholder="06:10" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
           <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">CHEGADA</div><input id="varr-${d}" value="${v0.ar||''}" placeholder="07:25" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
         </div>
-        <div id="sb-fields-${d}" style="display:${t==='sb'?'grid':'none'};grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+      <div id="sb-fields-${d}" style="display:${t==='sb'?'grid':'none'};grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
           <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">INÍCIO</div><input id="sbini-${d}" value="${ex.i||''}" placeholder="06:00" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
           <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">FIM</div><input id="sbfim-${d}" value="${ex.f||''}" placeholder="18:00" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+        </div>
+        <div id="pern-wrap-${d}" style="display:${t==='voo'?'block':'none'};margin-top:10px;padding-top:10px;border-top:1px dashed #e8ecf0">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#1a1a2e;cursor:pointer">
+            <input type="checkbox" id="pern-${d}" ${ex.p?'checked':''} onchange="togglePernoite(${d})">
+            🛏️ Tem pernoite
+          </label>
+          <div id="pern-fields-${d}" style="display:${ex.p?'grid':'none'};grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+            <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">CIDADE</div><input id="pcid-${d}" value="${ex.p&&ex.p.cidade||''}" placeholder="Lisboa" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+            <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">AEROPORTO (opcional)</div><input id="paero-${d}" value="${ex.p&&(ex.p.aero||ex.p.l)||''}" placeholder="LIS" maxlength="4" oninput="this.value=this.value.toUpperCase();sugerirMoeda(${d})" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+            <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">PAÍS</div><input id="ppais-${d}" value="${ex.p&&ex.p.pais||''}" placeholder="Portugal" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+            <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">MOEDA</div>
+              <select id="pmoeda-${d}" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit">
+                <option value="BRL"${!(ex.p&&ex.p.moeda) || (ex.p&&ex.p.moeda==='BRL')?' selected':''}>BRL</option>
+                <option value="USD"${ex.p&&ex.p.moeda==='USD'?' selected':''}>USD</option>
+                <option value="EUR"${ex.p&&ex.p.moeda==='EUR'?' selected':''}>EUR</option>
+              </select>
+            </div>
+            <div style="grid-column:1/3"><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">HOTEL (opcional)</div><input id="photel-${d}" value="${ex.p&&ex.p.hotel||''}" placeholder="Nome do hotel" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+            <div style="grid-column:1/3"><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">OBSERVAÇÕES (opcional)</div><input id="pobs-${d}" value="${ex.p&&ex.p.obs||''}" placeholder="" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+          </div>
         </div>
       </div>`;
     container.appendChild(div);
