@@ -197,8 +197,23 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
       }
     });
 
-    const diasFinal=[];
-    for(let i=1;i<=diasNoMes;i++) diasFinal.push(porDia[i]||{dia:i,tipo:'fr',label:'Folga',detalhe:'',dhd:false,euroAtlantic:false,voos:[],tripulacao:[],pernoite:null});
+   const diasFinal = [];
+    for (let i = 1; i <= diasNoMes; i++) {
+      diasFinal.push(
+        porDia[i] || {
+          dia: i,
+          tipo: 'pendente',
+          label: 'Revisar',
+          detalhe: 'Atividade não identificada com segurança.',
+          dhd: false,
+          euroAtlantic: false,
+          voos: [],
+          tripulacao: [],
+          pernoite: null,
+          precisaRevisao: true
+        }
+      );
+    }
 
     const resumo={voos:0,pernoites:0,folgas:0,sb:0};
     diasFinal.forEach(d=>{
