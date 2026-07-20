@@ -234,15 +234,7 @@ module.exports.config = {
   api: {
     bodyParser: {
       sizeLimit: '50mb'
-    },
-    maxDuration: 120
-  }
-};
-
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '50mb'
     }
-  }
+  },
+  maxDuration: 120
 };
