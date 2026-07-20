@@ -1494,20 +1494,225 @@ async function processarPDF(){
 }
 
 async function cortarImagemEmStrips(b64, mediaType) {
-  return new Promise((resolve) => {
-    try {
-      const byteStr = atob(b64);
-      const arr = new Uint8Array(byteStr.length);
-      for(let i=0;i<byteStr.length;i++) arr[i]=byteStr.charCodeAt(i);
-      let imgBytes = arr;
-      if(mediaType === 'application/pdf') {
-        let start=-1;
-        for(let i=0;i<arr.length-2;i++){if(arr[i]===0xFF&&arr[i+1]===0xD8&&arr[i+2]===0xFF){start=i;break;}}
-        let end=-1;
-        for(let i=arr.length-2;i>=0;i--){if(arr[i]===0xFF&&arr[i+1]===0xD9){end=i;break;}}
-        if(start>=0&&end>start) imgBytes=arr.slice(start,end+2);
-        else{resolve(null);return;}
+  try {
+    console.log('[Crewly Import] Iniciando preparação do arquivo', {
+      mediaType,
+      base64KB: Math.round(b64.length / 1024)
+    });
+
+    const binary = atob(b64);
+    const bytes = new Uint8Array(binary.length);
+
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+
+    let sourceCanvas;
+
+    if (mediaType === 'application/pdf') {
+      if (!window.pdfjsLib) {
+        throw new Error('PDF.js ainda não foi carregado.');
       }
+
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+      const pdf = await window.pdfjsLib.getDocument({
+        data: bytes
+      }).promise;
+
+      if (!pdf.numPages) {
+        throw new Error('O PDF não possui páginas.');
+      }
+
+      const page = await pdf.getPage(1);
+      const originalViewport = page.getViewport({ scale: 1 });
+
+      /*
+       * As escalas da Azul têm texto muito pequeno.
+       * Renderizamos com largura aproximada de 1.800 px,
+       * preservando a proporção original.
+       */
+      const TARGET_WIDTH = 1800;
+      const renderScale = TARGET_WIDTH / originalViewport.width;
+      const viewport = page.getViewport({ scale: renderScale });
+
+      sourceCanvas = document.createElement('canvas');
+      sourceCanvas.width = Math.ceil(viewport.width);
+      sourceCanvas.height = Math.ceil(viewport.height);
+
+      const context = sourceCanvas.getContext('2d', {
+        alpha: false
+      });
+
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = 'high';
+
+      await page.render({
+        canvasContext: context,
+        viewport,
+        background: '#ffffff'
+      }).promise;
+
+      console.log('[Crewly Import] PDF renderizado', {
+        paginas: pdf.numPages,
+        largura: sourceCanvas.width,
+        altura: sourceCanvas.height,
+        escala: Number(renderScale.toFixed(2))
+      });
+    } else if (mediaType && mediaType.startsWith('image/')) {
+      sourceCanvas = await carregarImagemEmCanvas(bytes, mediaType);
+
+      console.log('[Crewly Import] Imagem carregada', {
+        largura: sourceCanvas.width,
+        altura: sourceCanvas.height
+      });
+    } else {
+      throw new Error(`Tipo de arquivo não suportado: ${mediaType}`);
+    }
+
+    /*
+     * Cada bloco possui altura máxima de 1.800 px.
+     * A sobreposição evita cortar atividades na divisão.
+     */
+    const BLOCK_HEIGHT = 1800;
+    const OVERLAP = 140;
+    const strips = [];
+
+    let startY = 0;
+    let blockIndex = 0;
+
+    while (startY < sourceCanvas.height) {
+      const remainingHeight = sourceCanvas.height - startY;
+      const currentHeight = Math.min(BLOCK_HEIGHT, remainingHeight);
+
+      const blockCanvas = document.createElement('canvas');
+      blockCanvas.width = sourceCanvas.width;
+      blockCanvas.height = currentHeight;
+
+      const blockContext = blockCanvas.getContext('2d', {
+        alpha: false
+      });
+
+      blockContext.fillStyle = '#ffffff';
+      blockContext.fillRect(
+        0,
+        0,
+        blockCanvas.width,
+        blockCanvas.height
+      );
+
+      blockContext.drawImage(
+        sourceCanvas,
+        0,
+        startY,
+        sourceCanvas.width,
+        currentHeight,
+        0,
+        0,
+        blockCanvas.width,
+        blockCanvas.height
+      );
+
+      /*
+       * Qualidade 0.92:
+       * mantém horários e letras legíveis sem produzir arquivos enormes.
+       */
+      const base64Block = blockCanvas
+        .toDataURL('image/jpeg', 0.92)
+        .split(',')[1];
+
+      strips.push(base64Block);
+
+      console.log(`[Crewly Import] Bloco ${blockIndex + 1}`, {
+        inicioY: startY,
+        largura: blockCanvas.width,
+        altura: blockCanvas.height,
+        tamanhoKB: Math.round(base64Block.length / 1024)
+      });
+
+      blockIndex++;
+
+      if (startY + currentHeight >= sourceCanvas.height) {
+        break;
+      }
+
+      startY += BLOCK_HEIGHT - OVERLAP;
+    }
+
+    console.log('[Crewly Import] Preparação concluída', {
+      quantidadeDeBlocos: strips.length,
+      tamanhosKB: strips.map(strip =>
+        Math.round(strip.length / 1024)
+      )
+    });
+
+    return strips;
+  } catch (error) {
+    console.error('[Crewly Import] Erro ao preparar imagem:', error);
+
+    /*
+     * Retornar null mantém o comportamento atual do aplicativo
+     * e permite que o backend trate a ausência dos blocos.
+     */
+    return null;
+  }
+}
+
+async function carregarImagemEmCanvas(bytes, mediaType) {
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([bytes], {
+      type: mediaType
+    });
+
+    const objectUrl = URL.createObjectURL(blob);
+    const image = new Image();
+
+    image.onload = () => {
+      try {
+        const MAX_WIDTH = 1800;
+        const scale = image.width > MAX_WIDTH
+          ? MAX_WIDTH / image.width
+          : 1;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(image.width * scale);
+        canvas.height = Math.round(image.height * scale);
+
+        const context = canvas.getContext('2d', {
+          alpha: false
+        });
+
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = 'high';
+
+        context.drawImage(
+          image,
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+
+        URL.revokeObjectURL(objectUrl);
+        resolve(canvas);
+      } catch (error) {
+        URL.revokeObjectURL(objectUrl);
+        reject(error);
+      }
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Não foi possível carregar a imagem.'));
+    };
+
+    image.src = objectUrl;
+  });
+}
       const blob = new Blob([imgBytes],{type:'image/jpeg'});
       const url = URL.createObjectURL(blob);
       const img = new Image();
