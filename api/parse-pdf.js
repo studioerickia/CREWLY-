@@ -155,7 +155,23 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
       }
       return d;
     });
-    parsed.dias=parsed.dias.filter(d=>d&&d.dia>=1&&d.dia<=diasNoMes);
+   parsed.dias=parsed.dias.filter(d=>d&&d.dia>=1&&d.dia<=diasNoMes);
+    const CODIGO_RE=[
+      [/^(SEA|RHC)/,'rea'],
+      [/^FR\b/,'fr'],
+      [/^(FP|PP)\b/,'fp'],
+      [/^FC\b/,'fc'],
+      [/^FA\b/,'fa'],
+      [/^SB\d/,'sb'],
+      [/^ADPOB\b/,'adpob'],
+      [/^ADP\b/,'adp'],
+      [/^(AD|G3|LA|JJ)\d/,'voo']
+    ];
+    parsed.dias.forEach(d=>{
+      const cod=((Array.isArray(d.voos)&&d.voos[0]&&d.voos[0].n)||d.tipo||'').toUpperCase().trim();
+      for(const[re,t]of CODIGO_RE){if(re.test(cod)){d.tipo=t;break;}}
+      if(d.tipo!=='voo'){d.voos=[];d.tripulacao=[];}
+    });
     parsed.dias.forEach(d=>{
       d.voos=Array.isArray(d.voos)?d.voos:[];
       d.tripulacao=Array.isArray(d.tripulacao)?d.tripulacao:[];
