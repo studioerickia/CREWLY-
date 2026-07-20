@@ -50,17 +50,7 @@ Formato: DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | AC
 - CREWS: NOME:FUNCAO por vírgula
 Transcreva TODAS as linhas visíveis. Responda só as linhas.`;
 
-  try {
-    // ── MODO MANUAL TEMPORÁRIO ───────────────────────────────────────────────
-    // OCR via IA desativado para evitar timeout no Vercel free tier.
-    // Retorna imediatamente e abre modo de preenchimento manual no app.
-    return res.status(200).json({
-      success: false,
-      message: 'Preencha sua escala manualmente.',
-      details: 'Processamento automático temporariamente desativado.',
-      rawText: ''
-    });
-
+ try {
     const {fileData, mediaType, strips} = req.body;
     if (!fileData) return res.status(400).json({error:'No file data'});
 
