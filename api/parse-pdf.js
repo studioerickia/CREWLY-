@@ -333,6 +333,43 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
         porDia[d.dia]=d;
       }
     });
+   // ── RECUPERAÇÃO DE ATIVIDADE ANTERIOR (SEA/RHC/SB) A PARTIR DO rawText ──
+    const REGEX_ANTERIOR_RAW=/^(SEA|RHC\w*|SB\d+)/i;
+    const candidatosAnteriores=[];
+    rawText.split('\n').forEach(linha=>{
+      const c=linha.split('|').map(x=>x.trim());
+      if(c.length<8)return;
+      const[dataIni,,activity,,start,end,dep]=c;
+      const codigo=(activity||'').toUpperCase().trim();
+      const m=codigo.match(REGEX_ANTERIOR_RAW);
+      if(!m)return;
+      const diaM=(dataIni||'').match(/^(\d{1,2})\//);
+      if(!diaM)return;
+      const dia=parseInt(diaM[1],10);
+      const ehSB=/^SB\d+/.test(codigo);
+      candidatosAnteriores.push({
+        dia,codigo,
+        tipo:ehSB?'sb':'rea',
+        label:ehSB?'Sobreaviso':'Reserva',
+        inicio:REGEX_HORA_CAMPO.test(start||'')?start:'',
+        fim:REGEX_HORA_CAMPO.test(end||'')?end:'',
+        local:dep||''
+      });
+    });
+    Object.values(porDia).forEach(d=>{
+      if(d.tipo!=='voo')return;
+      const cand=candidatosAnteriores.find(c=>c.dia===d.dia);
+      if(!cand)return;
+      const atual=(d.atividadeAnterior&&typeof d.atividadeAnterior==='object')?d.atividadeAnterior:{};
+      d.atividadeAnterior={
+        tipo:atual.tipo||cand.tipo,
+        label:atual.label||cand.label,
+        codigo:atual.codigo||cand.codigo,
+        inicio:atual.inicio||cand.inicio,
+        fim:atual.fim||cand.fim,
+        local:atual.local||cand.local
+      };
+    });
 
     // ── RECUPERAÇÃO DE ATIVIDADE ANTERIOR (SEA/RHC/SB) A PARTIR DO rawText ──
     const REGEX_ANTERIOR_RAW=/^(SEA|RHC\w*|SB\d+)/i;
