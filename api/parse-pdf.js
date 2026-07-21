@@ -106,19 +106,78 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
     const diasNoMes=DIAS_MES[mesNome]||31;
     const labels={fr:'Folga',fp:'Folga Programada',fc:'Folga Casada',fa:'Folga Aniversário',voo:'Voo',rea:'Reserva',sb:'Sobreaviso',adp:'Adaptação',adpob:'Adaptação fora da base'};
 
-    // Normaliza campo dia: converte "08/06/2026" → 8
+   // ── DATA COMPLETA: helper compartilhado por toda reconciliação de rawText ──
+    const MES_NUM={janeiro:1,fevereiro:2,'março':3,marco:3,abril:4,maio:5,junho:6,julho:7,agosto:8,setembro:9,outubro:10,novembro:11,dezembro:12};
+    const mesAlvoNum=MES_NUM[mesNome]||null;
+    const extrairDataCompleta=(s)=>{
+      const m=String(s||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+      if(!m)return null;
+      return {dia:parseInt(m[1],10), mes:parseInt(m[2],10), ano:parseInt(m[3],10)};
+    };
+
+    // Normaliza campo dia/diaFim considerando o MÊS de cada data, não só o número do dia.
+    // Isso evita que uma atividade que começa no mês anterior (ex: 30/06→02/07 numa
+    // escala de julho) seja incorretamente ancorada no dia 30 (que em julho é outro dia).
+    // O prompt do Step 2 pede só o número do dia, mas a IA às vezes devolve a data
+    // completa — tratamos os dois casos. Quando só temos o número e ele sinaliza uma
+    // virada de mês (diaFim numericamente menor que dia), cruzamos com o rawText.
+    const TIPO_PARA_PREFIXO={adp:['ADP'],adpob:['ADPOB'],sb:['SB'],rea:['SEA','RHC']};
+    const extrairDiaBruto=(v)=>{
+      if(typeof v==='string'&&v.includes('/'))return parseInt(v.split('/')[0])||0;
+      return parseInt(v)||0;
+    };
     parsed.dias = parsed.dias.map(d => {
       if (!d) return d;
-      if (typeof d.dia === 'string' && d.dia.includes('/')) {
-        d.dia = parseInt(d.dia.split('/')[0]) || 0;
-      } else {
-        d.dia = parseInt(d.dia) || 0;
+      const iniCompleta = extrairDataCompleta(d.dia);
+      const fimCompleta = extrairDataCompleta(d.diaFim!=null?d.diaFim:d.dia);
+      const diaIniBruto = extrairDiaBruto(d.dia);
+      const diaFimBruto = extrairDiaBruto(d.diaFim!=null?d.diaFim:d.dia) || diaIniBruto;
+
+      if (mesAlvoNum && iniCompleta && iniCompleta.mes!==mesAlvoNum && fimCompleta && fimCompleta.mes===mesAlvoNum) {
+        d.dia = 1;
+        d.diaFim = fimCompleta.dia;
+        return d;
       }
-      if (typeof d.diaFim === 'string' && d.diaFim.includes('/')) {
-        d.diaFim = parseInt(d.diaFim.split('/')[0]) || d.dia;
-      } else {
-        d.diaFim = parseInt(d.diaFim) || d.dia;
+      if (mesAlvoNum && iniCompleta && iniCompleta.mes===mesAlvoNum && fimCompleta && fimCompleta.mes!==mesAlvoNum) {
+        d.dia = iniCompleta.dia;
+        d.diaFim = diasNoMes;
+        return d;
       }
+      if (mesAlvoNum && iniCompleta && iniCompleta.mes!==mesAlvoNum && (!fimCompleta || fimCompleta.mes!==mesAlvoNum)) {
+        d.dia = 0; d.diaFim = 0;
+        return d;
+      }
+
+      if (mesAlvoNum && diaFimBruto < diaIniBruto) {
+        const prefixos = TIPO_PARA_PREFIXO[(d.tipo||'').toLowerCase()] || null;
+        let linha = null;
+        rawText.split('\n').some(l => {
+          const c = l.split('|').map(x=>x.trim());
+          if (c.length<2) return false;
+          const [dataIniL, dataFimL, activityL] = c;
+          const codigoL = (activityL||'').toUpperCase().trim();
+          if (prefixos && !prefixos.some(p=>codigoL.startsWith(p))) return false;
+          const iniL = extrairDataCompleta(dataIniL);
+          if (!iniL || iniL.dia !== diaIniBruto) return false;
+          linha = { dataIniL, dataFimL };
+          return true;
+        });
+        if (linha) {
+          const iniL = extrairDataCompleta(linha.dataIniL);
+          const fimL = extrairDataCompleta(linha.dataFimL);
+          if (iniL && iniL.mes!==mesAlvoNum && fimL && fimL.mes===mesAlvoNum) {
+            d.dia = 1; d.diaFim = fimL.dia;
+            return d;
+          }
+          if (iniL && iniL.mes===mesAlvoNum && fimL && fimL.mes!==mesAlvoNum) {
+            d.dia = iniL.dia; d.diaFim = diasNoMes;
+            return d;
+          }
+        }
+      }
+
+      d.dia = diaIniBruto;
+      d.diaFim = diaFimBruto;
       return d;
     });
    parsed.dias=parsed.dias.filter(d=>d&&d.dia>=1&&d.dia<=diasNoMes);
