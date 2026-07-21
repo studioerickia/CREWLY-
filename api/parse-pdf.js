@@ -402,11 +402,11 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
       if(c.length<8)return;
       const[dataIni,,activity,,start,end,dep]=c;
       const codigo=(activity||'').toUpperCase().trim();
-      const m=codigo.match(REGEX_ANTERIOR_RAW);
+    const m=codigo.match(REGEX_ANTERIOR_RAW);
       if(!m)return;
-      const diaM=(dataIni||'').match(/^(\d{1,2})\//);
-      if(!diaM)return;
-      const dia=parseInt(diaM[1],10);
+      const dataCompleta=extrairDataCompleta(dataIni);
+      if(!dataCompleta||(mesAlvoNum&&dataCompleta.mes!==mesAlvoNum))return;
+      const dia=dataCompleta.dia;
       const ehSB=/^SB\d+/.test(codigo);
       candidatosAnteriores.push({
         dia,codigo,
