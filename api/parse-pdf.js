@@ -194,7 +194,8 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
       d.voos=Array.isArray(d.voos)?d.voos:[];
       d.tripulacao=Array.isArray(d.tripulacao)?d.tripulacao:[];
       d.pernoite=d.pernoite&&d.pernoite.l?d.pernoite:null;
-      d.dhd=d.dhd===true;d.detalhe=d.detalhe||'';
+    d.dhd=d.dhd===true;d.detalhe=d.detalhe||'';
+      if(d.checkin&&/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(String(d.checkin).trim()))d.checkin='';
       const ddcat=(d.ddcat||'').toUpperCase();
       d.euroAtlantic=ddcat==='COBS'||ddcat==='V';
       if(d.tipo==='voo'&&d.voos.length>0){
