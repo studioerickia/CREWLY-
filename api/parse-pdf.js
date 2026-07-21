@@ -198,7 +198,8 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
       if(d.checkin&&/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(String(d.checkin).trim()))d.checkin='';
       const ddcat=(d.ddcat||'').toUpperCase();
       d.euroAtlantic=ddcat==='COBS'||ddcat==='V';
-      if(d.tipo==='voo'&&d.voos.length>0){
+     if(d.tipo==='voo'&&d.voos.length>0){
+        d.voos=dedupVoos(d.voos);
         d.voos.forEach(v=>{v.n=v.n||'--';v.o=validarAero(v.o);v.d=validarAero(v.d);v.dp=v.dp||'--';v.ar=v.ar||'--';v.ae=v.ae||'--';v.du=durationStr(v.dp,v.ar)||'--';});
         const first=d.voos[0];
         const intl=d.voos.some(v=>isIntl(v.o)||isIntl(v.d))||d.euroAtlantic;
