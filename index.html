@@ -1458,9 +1458,14 @@ async function processarPDF(){
   try{
     // Corta a imagem em 3 strips no navegador antes de enviar
     const strips = await cortarImagemEmStrips(b64, mt);
+    const strips = await cortarImagemEmStrips(b64, mt);
     await dl(500);setS(3,'ok','Crewly organizou voos e folgas ✓');setS(4,'ld','Crewly calculando horas...');
-    const body = {fileData:b64, mediaType:mt};
-    if(strips) body.strips = strips;
+    const body = {mediaType:mt};
+    if(Array.isArray(strips) && strips.length>0){
+      body.strips = strips;
+    } else {
+      body.fileData = b64;
+    }
     const r=await fetch('/api/parse-pdf',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
