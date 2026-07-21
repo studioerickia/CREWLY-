@@ -221,7 +221,50 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
     });
 
     const porDia={};
-    parsed.dias.forEach(d=>{if(!porDia[d.dia]||porDia[d.dia].tipo!=='voo')porDia[d.dia]=d;});
+    parsed.dias.forEach(d=>{
+      const atual=porDia[d.dia];
+      if(!atual){porDia[d.dia]=d;return;}
+      if(atual.tipo==='voo'&&d.tipo==='voo'){
+        atual.voos = dedupVoos([
+          ...(atual.voos || []),
+          ...(d.voos || [])
+        ]);
+
+        atual.tripulacao =
+          (d.tripulacao || []).length > (atual.tripulacao || []).length
+            ? d.tripulacao
+            : atual.tripulacao;
+
+        atual.checkin = atual.checkin || d.checkin || '';
+        atual.pernoite = atual.pernoite || d.pernoite || null;
+        atual.ddcat = atual.ddcat || d.ddcat || '';
+        atual.euroAtlantic = atual.euroAtlantic || d.euroAtlantic;
+
+        const first = atual.voos[0];
+        if(first){
+          const intl =
+            atual.voos.some(v => isIntl(v.o) || isIntl(v.d)) ||
+            atual.euroAtlantic;
+
+          atual.apres = calcApres(
+            atual.checkin,
+            first.dp,
+            intl
+          );
+          atual.apresLocal = first.o;
+        }
+
+        return;
+      }
+      if(atual.tipo!=='voo'&&d.tipo==='voo'){
+        d.atividadeAnterior=atual.label||atual.tipo;
+        porDia[d.dia]=d;
+        return;
+      }
+      if(atual.tipo!=='voo'&&d.tipo!=='voo'){
+        porDia[d.dia]=d;
+      }
+    });
     parsed.dias.forEach(d=>{
       if((d.tipo==='adp'||d.tipo==='adpob')&&d.diaFim&&d.diaFim>d.dia){
         const fim=Math.min(d.diaFim,diasNoMes);
