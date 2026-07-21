@@ -156,6 +156,74 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
       return d;
     });
    parsed.dias=parsed.dias.filter(d=>d&&d.dia>=1&&d.dia<=diasNoMes);
+   // ── RECUPERAÇÃO DETERMINÍSTICA DE VOOS A PARTIR DO rawText ──────────────
+    const REGEX_VOO_RAW=/^(AD|G3|LA|JJ)\d+$/i;
+    const REGEX_DATA_CAMPO=/^\d{1,2}\/\d{1,2}\/\d{2,4}$/;
+    const REGEX_HORA_CAMPO=/^\d{1,2}:\d{2}$/;
+    const campoOperacionalValido=(v)=>{
+      if(!v)return false;
+      const s=String(v).trim();
+      if(!s||s==='--')return false;
+      if(REGEX_DATA_CAMPO.test(s))return false;
+      return true;
+    };
+    const pontuarCandidato=(cand)=>['checkin','start','end','dep','arr','acver'].filter(k=>campoOperacionalValido(cand[k])).length;
+    const possuiHorarioOperacional=(cand)=>REGEX_HORA_CAMPO.test(cand.checkin||'')||REGEX_HORA_CAMPO.test(cand.start||'')||REGEX_HORA_CAMPO.test(cand.end||'');
+
+    const candidatos=[];
+    rawText.split('\n').forEach(linha=>{
+      const c=linha.split('|').map(x=>x.trim());
+      if(c.length<9)return;
+      const[dataIni,,activity,checkin,start,end,dep,arr,acver]=c;
+      if(!REGEX_VOO_RAW.test(activity||''))return;
+      const diaM=(dataIni||'').match(/^(\d{1,2})\//);
+      if(!diaM)return;
+      const dia=parseInt(diaM[1],10);
+      if(dia<1||dia>diasNoMes)return;
+      candidatos.push({dia,n:activity.toUpperCase().trim(),checkin,start,end,dep,arr,acver});
+    });
+
+    const candidatosFiltrados=[];
+    candidatos.forEach(cand=>{
+      const idx=candidatosFiltrados.findIndex(o=>o.n===cand.n&&Math.abs(o.dia-cand.dia)<=1);
+      if(idx===-1){candidatosFiltrados.push(cand);return;}
+      const outro=candidatosFiltrados[idx];
+      if(outro.dia===cand.dia){
+        if(pontuarCandidato(cand)>pontuarCandidato(outro))candidatosFiltrados[idx]=cand;
+        return;
+      }
+      const candTemHora=possuiHorarioOperacional(cand);
+      const outroTemHora=possuiHorarioOperacional(outro);
+      if(candTemHora&&outroTemHora){candidatosFiltrados.push(cand);return;}
+      if(!candTemHora&&outroTemHora)return;
+      if(candTemHora&&!outroTemHora){candidatosFiltrados[idx]=cand;return;}
+      if(pontuarCandidato(cand)>pontuarCandidato(outro))candidatosFiltrados[idx]=cand;
+    });
+
+    candidatosFiltrados.forEach(cand=>{
+      const checkinValido=REGEX_HORA_CAMPO.test(cand.checkin||'')?cand.checkin:'';
+      const dpVal=campoOperacionalValido(cand.start)?cand.start:'';
+      const arVal=campoOperacionalValido(cand.end)?cand.end:'';
+      const oVal=campoOperacionalValido(cand.dep)?cand.dep:'';
+      const dVal=campoOperacionalValido(cand.arr)?cand.arr:'';
+      const aeVal=campoOperacionalValido(cand.acver)?cand.acver:'';
+      const existente=parsed.dias.find(d=>d&&d.dia===cand.dia&&Array.isArray(d.voos)&&d.voos.some(v=>(v.n||'').toUpperCase().trim()===cand.n));
+      if(existente){
+        const vooExistente=existente.voos.find(v=>(v.n||'').toUpperCase().trim()===cand.n);
+        if(!existente.checkin&&checkinValido){existente.checkin=checkinValido;}
+        if(vooExistente){
+          if((!vooExistente.o||vooExistente.o==='--')&&oVal)vooExistente.o=oVal;
+          if((!vooExistente.d||vooExistente.d==='--')&&dVal)vooExistente.d=dVal;
+          if((!vooExistente.dp||vooExistente.dp==='--')&&dpVal)vooExistente.dp=dpVal;
+          if((!vooExistente.ar||vooExistente.ar==='--')&&arVal)vooExistente.ar=arVal;
+          if((!vooExistente.ae||vooExistente.ae==='--')&&aeVal)vooExistente.ae=aeVal;
+        }
+        return;
+      }
+      parsed.dias.push({dia:cand.dia,diaFim:cand.dia,tipo:'voo',dhd:false,checkin:checkinValido,ddcat:'',local:'',
+        voos:[{n:cand.n,o:oVal,d:dVal,dp:dpVal,ar:arVal,ae:aeVal}],
+        tripulacao:[],pernoite:null});
+    });
     const CODIGO_RE=[
       [/^(SEA|RHC)/,'rea'],
       [/^FR\b/,'fr'],
