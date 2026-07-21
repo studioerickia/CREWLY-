@@ -245,10 +245,34 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
         }
         return;
       }
-      parsed.dias.push({dia:cand.dia,diaFim:cand.dia,tipo:'voo',dhd:false,checkin:checkinValido,ddcat:'',local:'',
+     parsed.dias.push({dia:cand.dia,diaFim:cand.dia,tipo:'voo',dhd:false,checkin:checkinValido,ddcat:'',local:'',
         voos:[{n:cand.n,o:oVal,d:dVal,dp:dpVal,ar:arVal,ae:aeVal}],
         tripulacao:[],pernoite:null});
     });
+
+    // ── GARANTE QUE CADA VOO APAREÇA SÓ NA SUA OCORRÊNCIA OFICIAL (Nº+DATA_INI) ──
+    // A chave é número+dia, não só número — o mesmo número de voo pode ocorrer
+    // legitimamente em datas diferentes no mês, e essas ocorrências distintas
+    // não podem ser removidas umas pelas outras.
+    const ocorrenciasOficiais=new Set();
+    const numerosComOcorrenciaOficial=new Set();
+    candidatosFiltrados.forEach(cand=>{
+      ocorrenciasOficiais.add(cand.n+'|'+cand.dia);
+      numerosComOcorrenciaOficial.add(cand.n);
+    });
+    const diasEsvaziados=new Set();
+    parsed.dias.forEach(d=>{
+      if(!Array.isArray(d.voos)||d.voos.length===0)return;
+      const tinhaAntes=d.voos.length;
+      d.voos=d.voos.filter(v=>{
+        const n=(v.n||'').toUpperCase().trim();
+        if(!numerosComOcorrenciaOficial.has(n))return true;
+        return ocorrenciasOficiais.has(n+'|'+d.dia);
+      });
+      if(tinhaAntes>0&&d.voos.length===0)diasEsvaziados.add(d);
+    });
+    parsed.dias=parsed.dias.filter(d=>!diasEsvaziados.has(d));
+
     const CODIGO_RE=[
       [/^(SEA|RHC)/,'rea'],
       [/^FR\b/,'fr'],
