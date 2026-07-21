@@ -167,11 +167,29 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
       [/^ADP\b/,'adp'],
       [/^(AD|G3|LA|JJ)\d/,'voo']
     ];
-    parsed.dias.forEach(d=>{
+   parsed.dias.forEach(d=>{
       const cod=((Array.isArray(d.voos)&&d.voos[0]&&d.voos[0].n)||d.tipo||'').toUpperCase().trim();
       for(const[re,t]of CODIGO_RE){if(re.test(cod)){d.tipo=t;break;}}
       if(d.tipo!=='voo'){d.voos=[];d.tripulacao=[];}
     });
+    const vistosFolga=new Set();
+    parsed.dias=parsed.dias.filter(d=>{
+      if(d.tipo==='fr'||d.tipo==='fp'){
+        const chave=d.dia+'-'+d.tipo;
+        if(vistosFolga.has(chave))return false;
+        vistosFolga.add(chave);
+      }
+      return true;
+    });
+    const contarCamposValidos=(v)=>['o','d','dp','ar','ae'].filter(k=>v&&v[k]&&v[k]!=='--').length;
+    const dedupVoos=(arr)=>{
+      const porNumero={};
+      arr.forEach(v=>{
+        const n=(v.n||'').toUpperCase().trim();
+        if(!porNumero[n]||contarCamposValidos(v)>contarCamposValidos(porNumero[n]))porNumero[n]=v;
+      });
+      return Object.values(porNumero);
+    };
     parsed.dias.forEach(d=>{
       d.voos=Array.isArray(d.voos)?d.voos:[];
       d.tripulacao=Array.isArray(d.tripulacao)?d.tripulacao:[];
