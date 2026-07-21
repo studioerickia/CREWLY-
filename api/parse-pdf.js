@@ -50,50 +50,11 @@ Formato: DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | AC
 - CREWS: NOME:FUNCAO por vírgula
 Transcreva TODAS as linhas visíveis. Responda só as linhas.`;
 
- try {
-  const {fileData, mediaType, strips} = req.body;
-    const temStrips = Array.isArray(strips) && strips.length > 0;
-    if (!temStrips && !fileData) {
-      return res.status(400).json({success:false,errorCode:'NO_FILE_DATA',message:'Nenhum conteúdo foi enviado.'});
-    }
-    const tamanhoTotalKB = temStrips ? Math.round(strips.reduce((a,s)=>a+(s?s.length:0),0)/1024) : (fileData?Math.round(fileData.length/1024):0);
-    console.log('Import request:', temStrips?`${strips.length} strips`:'sem strips', '· ~'+tamanhoTotalKB+'KB total · fileData incluído:', !!fileData);
-
-    const isImage = (mediaType||'').startsWith('image/');
-    let imgB64 = fileData;
-    if (!temStrips && !isImage) {
-      try {
-        const pdf = Buffer.from(fileData,'base64');
-        const s = pdf.indexOf(Buffer.from([0xFF,0xD8,0xFF]));
-        const e = pdf.lastIndexOf(Buffer.from([0xFF,0xD9]));
-        if (s>=0 && e>s) imgB64 = pdf.slice(s,e+2).toString('base64');
-      } catch(e) {}
-    }
-
-    let stripsArr = [];
-    if (temStrips) {
-      stripsArr = strips;
-      console.log('Strips do navegador:', strips.length, strips.map(s=>Math.round(s.length/1024)+'KB').join(', '));
-    } else {
-      stripsArr = [imgB64];
-      console.log('Sem strips, usando imagem inteira');
-    }
-
-    // STEP 1: transcreve cada strip
-    const transcricoes = await Promise.all(
-      stripsArr.map((s, i) =>
-        callClaude([
-          {type:'image', source:{type:'base64', media_type:'image/jpeg', data:s}},
-          {type:'text', text:PROMPT}
-        ], 4000)
-        .then(t => { console.log(`Strip ${i+1}: ${t.length} chars`); return t; })
-        .catch(e => { console.log(`Strip ${i+1} erro:`, e.message); return ''; })
-      )
-    );
-
-    const rawText = transcricoes.filter(Boolean).join('\n');
-    console.log('Total chars:', rawText.length);
-
+  // ── STEP 2 + NORMALIZAÇÃO, extraído para função reutilizável ──────────────
+  // Usada tanto pelo fluxo de requisição única (escalas pequenas) quanto pelo
+  // fluxo em lotes (mode==='finalize'). Nenhuma lógica de parser/normalização
+  // foi alterada aqui — é o mesmo código que já estava aprovado, só movido.
+  const finalizarEscala = async (rawText) => {
     // STEP 2: converte para JSON
     const jsonText = await callClaude([{type:'text', text:`Converta esta transcrição de escala da Azul em JSON. NÃO calcule nada.
 
@@ -136,7 +97,7 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
     const parsed = extractAndRepair(jsonText);
     if (!parsed||!parsed.dias) {
       console.log('Falha JSON. jsonText amostra:', jsonText.substring(0,300));
-      return res.status(500).json({error:'Falha JSON', jsonSample:jsonText.substring(0,500)});
+      return {status:500, body:{error:'Falha JSON', jsonSample:jsonText.substring(0,500)}};
     }
 
     console.log('Dias parseados:', parsed.dias.length);
@@ -442,7 +403,104 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
     });
 
     console.log('Resumo:', JSON.stringify(resumo));
-    return res.status(200).json({content:[{type:'text',text:JSON.stringify({mes:parsed.mes||'Junho 2026',resumo,dias:diasFinal})}], rawText: rawText.substring(0,8000)});
+    return {status:200, body:{content:[{type:'text',text:JSON.stringify({mes:parsed.mes||'Junho 2026',resumo,dias:diasFinal})}], rawText: rawText.substring(0,8000)}};
+  };
+  // ── FIM DE finalizarEscala ─────────────────────────────────────────────────
+
+  const { mode } = req.body || {};
+
+  // ── MODE=TRANSCRIBE: transcreve só um lote de strips (Step 1 isolado) ────
+  if (mode === 'transcribe') {
+    try {
+      const { strips, indices, mediaType } = req.body;
+      if (!Array.isArray(strips) || strips.length===0 || !Array.isArray(indices) || indices.length!==strips.length) {
+        return res.status(400).json({success:false,errorCode:'BATCH_INVALIDO',message:'Lote de strips inválido.'});
+      }
+      const tamanhoLoteKB = Math.round(strips.reduce((a,s)=>a+(s?s.length:0),0)/1024);
+      console.log('Transcrição em lote:', strips.length, 'strips · índices', indices.join(','), '· ~'+tamanhoLoteKB+'KB');
+      const resultados = await Promise.all(strips.map((s,i)=>
+        callClaude([
+          {type:'image', source:{type:'base64', media_type:'image/jpeg', data:s}},
+          {type:'text', text:PROMPT}
+        ], 4000)
+        .then(t => { console.log(`Strip índice ${indices[i]}: ${t.length} chars`); return {index:indices[i], texto:t}; })
+        .catch(e => { console.log(`Strip índice ${indices[i]} erro:`, e.message); return {index:indices[i], texto:'', erro:e.message}; })
+      ));
+      return res.status(200).json({success:true, mode:'transcribe', resultados});
+    } catch(err) {
+      console.error('Erro no lote de transcrição:', err.message);
+      return res.status(500).json({success:false,errorCode:'BATCH_ERROR',message:'Erro ao transcrever lote.',details:err.message||'Erro desconhecido'});
+    }
+  }
+
+  // ── MODE=FINALIZE: recebe o rawText já remontado e roda Step 2 + normalização ──
+  if (mode === 'finalize') {
+    try {
+      const { rawText } = req.body;
+      const LIMITE_RAWTEXT_BYTES = 1*1024*1024; // 1MB — margem razoável pra transcrição de texto
+      if (!rawText || typeof rawText !== 'string' || !rawText.trim()) {
+        return res.status(400).json({success:false,errorCode:'RAWTEXT_VAZIO',message:'Nenhuma transcrição recebida para finalizar.'});
+      }
+      const tamanhoRawTextBytes = Buffer.byteLength(rawText, 'utf8');
+      if (tamanhoRawTextBytes > LIMITE_RAWTEXT_BYTES) {
+        return res.status(400).json({success:false,errorCode:'RAWTEXT_MUITO_GRANDE',message:'Transcrição recebida excede o tamanho máximo permitido.',details:`${tamanhoRawTextBytes} bytes (limite ${LIMITE_RAWTEXT_BYTES} bytes)`});
+      }
+      console.log('Finalize: rawText recebido,', rawText.length, 'chars,', tamanhoRawTextBytes, 'bytes');
+      const resultado = await finalizarEscala(rawText);
+      return res.status(resultado.status).json(resultado.body);
+    } catch(err) {
+      console.error('Erro no finalize:', err.message);
+      return res.status(500).json({success:false,errorCode:'PARSER_ERROR',message:'Erro interno ao processar a escala.',details:err.message||'Erro desconhecido',rawText:''});
+    }
+  }
+
+  // ── FLUXO PADRÃO (sem "mode"): requisição única, comportamento já aprovado ──
+ try {
+  const {fileData, mediaType, strips} = req.body;
+    const temStrips = Array.isArray(strips) && strips.length > 0;
+    if (!temStrips && !fileData) {
+      return res.status(400).json({success:false,errorCode:'NO_FILE_DATA',message:'Nenhum conteúdo foi enviado.'});
+    }
+    const tamanhoTotalKB = temStrips ? Math.round(strips.reduce((a,s)=>a+(s?s.length:0),0)/1024) : (fileData?Math.round(fileData.length/1024):0);
+    console.log('Import request:', temStrips?`${strips.length} strips`:'sem strips', '· ~'+tamanhoTotalKB+'KB total · fileData incluído:', !!fileData);
+
+    const isImage = (mediaType||'').startsWith('image/');
+    let imgB64 = fileData;
+    if (!temStrips && !isImage) {
+      try {
+        const pdf = Buffer.from(fileData,'base64');
+        const s = pdf.indexOf(Buffer.from([0xFF,0xD8,0xFF]));
+        const e = pdf.lastIndexOf(Buffer.from([0xFF,0xD9]));
+        if (s>=0 && e>s) imgB64 = pdf.slice(s,e+2).toString('base64');
+      } catch(e) {}
+    }
+
+    let stripsArr = [];
+    if (temStrips) {
+      stripsArr = strips;
+      console.log('Strips do navegador:', strips.length, strips.map(s=>Math.round(s.length/1024)+'KB').join(', '));
+    } else {
+      stripsArr = [imgB64];
+      console.log('Sem strips, usando imagem inteira');
+    }
+
+    // STEP 1: transcreve cada strip
+    const transcricoes = await Promise.all(
+      stripsArr.map((s, i) =>
+        callClaude([
+          {type:'image', source:{type:'base64', media_type:'image/jpeg', data:s}},
+          {type:'text', text:PROMPT}
+        ], 4000)
+        .then(t => { console.log(`Strip ${i+1}: ${t.length} chars`); return t; })
+        .catch(e => { console.log(`Strip ${i+1} erro:`, e.message); return ''; })
+      )
+    );
+
+    const rawText = transcricoes.filter(Boolean).join('\n');
+    console.log('Total chars:', rawText.length);
+
+    const resultado = await finalizarEscala(rawText);
+    return res.status(resultado.status).json(resultado.body);
 
  } catch(err) {
     console.error('Parser error:', err.message);
