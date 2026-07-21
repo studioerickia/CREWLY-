@@ -2197,11 +2197,21 @@ function showRes(r, rawText){
   }
   const cors={voo:'#e3f0ff',fr:'#e8f5e9',fp:'#e8f5e9',sb:'#f3e8ff',rea:'#e0f7fa',adp:'#ede9fe'};
   const tcs={voo:'#1e6fef',fr:'#2e7d32',fp:'#2e7d32',sb:'#7c3aed',rea:'#00838f',adp:'#6d28d9'};
-  const dias=(r.dias||[]).slice(0,8);
+ const dias = r.dias || [];
   const rp=document.getElementById('rprev');
   if(rp)rp.innerHTML=`<div style="font-size:12px;font-weight:600;color:#8a94a6;letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px">Prévia</div>`+
-    dias.map(d=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f5f6fa"><div style="width:24px;font-size:13px;font-weight:700;color:#8a94a6">${String(d.dia).padStart(2,'0')}</div><span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:${cors[d.tipo]||'#f5f6fa'};color:${tcs[d.tipo]||'#555'}">${d.label||d.tipo}</span>${d.detalhe?`<span style="font-size:12px;color:#8a94a6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${d.detalhe}</span>`:''}</div>`).join('')+
-    ((r.dias||[]).length>8?`<div style="font-size:12px;color:#8a94a6;text-align:center;padding-top:8px">+ ${(r.dias||[]).length-8} dias</div>`:'');
+    dias.map(d=>{
+      const linha=`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f5f6fa"><div style="width:24px;font-size:13px;font-weight:700;color:#8a94a6">${String(d.dia).padStart(2,'0')}</div><span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:${cors[d.tipo]||'#f5f6fa'};color:${tcs[d.tipo]||'#555'}">${d.label||d.tipo}</span>${d.detalhe?`<span style="font-size:12px;color:#8a94a6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${d.detalhe}</span>`:''}</div>`;
+      let debug='';
+      if(d.tipo==='voo'&&Array.isArray(d.voos)&&d.voos.length>0){
+        const voosTxt=d.voos.map(v=>`${v.n||'--'} ${v.o||'--'}→${v.d||'--'} (${v.dp||'--'}-${v.ar||'--'})`).join(' · ');
+        const partes=[`voos: ${voosTxt}`,`apresentação: ${d.apres||'--'}`];
+        if(d.atividadeAnterior)partes.push(`atividade anterior: ${d.atividadeAnterior}`);
+        if(d.pernoite&&d.pernoite.l)partes.push(`pernoite: ${d.pernoite.l} (${d.pernoite.ci||'--'}-${d.pernoite.co||'--'})`);
+        debug=`<div style="font-size:11px;color:#b45309;background:#fffbeb;border:1px dashed #fbbf24;border-radius:6px;padding:6px 8px;margin:2px 0 8px 34px;font-family:monospace">${partes.join(' | ').replace(/</g,'&lt;')}</div>`;
+      }
+      return linha+debug;
+    }).join('');
 }
 function setS(n,est,txt){
   const el=document.getElementById('s'+n);
