@@ -2168,6 +2168,7 @@ async function salvarEscalaImportada(){
   await salvarEscala(mesNum, anoNum, novaEscala);
   // Salva no histórico automaticamente
   setTimeout(salvarMesNoHistorico, 1000);
+  resetImportacao();
 
   // Atualiza interface
 buildCal();
