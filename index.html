@@ -2206,7 +2206,15 @@ function showRes(r, rawText){
       if(d.tipo==='voo'&&Array.isArray(d.voos)&&d.voos.length>0){
         const voosTxt=d.voos.map(v=>`${v.n||'--'} ${v.o||'--'}→${v.d||'--'} (${v.dp||'--'}-${v.ar||'--'})`).join(' · ');
         const partes=[`voos: ${voosTxt}`,`apresentação: ${d.apres||'--'}`];
-        if(d.atividadeAnterior)partes.push(`atividade anterior: ${d.atividadeAnterior}`);
+      if(d.atividadeAnterior){
+          const aa=d.atividadeAnterior;
+          if(typeof aa==='object'){
+            const horario=(aa.inicio||aa.fim)?`${aa.inicio||'--'}–${aa.fim||'--'}`:'';
+            partes.push(`atividade anterior: ${aa.label||aa.tipo||''}${aa.codigo?' '+aa.codigo:''}${horario?' '+horario:''}${aa.local?' · '+aa.local:''}`);
+          } else {
+            partes.push(`atividade anterior: ${aa}`);
+          }
+        }
         if(d.pernoite&&d.pernoite.l)partes.push(`pernoite: ${d.pernoite.l} (${d.pernoite.ci||'--'}-${d.pernoite.co||'--'})`);
         debug=`<div style="font-size:11px;color:#b45309;background:#fffbeb;border:1px dashed #fbbf24;border-radius:6px;padding:6px 8px;margin:2px 0 8px 34px;font-family:monospace">${partes.join(' | ').replace(/</g,'&lt;')}</div>`;
       }
