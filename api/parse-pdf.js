@@ -51,12 +51,17 @@ Formato: DATA_INI | DATA_FIM | ACTIVITY | CHECKIN | START | END | DEP | ARR | AC
 Transcreva TODAS as linhas visíveis. Responda só as linhas.`;
 
  try {
-    const {fileData, mediaType, strips} = req.body;
-    if (!fileData) return res.status(400).json({error:'No file data'});
+  const {fileData, mediaType, strips} = req.body;
+    const temStrips = Array.isArray(strips) && strips.length > 0;
+    if (!temStrips && !fileData) {
+      return res.status(400).json({success:false,errorCode:'NO_FILE_DATA',message:'Nenhum conteúdo foi enviado.'});
+    }
+    const tamanhoTotalKB = temStrips ? Math.round(strips.reduce((a,s)=>a+(s?s.length:0),0)/1024) : (fileData?Math.round(fileData.length/1024):0);
+    console.log('Import request:', temStrips?`${strips.length} strips`:'sem strips', '· ~'+tamanhoTotalKB+'KB total · fileData incluído:', !!fileData);
 
     const isImage = (mediaType||'').startsWith('image/');
     let imgB64 = fileData;
-    if (!isImage) {
+    if (!temStrips && !isImage) {
       try {
         const pdf = Buffer.from(fileData,'base64');
         const s = pdf.indexOf(Buffer.from([0xFF,0xD8,0xFF]));
@@ -66,7 +71,7 @@ Transcreva TODAS as linhas visíveis. Responda só as linhas.`;
     }
 
     let stripsArr = [];
-    if (strips && strips.length >= 3) {
+    if (temStrips) {
       stripsArr = strips;
       console.log('Strips do navegador:', strips.length, strips.map(s=>Math.round(s.length/1024)+'KB').join(', '));
     } else {
