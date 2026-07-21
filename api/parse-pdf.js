@@ -362,7 +362,7 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
       const cand=candidatosAnteriores.find(c=>c.dia===d.dia);
       if(!cand)return;
       const atual=(d.atividadeAnterior&&typeof d.atividadeAnterior==='object')?d.atividadeAnterior:{};
-      d.atividadeAnterior={
+     d.atividadeAnterior={
         tipo:atual.tipo||cand.tipo,
         label:atual.label||cand.label,
         codigo:atual.codigo||cand.codigo,
@@ -370,6 +370,34 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
         fim:atual.fim||cand.fim,
         local:atual.local||cand.local
       };
+    });
+
+    // ── VALIDAÇÃO FINAL DE APRESENTAÇÃO (checkin confundido com partida) ────
+    Object.values(porDia).forEach(d=>{
+      if(d.tipo!=='voo'||!Array.isArray(d.voos)||d.voos.length===0)return;
+      const first=d.voos[0];
+      if(!d.apres||d.apres!==first.dp)return;
+      let checkinRecuperado='';
+      rawText.split('\n').forEach(linha=>{
+        if(checkinRecuperado)return;
+        const c=linha.split('|').map(x=>x.trim());
+        if(c.length<9)return;
+        const[dataIni,,activity,checkin]=c;
+        const diaM=(dataIni||'').match(/^(\d{1,2})\//);
+        if(!diaM)return;
+        if(parseInt(diaM[1],10)!==d.dia)return;
+        if((activity||'').toUpperCase().trim()!==(first.n||'').toUpperCase().trim())return;
+        if(REGEX_HORA_CAMPO.test(checkin||'')&&checkin!==first.dp)checkinRecuperado=checkin;
+      });
+      if(checkinRecuperado){
+        d.apres=checkinRecuperado;
+      } else {
+        const intl=d.voos.some(v=>isIntl(v.o)||isIntl(v.d))||d.euroAtlantic;
+        d.apresSugerida=calcApres('',first.dp,intl);
+        d.apres=null;
+        d.precisaRevisao=true;
+        d.motivoRevisao='Apresentação não confirmada';
+      }
     });
 
     parsed.dias.forEach(d=>{
