@@ -1518,31 +1518,41 @@ async function processarPDF(){
   const isImg=arq.type.startsWith('image/');
   const mt=isImg?arq.type:'application/pdf';
   try{
-    // Corta a imagem em 3 strips no navegador antes de enviar
+  // Corta a imagem em strips no navegador antes de enviar
     const strips = await cortarImagemEmStrips(b64, mt);
     await dl(500);setS(3,'ok','Crewly organizou voos e folgas ✓');setS(4,'ld','Crewly calculando horas...');
-   const body = {mediaType:mt};
-    if(Array.isArray(strips) && strips.length>0){
-      body.strips = strips;
+   const temStrips = Array.isArray(strips) && strips.length>0;
+    const lotes = temStrips ? dividirEmLotes(strips) : [];
+    let r;
+
+    if(temStrips && lotes.length>1){
+      // ── FLUXO EM LOTES (payload total acima de 3.5MB) ─────────────────────
+      setS(3,'ld',`Lendo sua escala — etapa 1 de ${lotes.length}`);
+      let concluidos=0;
+      const resultadosLotes = await processarComConcorrencia(lotes, async (lote)=>{
+        const resultado = await enviarLote(lote, mt);
+        concluidos++;
+        setS(3,'ld',`Lendo sua escala — etapa ${concluidos} de ${lotes.length}`);
+        return resultado;
+      }, 2);
+      const todosResultados = resultadosLotes.flat().sort((a,b)=>a.index-b.index);
+      const rawTextMontado = todosResultados.filter(x=>x.texto).map(x=>x.texto).join('\n');
+      setS(3,'ok','Crewly organizou voos e folgas ✓');setS(4,'ld','Crewly calculando horas...');
+      r = await fetch('/api/parse-pdf',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({mode:'finalize', rawText:rawTextMontado})
+      });
     } else {
-      body.fileData = b64;
+      // ── FLUXO ATUAL (requisição única, sem "mode") ─────────────────────────
+      const body = {mediaType:mt};
+      if(temStrips){ body.strips = strips; } else { body.fileData = b64; }
+      r = await fetch('/api/parse-pdf',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(body)
+      });
     }
-    // ── LOG TEMPORÁRIO DE DIAGNÓSTICO DE PAYLOAD (remover depois) ──────────
-    console.log('[DEBUG payload] strips no body:', Array.isArray(body.strips)?body.strips.length:0);
-    console.log('[DEBUG payload] fileData incluído:', !!body.fileData, body.fileData?`(${(body.fileData.length/1024).toFixed(0)}KB base64)`:'');
-    if(Array.isArray(body.strips)){
-      body.strips.forEach((s,i)=>console.log(`[DEBUG payload] strip ${i+1}: ${(s.length/1024).toFixed(0)}KB base64`));
-      const somaStrips=body.strips.reduce((a,s)=>a+s.length,0);
-      console.log('[DEBUG payload] soma dos strips:', (somaStrips/1024).toFixed(0)+'KB base64', '≈', (somaStrips/1024/1024).toFixed(2)+'MB');
-    }
-    const jsonBody=JSON.stringify(body);
-    console.log('[DEBUG payload] JSON.stringify(body).length:', jsonBody.length, 'bytes ≈', (jsonBody.length/1024/1024).toFixed(2)+'MB');
-    // ── FIM DO LOG TEMPORÁRIO ────────────────────────────────────────────────
-    const r=await fetch('/api/parse-pdf',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(body)
-    });
     // Lê como texto primeiro — evita crash quando Vercel retorna HTML de erro
     const rawResp = await r.text();
     await dl(600);setS(4,'ok','Crewly calculou horas e diárias ✓');await dl(400);
