@@ -1428,6 +1428,23 @@ function onFile(inp){
   showEst('sel');
 }
 function resetUp(){arq=null;const i=document.getElementById('pdf-in');if(i)i.value='';showEst('upload');}
+  function resetImportacao(){
+  arq=null;
+  const i=document.getElementById('pdf-in');
+  if(i)i.value='';
+  ultimaEscalaProcessada=null;
+  const rprevEl=document.getElementById('rprev');
+  if(rprevEl)rprevEl.innerHTML='';
+  const rresEl=document.getElementById('rres');
+  if(rresEl)rresEl.textContent='';
+  const emsgEl=document.getElementById('emsg');
+  if(emsgEl)emsgEl.innerHTML='';
+  const errBoxEl=document.getElementById('err-raw-box');
+  if(errBoxEl)errBoxEl.style.display='none';
+  const errTxtEl=document.getElementById('err-raw-txt');
+  if(errTxtEl)errTxtEl.textContent='';
+  showEst('upload');
+}
 
 async function processarPDF(){
   if(!arq)return;
