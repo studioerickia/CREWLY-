@@ -1447,6 +1447,68 @@ function resetUp(){arq=null;const i=document.getElementById('pdf-in');if(i)i.val
   showEst('upload');
 }
 
+// ── DIVISÃO EM LOTES PARA PAYLOADS GRANDES ──────────────────────────────────
+const LOTE_LIMITE_BYTES = 3.5*1024*1024; // margem segura abaixo do limite de 4.5MB da Vercel
+const LOTE_OVERHEAD_BASE_BYTES = 2000;   // mediaType, mode, chaves JSON, indices
+const LOTE_OVERHEAD_POR_STRIP_BYTES = 30; // aspas + vírgula por item do array
+
+function dividirEmLotes(strips){
+  const lotes=[];
+  let loteAtual=[], idxAtual=[], tamanhoAtual=LOTE_OVERHEAD_BASE_BYTES;
+  strips.forEach((s,i)=>{
+    const tamanhoStrip=s.length+LOTE_OVERHEAD_POR_STRIP_BYTES;
+    if(loteAtual.length>0 && (tamanhoAtual+tamanhoStrip)>LOTE_LIMITE_BYTES){
+      lotes.push({strips:loteAtual, indices:idxAtual});
+      loteAtual=[];idxAtual=[];tamanhoAtual=LOTE_OVERHEAD_BASE_BYTES;
+    }
+    loteAtual.push(s);
+    idxAtual.push(i);
+    tamanhoAtual+=tamanhoStrip;
+  });
+  if(loteAtual.length>0)lotes.push({strips:loteAtual, indices:idxAtual});
+  return lotes;
+}
+
+// Roda `worker` sobre `itens` com no máximo `maxConcorrencia` execuções simultâneas.
+// Se qualquer worker rejeitar (após seus próprios retries), a rejeição propaga
+// e interrompe o restante do fluxo — impedindo que o finalize seja chamado.
+async function processarComConcorrencia(itens, worker, maxConcorrencia){
+  const resultados = new Array(itens.length);
+  let proximo = 0;
+  async function trabalhador(){
+    while(proximo < itens.length){
+      const i = proximo++;
+      resultados[i] = await worker(itens[i], i);
+    }
+  }
+  const trabalhadores = Array.from({length:Math.min(maxConcorrencia, itens.length)}, trabalhador);
+  await Promise.all(trabalhadores);
+  return resultados;
+}
+
+// Envia um lote de strips pra transcrição, com 1 retry automático em caso de falha.
+async function enviarLote(lote, mediaType, tentativa){
+  tentativa = tentativa || 1;
+  try{
+    const r = await fetch('/api/parse-pdf', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({mode:'transcribe', mediaType, strips:lote.strips, indices:lote.indices})
+    });
+    const raw = await r.text();
+    let data = {};
+    try{ data = JSON.parse(raw); } catch(e){ throw new Error('Resposta inválida do lote (HTTP '+r.status+')'); }
+    if(!data.success || !Array.isArray(data.resultados)) throw new Error(data.message || 'Falha ao transcrever lote');
+    return data.resultados;
+  } catch(e){
+    if(tentativa<2){
+      await dl(800);
+      return enviarLote(lote, mediaType, tentativa+1);
+    }
+    throw e;
+  }
+}
+
 async function processarPDF(){
   if(!arq)return;
   showEst('proc');
