@@ -2205,7 +2205,7 @@ function showRes(r, rawText){
       let debug='';
       if(d.tipo==='voo'&&Array.isArray(d.voos)&&d.voos.length>0){
         const voosTxt=d.voos.map(v=>`${v.n||'--'} ${v.o||'--'}→${v.d||'--'} (${v.dp||'--'}-${v.ar||'--'})`).join(' · ');
-        const partes=[`voos: ${voosTxt}`,`apresentação: ${d.apres||'--'}`];
+       const partes=[`voos: ${voosTxt}`,d.apres?`apresentação confirmada: ${d.apres}`:`revisar apresentação — sugestão: ${d.apresSugerida||'--'}`];
       if(d.atividadeAnterior){
           const aa=d.atividadeAnterior;
           if(typeof aa==='object'){
