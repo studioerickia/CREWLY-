@@ -25,7 +25,7 @@ if (!apiKey) return res.status(500).json({success:false,errorCode:'NO_API_KEY',m
   const durationHoras=(s,e)=>{let a=parseTime(s),b=parseTime(e);if(a==null||b==null)return 0;let d=b-a;if(d<0)d+=1440;return Math.round(d/60);};
   const subMinutes=(t,m)=>{let v=parseTime(t);if(v==null)return'';return fmtTime(v-m);};
   const isIntl=(i)=>INTL.has((i||'').toUpperCase());
-  const calcApres=(checkin,dep,intl)=>{const margin=intl?90:50;const computed=subMinutes(dep,margin);const a=parseTime(checkin),d=parseTime(dep);if(a==null||d==null)return computed;let gap=d-a;if(gap<0)gap+=1440;if(gap<20||gap>240)return computed;return fmtTime(a);};
+const calcApres=(checkin,dep,intl)=>{const margin=intl?90:50;const computed=subMinutes(dep,margin);const checkinStr=String(checkin||'').trim();if(/^\d{1,2}:\d{2}$/.test(checkinStr)){const parsed=parseTime(checkinStr);if(parsed!=null)return fmtTime(parsed);}return computed;};
 
   const callClaude = async (content, maxTokens=4000) => {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
