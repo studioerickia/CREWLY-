@@ -25,7 +25,7 @@ if (!apiKey) return res.status(500).json({success:false,errorCode:'NO_API_KEY',m
   const durationHoras=(s,e)=>{let a=parseTime(s),b=parseTime(e);if(a==null||b==null)return 0;let d=b-a;if(d<0)d+=1440;return Math.round(d/60);};
   const subMinutes=(t,m)=>{let v=parseTime(t);if(v==null)return'';return fmtTime(v-m);};
   const isIntl=(i)=>INTL.has((i||'').toUpperCase());
-const calcApres=(checkin,dep,intl)=>{const margin=intl?90:50;const computed=subMinutes(dep,margin);const checkinStr=String(checkin||'').trim();if(/^\d{1,2}:\d{2}$/.test(checkinStr)){const parsed=parseTime(checkinStr);if(parsed!=null)return fmtTime(parsed);}return computed;};
+  const calcApres=(checkin,dep,intl)=>{const margin=intl?90:50;const computed=subMinutes(dep,margin);const checkinStr=String(checkin||'').trim();if(/^\d{1,2}:\d{2}$/.test(checkinStr)){const parsed=parseTime(checkinStr);if(parsed!=null)return fmtTime(parsed);}return computed;};
 
   const callClaude = async (content, maxTokens=4000) => {
     const r = await fetch('https://api.anthropic.com/v1/messages', {
@@ -156,7 +156,7 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
       return d;
     });
    parsed.dias=parsed.dias.filter(d=>d&&d.dia>=1&&d.dia<=diasNoMes);
-   // ── RECUPERAÇÃO DETERMINÍSTICA DE VOOS A PARTIR DO rawText ──────────────
+    // ── RECUPERAÇÃO DETERMINÍSTICA DE VOOS A PARTIR DO rawText ──────────────
     const REGEX_VOO_RAW=/^(AD|G3|LA|JJ)\d+$/i;
     const REGEX_DATA_CAMPO=/^\d{1,2}\/\d{1,2}\/\d{2,4}$/;
     const REGEX_HORA_CAMPO=/^\d{1,2}:\d{2}$/;
@@ -333,6 +333,45 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
         porDia[d.dia]=d;
       }
     });
+
+    // ── RECUPERAÇÃO DE ATIVIDADE ANTERIOR (SEA/RHC/SB) A PARTIR DO rawText ──
+    const REGEX_ANTERIOR_RAW=/^(SEA|RHC\w*|SB\d+)/i;
+    const candidatosAnteriores=[];
+    rawText.split('\n').forEach(linha=>{
+      const c=linha.split('|').map(x=>x.trim());
+      if(c.length<8)return;
+      const[dataIni,,activity,,start,end,dep]=c;
+      const codigo=(activity||'').toUpperCase().trim();
+      const m=codigo.match(REGEX_ANTERIOR_RAW);
+      if(!m)return;
+      const diaM=(dataIni||'').match(/^(\d{1,2})\//);
+      if(!diaM)return;
+      const dia=parseInt(diaM[1],10);
+      const ehSB=/^SB\d+/.test(codigo);
+      candidatosAnteriores.push({
+        dia,codigo,
+        tipo:ehSB?'sb':'rea',
+        label:ehSB?'Sobreaviso':'Reserva',
+        inicio:REGEX_HORA_CAMPO.test(start||'')?start:'',
+        fim:REGEX_HORA_CAMPO.test(end||'')?end:'',
+        local:dep||''
+      });
+    });
+    Object.values(porDia).forEach(d=>{
+      if(d.tipo!=='voo')return;
+      const cand=candidatosAnteriores.find(c=>c.dia===d.dia);
+      if(!cand)return;
+      const atual=(d.atividadeAnterior&&typeof d.atividadeAnterior==='object')?d.atividadeAnterior:{};
+      d.atividadeAnterior={
+        tipo:atual.tipo||cand.tipo,
+        label:atual.label||cand.label,
+        codigo:atual.codigo||cand.codigo,
+        inicio:atual.inicio||cand.inicio,
+        fim:atual.fim||cand.fim,
+        local:atual.local||cand.local
+      };
+    });
+
     parsed.dias.forEach(d=>{
       if((d.tipo==='adp'||d.tipo==='adpob')&&d.diaFim&&d.diaFim>d.dia){
         const fim=Math.min(d.diaFim,diasNoMes);
