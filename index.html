@@ -1459,12 +1459,23 @@ async function processarPDF(){
     // Corta a imagem em 3 strips no navegador antes de enviar
     const strips = await cortarImagemEmStrips(b64, mt);
     await dl(500);setS(3,'ok','Crewly organizou voos e folgas ✓');setS(4,'ld','Crewly calculando horas...');
-    const body = {mediaType:mt};
+   const body = {mediaType:mt};
     if(Array.isArray(strips) && strips.length>0){
       body.strips = strips;
     } else {
       body.fileData = b64;
     }
+    // ── LOG TEMPORÁRIO DE DIAGNÓSTICO DE PAYLOAD (remover depois) ──────────
+    console.log('[DEBUG payload] strips no body:', Array.isArray(body.strips)?body.strips.length:0);
+    console.log('[DEBUG payload] fileData incluído:', !!body.fileData, body.fileData?`(${(body.fileData.length/1024).toFixed(0)}KB base64)`:'');
+    if(Array.isArray(body.strips)){
+      body.strips.forEach((s,i)=>console.log(`[DEBUG payload] strip ${i+1}: ${(s.length/1024).toFixed(0)}KB base64`));
+      const somaStrips=body.strips.reduce((a,s)=>a+s.length,0);
+      console.log('[DEBUG payload] soma dos strips:', (somaStrips/1024).toFixed(0)+'KB base64', '≈', (somaStrips/1024/1024).toFixed(2)+'MB');
+    }
+    const jsonBody=JSON.stringify(body);
+    console.log('[DEBUG payload] JSON.stringify(body).length:', jsonBody.length, 'bytes ≈', (jsonBody.length/1024/1024).toFixed(2)+'MB');
+    // ── FIM DO LOG TEMPORÁRIO ────────────────────────────────────────────────
     const r=await fetch('/api/parse-pdf',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
