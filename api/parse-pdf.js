@@ -322,7 +322,18 @@ Responda APENAS: {"mes":"<Mês AAAA>","dias":[...]}`}], 8000);
         const intl=d.voos.some(v=>isIntl(v.o)||isIntl(v.d))||d.euroAtlantic;
         d.apres=calcApres(d.checkin,first.dp,intl);
         d.apresLocal=first.o;
-        if(d.pernoite){d.pernoite.l=validarAero(d.pernoite.l);d.pernoite.int=isIntl(d.pernoite.l);}
+    if(d.pernoite){
+          d.pernoite.l=validarAero(d.pernoite.l);
+          d.pernoite.int=isIntl(d.pernoite.l);
+          const ciValido=REGEX_HORA_CAMPO.test(d.pernoite.ci||'');
+          const coValido=REGEX_HORA_CAMPO.test(d.pernoite.co||'');
+          if(!ciValido||!coValido){
+            d.pernoite.ci=ciValido?d.pernoite.ci:'';
+            d.pernoite.co=coValido?d.pernoite.co:'';
+            d.precisaRevisao=true;
+            d.motivoRevisao='Horário do pernoite não confirmado';
+          }
+        }
       }
       if(d.tipo==='sb'){
         const ini=d.sbInicio||'12:00';const fim=d.sbFim||'';
