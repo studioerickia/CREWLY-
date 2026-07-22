@@ -1,0 +1,2965 @@
+bash
+
+cat /mnt/user-data/outputs/index.html
+Saída
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Crewly">
+<title>Crewly</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#f5f6fa;font-family:-apple-system,sans-serif}
+/* MODO NOTURNO */
+body.dark{background:#0d1117}
+body.dark .screen{background:#0d1117}
+body.dark .tb,body.dark .ph,body.dark .bnav{background:#161b22;border-color:#30363d}
+body.dark .card,body.dark .vc,body.dark .lcard{background:#161b22;border-color:#30363d}
+body.dark .mi{background:#161b22;border-color:#21262d}
+body.dark .row{border-color:#21262d}
+body.dark .fi{background:#21262d;border-color:#30363d}
+body.dark .fi input,.dark .fi select{color:#e6edf3}
+body.dark .stl{color:#8b949e}
+body.dark .rk{color:#8b949e}
+body.dark .rv{color:#e6edf3}
+body.dark h1,body.dark h2,body.dark h3{color:#e6edf3}
+body.dark .ph .ttl{color:#e6edf3}
+body.dark .mil span{color:#e6edf3}
+body.dark .cd{color:#e6edf3}
+body.dark .cd.folga{background:#1a3a1a;color:#4ec94e}
+body.dark .cd.voo{background:#0d2847;color:#58a6ff}
+body.dark .cd.sby{background:#2d1b4e;color:#a371f7}
+body.dark .cd.rea{background:#0d3333;color:#39d0d8}
+body.dark .cd.adp{background:#2d1b4e;color:#a371f7}
+body.dark .cfgr input{background:#21262d;border-color:#30363d;color:#e6edf3}
+body.dark [style*="color:#1a1a2e"]{color:#e6edf3!important}
+body.dark [style*="color:#8a94a6"]{color:#8b949e!important}
+body.dark [style*="background:#fff"]{background:#161b22!important}
+body.dark [style*="background:#f5f6fa"]{background:#21262d!important}
+body.dark [style*="background:#f5f7fa"]{background:#21262d!important}
+body.dark [style*="border-color:#e8ecf0"]{border-color:#30363d!important}
+.screen{display:none;flex-direction:column;height:100vh;position:fixed;inset:0;background:#f5f6fa;overflow:hidden}
+.screen.active{display:flex}
+.sa{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:90px;scrollbar-width:none}
+.sa::-webkit-scrollbar{display:none}
+.nn{padding-bottom:20px!important}
+.bnav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e2e6ea;display:flex;padding:8px 0;padding-bottom:max(8px,env(safe-area-inset-bottom));z-index:100}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 0}
+.ni i{font-size:24px;color:#b0b8c1}
+.ni span{font-size:10px;color:#b0b8c1}
+.ni.active i,.ni.active span{color:#1e6fef}
+.tb{background:#fff;padding:max(52px,calc(env(safe-area-inset-top)+14px)) 20px 12px;flex-shrink:0}
+.ph{background:#fff;padding:max(52px,calc(env(safe-area-inset-top)+14px)) 20px 12px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #e8ecf0;flex-shrink:0}
+.ph .bk{font-size:24px;color:#1a1a2e;cursor:pointer}
+.ph .ttl{font-size:17px;font-weight:700;color:#1a1a2e}
+.ph .sub{font-size:12px;color:#8a94a6}
+.btn{width:100%;background:#1e6fef;color:#fff;border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn.g{background:#f5f6fa;color:#1a1a2e;border:1px solid #e8ecf0}
+.card{background:#fff;border-radius:16px;border:1px solid #e8ecf0;padding:14px 16px;margin:0 16px 12px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f0f2f5}
+.row:last-child{border-bottom:none}
+.rk{font-size:13px;color:#8a94a6;display:flex;align-items:center;gap:6px}
+.rv{font-size:13px;font-weight:700;color:#1a1a2e}
+.fi{display:flex;align-items:center;background:#f5f6fa;border-radius:12px;padding:0 14px;margin-bottom:14px;border:1px solid #e8ecf0}
+.fi i{font-size:18px;color:#b0b8c1;margin-right:10px;flex-shrink:0}
+.fi input,.fi select{background:none;border:none;outline:none;font-size:16px;color:#1a1a2e;padding:14px 0;width:100%;font-family:inherit}
+.lbl{font-size:11px;font-weight:600;color:#8a94a6;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.lw{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 24px;overflow-y:auto}
+.logo{width:72px;height:72px;background:#1e6fef;border-radius:24px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.logo i{font-size:34px;color:#fff}
+.lcard{background:#fff;border-radius:20px;padding:22px;width:100%;border:1px solid #e8ecf0;margin-bottom:16px}
+.sr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sb2{background:#f5f6fa;border:1px solid #e8ecf0;border-radius:12px;padding:13px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-size:14px;font-weight:600;color:#1a1a2e;font-family:inherit}
+.dv{display:flex;align-items:center;gap:12px;margin:16px 0;color:#b0b8c1;font-size:11px}
+.dv::before,.dv::after{content:'';flex:1;height:1px;background:#e8ecf0}
+.ob{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px 28px;flex:1}
+.ob.active{display:flex}
+.oi{width:100px;height:100px;border-radius:30px;display:flex;align-items:center;justify-content:center;margin-bottom:28px}
+.oi i{font-size:48px;color:#fff}
+.od{display:flex;gap:8px;margin-top:28px}
+.odot{width:8px;height:8px;border-radius:4px;background:#e8ecf0;transition:all .3s}
+.odot.active{width:24px;background:#1e6fef}
+/* função selector */
+.fn-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.fn-card{background:#fff;border:2px solid #e8ecf0;border-radius:16px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s}
+.fn-card.sel{border-color:#1e6fef;background:#e3f0ff}
+.fn-card i{font-size:28px;margin-bottom:8px;display:block;color:#8a94a6}
+.fn-card.sel i{color:#1e6fef}
+.fn-card .fn-title{font-size:14px;font-weight:700;color:#1a1a2e}
+.fn-card .fn-sub{font-size:11px;color:#8a94a6;margin-top:3px}
+/* calendário */
+.cdh{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;padding:8px 12px 4px;background:#fff;flex-shrink:0}
+.cdh span{font-size:12px;font-weight:600;color:#8a94a6}
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:4px 12px 12px}
+.cd{aspect-ratio:1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:12px;font-weight:600;color:#1a1a2e;min-height:38px}
+.cd.voo{background:#e3f0ff;color:#1e6fef}
+.cd.folga{background:#e8f5e9;color:#2e7d32}
+.cd.sby{background:#f3e8ff;color:#7c3aed}
+.cd.rea{background:#e0f7fa;color:#00838f}
+.cd.adp{background:#ede9fe;color:#6d28d9}
+.cd.today{outline:2px solid #1e6fef;outline-offset:-2px}
+.cd .dot{width:4px;height:4px;border-radius:50%;background:currentColor;margin-top:2px;opacity:.7}
+.cd .mv{font-size:8px;font-weight:700;margin-top:1px}
+/* voo card */
+.vc{background:#fff;border-radius:16px;border:1px solid #e8ecf0;margin-bottom:10px;overflow:hidden}
+.vh{padding:10px 14px;display:flex;justify-content:space-between;align-items:center}
+.vr{padding:14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f0f2f5}
+.via{font-size:22px;font-weight:800;color:#1a1a2e}
+.vho{font-size:14px;font-weight:600;color:#1e6fef;margin-top:3px}
+.vi{padding:10px 14px;display:flex;gap:16px;flex-wrap:wrap}
+.vii{display:flex;align-items:center;gap:5px;font-size:12px;color:#8a94a6}
+/* tripulação */
+.ti{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #f5f6fa}
+.ti:last-child{border-bottom:none}
+.tav{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.tbg{font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;margin-left:auto;flex-shrink:0}
+.bca{background:#fff3e0;color:#e65100}
+.bfo{background:#f3e8ff;color:#7c3aed}
+.bcl{background:#e3f0ff;color:#1e6fef}
+.bfa{background:#e8f5e9;color:#2e7d32}
+/* config */
+.cfgr{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-bottom:1px solid #f0f2f5}
+.cfgr:last-child{border-bottom:none}
+.cfgr input{background:#f5f6fa;border:1px solid #e8ecf0;border-radius:10px;padding:8px 12px;font-size:14px;color:#1a1a2e;width:120px;text-align:right;font-family:inherit;outline:none}
+.tgl{width:46px;height:26px;background:#e8ecf0;border-radius:13px;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.tgl.on{background:#1e6fef}
+.tgl::after{content:'';position:absolute;width:20px;height:20px;background:#fff;border-radius:10px;top:3px;left:3px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tgl.on::after{left:23px}
+.mi{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;background:#fff;border-bottom:1px solid #f5f6fa;cursor:pointer}
+.mil{display:flex;align-items:center;gap:12px}
+.mil i{font-size:22px;color:#8a94a6}
+.mil span{font-size:15px;color:#1a1a2e;font-weight:500}
+.br{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.br:last-child{margin-bottom:0}
+.bl{font-size:12px;color:#8a94a6;width:76px;flex-shrink:0}
+.bb{flex:1;height:8px;background:#f0f2f5;border-radius:4px;overflow:hidden}
+.bf{height:100%;border-radius:4px}
+.bv{font-size:12px;font-weight:600;color:#1a1a2e;width:36px;text-align:right;flex-shrink:0}
+.stl{font-size:12px;font-weight:600;color:#8a94a6;letter-spacing:.8px;text-transform:uppercase;padding:0 16px;margin-bottom:8px}
+.nit{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid #f0f2f5}
+.nit:last-child{border-bottom:none}
+/* upload */
+.uz{border:2px dashed #b0c8f8;border-radius:20px;padding:28px 20px;text-align:center;cursor:pointer;background:#f8fbff;margin-bottom:16px;position:relative}
+.uz input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.uic{width:64px;height:64px;border-radius:20px;background:#e3f0ff;display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+.uic i{font-size:30px;color:#1e6fef}
+.spin{width:40px;height:40px;border:3px solid #e8ecf0;border-top-color:#1e6fef;border-radius:50%;animation:sp .8s linear infinite;margin:0 auto 12px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.stp{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f2f5}
+.stp:last-child{border-bottom:none}
+.sn{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.sok{background:#e8f5e9;color:#2e7d32}
+.sld{background:#e3f0ff;color:#1e6fef}
+.swt{background:#f0f2f5;color:#b0b8c1}
+/* refeição badge */
+.ref-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;margin-right:4px;margin-top:4px}
+.cia-card{background:#fff;border:2px solid #e8ecf0;border-radius:18px;padding:16px;cursor:pointer;transition:all .2s}
+.cia-card.sel{border-color:#1e6fef;background:#f0f6ff}
+  #splash{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0a1628,#1e6fef,#1458cc);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s ease}
+#splash.hide{opacity:0;pointer-events:none}
+#splash-plane{font-size:48px;position:absolute;animation:flyAcross 2.2s ease-in-out forwards}
+@keyframes flyAcross{0%{left:-60px;top:45%;opacity:0}15%{opacity:1}70%{top:42%}100%{left:calc(100% + 60px);top:38%;opacity:0}}
+#splash-logo{opacity:0;animation:fadeInLogo .5s ease .4s forwards;text-align:center}
+@keyframes fadeInLogo{to{opacity:1}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
+</head>
+<body>
+<!-- SPLASH -->
+<div id="splash">
+  <div id="splash-plane">✈️</div>
+  <div id="splash-logo">
+    <div style="width:72px;height:72px;background:rgba(255,255,255,0.15);border-radius:24px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2)">
+      <span style="font-size:34px">✈</span>
+    </div>
+    <div style="font-size:32px;font-weight:900;color:#fff;letter-spacing:-1px">Crewly</div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.6);margin-top:6px">Seu copiloto digital ✈️</div>
+  </div>
+</div>
+<!-- ONBOARDING -->
+<div class="screen active" id="s-ob">
+  <div id="ob1" class="ob active">
+    <div class="oi" style="background:linear-gradient(135deg,#1e6fef,#1458cc)"><i class="ti ti-plane"></i></div>
+    <div style="font-size:26px;font-weight:800;color:#1a1a2e;margin-bottom:12px">Bem-vindo ao Crewly</div>
+    <div style="font-size:15px;color:#8a94a6;line-height:1.7">Seu copiloto digital. Escala, horas e diárias para tripulantes de todo o Brasil.</div>
+    <div class="od"><div class="odot active"></div><div class="odot"></div><div class="odot"></div></div>
+  </div>
+  <div id="ob2" class="ob">
+    <div class="oi" style="background:linear-gradient(135deg,#0f9d7a,#0a7a60)"><i class="ti ti-file-type-pdf"></i></div>
+    <div style="font-size:26px;font-weight:800;color:#1a1a2e;margin-bottom:12px">Envie o PDF da escala</div>
+    <div style="font-size:15px;color:#8a94a6;line-height:1.7">Faça upload do PDF e o Crewly lê tudo automaticamente — FR, FP, SB, REA, voos, pernoites e ADP.</div>
+    <div class="od"><div class="odot"></div><div class="odot active"></div><div class="odot"></div></div>
+  </div>
+  <div id="ob3" class="ob">
+    <div class="oi" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)"><i class="ti ti-currency-dollar"></i></div>
+    <div style="font-size:26px;font-weight:800;color:#1a1a2e;margin-bottom:12px">Saiba quanto vai ganhar</div>
+    <div style="font-size:15px;color:#8a94a6;line-height:1.7">Estimativa completa com salário, diárias, horas e adicionais. Tudo calculado automaticamente.</div>
+    <div class="od"><div class="odot"></div><div class="odot"></div><div class="odot active"></div></div>
+  </div>
+  <div style="padding:0 24px 40px;flex-shrink:0">
+    <button class="btn" id="ob-btn" onclick="obNext()">Próximo</button>
+    <div style="text-align:center;margin-top:14px;font-size:14px;color:#8a94a6;cursor:pointer;padding:8px" onclick="go('cia-sel')">Pular</div>
+  </div>
+</div>
+
+<!-- SELEÇÃO DE CIA -->
+<div class="screen" id="s-cia-sel">
+  <div style="flex:1;display:flex;flex-direction:column;padding:max(52px,calc(env(safe-area-inset-top)+14px)) 24px 32px;overflow-y:auto">
+    <div style="font-size:26px;font-weight:800;color:#1a1a2e;margin-bottom:8px">Qual é sua companhia?</div>
+    <div style="font-size:14px;color:#8a94a6;margin-bottom:28px;line-height:1.6">O Crewly vai carregar os valores e regras corretos para você.</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px">
+      <div class="cia-card sel" id="cia-azul" onclick="selCia('AZUL',this)">
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#1e6fef,#1458cc);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-plane" style="font-size:26px;color:#fff"></i></div>
+          <div><div style="font-size:17px;font-weight:700;color:#1a1a2e">Azul Linhas Aéreas</div><div style="font-size:12px;color:#8a94a6;margin-top:2px">AD · Campinas (VCP)</div></div>
+        </div>
+      </div>
+      <div class="cia-card" id="cia-gol" onclick="selCia('GOL',this)">
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-plane" style="font-size:26px;color:#fff"></i></div>
+          <div><div style="font-size:17px;font-weight:700;color:#1a1a2e">Gol Linhas Aéreas</div><div style="font-size:12px;color:#8a94a6;margin-top:2px">G3 · São Paulo (GRU/CGH)</div></div>
+        </div>
+      </div>
+      <div class="cia-card" id="cia-latam" onclick="selCia('LATAM',this)">
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#e53935,#b71c1c);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-plane" style="font-size:26px;color:#fff"></i></div>
+          <div><div style="font-size:17px;font-weight:700;color:#1a1a2e">LATAM Airlines</div><div style="font-size:12px;color:#8a94a6;margin-top:2px">LA · São Paulo (GRU)</div></div>
+        </div>
+      </div>
+    </div>
+    <button class="btn" onclick="confirmarCia()"><i class="ti ti-check"></i>Continuar</button>
+  </div>
+</div>
+
+<!-- SELEÇÃO DE FUNÇÃO -->
+<div class="screen" id="s-fn-sel">
+  <div style="flex:1;display:flex;flex-direction:column;padding:max(52px,calc(env(safe-area-inset-top)+14px)) 24px 32px;overflow-y:auto">
+    <div style="font-size:26px;font-weight:800;color:#1a1a2e;margin-bottom:8px">Qual é sua função?</div>
+    <div style="font-size:14px;color:#8a94a6;margin-bottom:28px;line-height:1.6">O Crewly vai calcular horas e salário corretamente para você.</div>
+    <div class="fn-grid">
+      <div class="fn-card" onclick="selFn('CA',this)">
+        <i class="ti ti-plane-departure"></i>
+        <div class="fn-title">Comandante</div>
+        <div class="fn-sub">CA</div>
+      </div>
+      <div class="fn-card" onclick="selFn('FO',this)">
+        <i class="ti ti-steering-wheel"></i>
+        <div class="fn-title">Copiloto</div>
+        <div class="fn-sub">FO</div>
+      </div>
+      <div class="fn-card" onclick="selFn('CL',this)">
+        <i class="ti ti-star"></i>
+        <div class="fn-title">C. Líder</div>
+        <div class="fn-sub">CL</div>
+      </div>
+      <div class="fn-card sel" onclick="selFn('FA',this)">
+        <i class="ti ti-users" style="color:#1e6fef"></i>
+        <div class="fn-title">Comissário</div>
+        <div class="fn-sub">FA</div>
+      </div>
+    </div>
+    <button class="btn" onclick="confirmarFn()"><i class="ti ti-check"></i>Confirmar e continuar</button>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div class="screen" id="s-login" style="background:url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80') center/cover no-repeat;">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,0.45)"></div>
+  <div class="lw" style="position:relative;z-index:1">
+    <div class="logo"><i class="ti ti-plane"></i></div>
+ <div style="font-size:28px;font-weight:800;color:#fff;margin-bottom:4px">Crewly</div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:28px">Entre na sua conta</div>
+   <div class="lcard" style="background:rgba(255,255,255,0.12);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.2);color:#fff">
+      <div class="lbl">Email</div>
+      <div class="fi"><i class="ti ti-mail"></i><input placeholder="seu@email.com" type="email" id="inp-email"></div>
+      <div class="lbl">Senha</div>
+      <div class="fi" style="margin-bottom:0"><i class="ti ti-lock"></i><input placeholder="••••••••" type="password" id="inp-senha"></div>
+    <div style="text-align:right;margin:10px 0 16px"><span onclick="esqueciSenha()" style="font-size:13px;color:#1e6fef;cursor:pointer">Esqueci minha senha</span></div>
+      <button class="btn" onclick="fazerLogin()"><i class="ti ti-login"></i>Entrar</button>
+      <div class="dv">OU CONTINUE COM</div>
+      <div class="sr">
+        <button class="sb2" onclick="fazerLogin()"><i class="ti ti-brand-apple" style="font-size:20px"></i>Apple</button>
+        <button class="sb2" onclick="fazerLogin()"><i class="ti ti-brand-google" style="font-size:20px"></i>Google</button>
+      </div>
+    </div>
+ <div style="font-size:14px;color:rgba(255,255,255,0.7)">Não tem conta? <span style="color:#f59e0b;font-weight:600;cursor:pointer" onclick="go('cadastro')">Criar conta</span></div>
+  </div>
+</div>
+
+<!-- CADASTRO -->
+<div class="screen" id="s-cadastro" style="background:url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80') center/cover no-repeat;">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,0.45)"></div>
+  <div class="lw" style="justify-content:flex-start;padding-top:max(60px,env(safe-area-inset-top));position:relative;z-index:1">
+    <div class="logo"><i class="ti ti-plane"></i></div>
+  <div style="font-size:24px;font-weight:800;color:#fff;margin-bottom:4px">Criar conta</div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:20px">Bem-vindo ao Crewly ✈️</div>
+   <div class="lcard" style="background:rgba(255,255,255,0.12);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.2)">
+      <div class="lbl">Nome completo</div>
+      <div class="fi"><i class="ti ti-user"></i><input placeholder="Seu nome" id="inp-nome"></div>
+      <div class="lbl">Matrícula / RE</div>
+      <div class="fi"><i class="ti ti-id-badge"></i><input placeholder="Ex: 12345 ou RE-789" type="text" id="inp-mat"></div>
+      <div class="lbl">E-mail</div>
+      <div class="fi"><i class="ti ti-mail"></i><input placeholder="seu@email.com" type="email" id="inp-email-cad"></div>
+      <div class="lbl">Confirme seu e-mail</div>
+      <div class="fi"><i class="ti ti-mail-check"></i><input placeholder="Digite o e-mail novamente" type="email" id="inp-email-cad2"></div>
+      <div class="lbl">Senha</div>
+      <div class="fi"><i class="ti ti-lock"></i><input placeholder="Mínimo 6 caracteres" type="password" id="inp-senha-cad"></div>
+      <div class="lbl">Base</div>
+      <div class="fi"><i class="ti ti-building-airport"></i><select id="inp-base"><option>VCP</option><option>GRU</option><option>CGH</option><option>SSA</option><option>GIG</option><option>BSB</option><option>FOR</option><option>REC</option><option>BEL</option></select></div>
+      <button class="btn" style="margin-top:4px" onclick="criarConta()"><i class="ti ti-check"></i>Criar minha conta</button>
+    </div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:24px">Já tem conta? <span style="color:#1e6fef;font-weight:600;cursor:pointer" onclick="go('login')">Entrar</span></div>
+  </div>
+</div>
+
+<!-- NOVA SENHA -->
+<div class="screen" id="s-nova-senha" style="background:url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80') center/cover no-repeat;">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,0.45)"></div>
+  <div class="lw" style="position:relative;z-index:1">
+    <div class="logo"><i class="ti ti-lock"></i></div>
+    <div style="font-size:24px;font-weight:800;color:#fff;margin-bottom:4px">Nova senha</div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:28px">Digite sua nova senha de acesso</div>
+    <div class="lcard" style="background:rgba(255,255,255,0.12);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.2);color:#fff">
+      <div class="lbl">Nova senha</div>
+      <div class="fi"><i class="ti ti-lock"></i><input placeholder="Mínimo 6 caracteres" type="password" id="inp-nova-senha"></div>
+      <div class="lbl">Confirme a nova senha</div>
+      <div class="fi" style="margin-bottom:0"><i class="ti ti-lock-check"></i><input placeholder="Repita a senha" type="password" id="inp-nova-senha2"></div>
+      <button class="btn" style="margin-top:16px" onclick="definirNovaSenha()"><i class="ti ti-check"></i>Salvar nova senha</button>
+    </div>
+  </div>
+</div>
+
+<!-- MANUAL ENTRY -->
+<div class="screen" id="s-manual">
+  <div class="ph" style="display:flex;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:10px">
+      <i class="ti ti-arrow-left bk" onclick="go('import')"></i>
+      <div><div class="ttl">Escala Manual</div><div class="sub" id="manual-sub">Julho 2026</div></div>
+    </div>
+    <button onclick="salvarManual()" style="background:#1e6fef;color:#fff;border:none;border-radius:10px;padding:9px 18px;font-weight:700;font-size:13px;cursor:pointer"><i class="ti ti-check"></i> Salvar</button>
+  </div>
+  <div style="background:#fff;border-bottom:1px solid #e8ecf0;padding:10px 16px;display:flex;gap:10px;align-items:center;flex-shrink:0">
+    <select id="manual-mes" onchange="onMesAnoManualChange()" style="flex:1;padding:8px 10px;border:1px solid #e8ecf0;border-radius:8px;font-size:14px;font-family:inherit;background:#f5f6fa">
+      <option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option><option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option><option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+    </select>
+    <select id="manual-ano" onchange="onMesAnoManualChange()" style="width:88px;padding:8px 10px;border:1px solid #e8ecf0;border-radius:8px;font-size:14px;font-family:inherit;background:#f5f6fa">
+      <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
+    </select>
+  </div>
+  <div class="sa nn" style="padding:12px 16px 40px" id="manual-days"></div>
+</div>
+
+<!-- HOME -->
+<div class="screen" id="s-home">
+  <div class="tb">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-size:14px;color:#8a94a6" id="sau">Boa tarde</div><div style="font-size:22px;font-weight:700;color:#1a1a2e" id="nome-home">Tripulante ✈️</div></div>
+      <div style="display:flex;gap:14px">
+        <i class="ti ti-bell" style="font-size:24px;color:#8a94a6;cursor:pointer" onclick="go('notif')"></i>
+        <i class="ti ti-settings" style="font-size:24px;color:#8a94a6;cursor:pointer" onclick="go('config')"></i>
+      </div>
+    </div>
+  </div>
+  <div class="sa">
+    <div id="card-hoje" style="margin:12px 16px 0"></div>
+    <div id="card-empty" style="display:none;margin:12px 16px 0"></div>
+    <div class="card" style="margin-top:12px" id="card-amanha"></div>
+    <!-- Diárias -->
+    <div style="margin:12px 16px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:20px;padding:16px 20px;color:#fff;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="go('estimativa')">
+      <div><div style="font-size:11px;opacity:.8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">Diárias acumuladas</div><div style="font-size:24px;font-weight:800" id="home-diarias">4 diárias</div><div style="font-size:12px;opacity:.75;margin-top:2px" id="home-diarias-val">R$ 439,80 este mês</div></div>
+      <i class="ti ti-clock" style="font-size:36px;opacity:.3"></i>
+    </div>
+    <div class="stl" style="margin-top:4px">Junho 2026</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 16px 12px">
+      <div style="background:#fff;border-radius:14px;padding:12px 6px;text-align:center;border:1px solid #e8ecf0"><i class="ti ti-plane" style="font-size:20px;margin-bottom:4px;display:block;color:#1e6fef"></i><div style="font-size:20px;font-weight:800;color:#1a1a2e" id="h-voos">12</div><div style="font-size:10px;color:#8a94a6">voos</div></div>
+      <div style="background:#fff;border-radius:14px;padding:12px 6px;text-align:center;border:1px solid #e8ecf0;cursor:pointer" onclick="abrirPernoites()"><i class="ti ti-bed" style="font-size:20px;margin-bottom:4px;display:block;color:#f59e0b"></i><div style="font-size:20px;font-weight:800;color:#1a1a2e" id="h-pern">4</div><div style="font-size:10px;color:#8a94a6">pernoites</div></div>
+      <div style="background:#fff;border-radius:14px;padding:12px 6px;text-align:center;border:1px solid #e8ecf0"><i class="ti ti-circle-check" style="font-size:20px;margin-bottom:4px;display:block;color:#10b981"></i><div style="font-size:20px;font-weight:800;color:#1a1a2e" id="h-folgas">8</div><div style="font-size:10px;color:#8a94a6">folgas</div></div>
+      <div style="background:#fff;border-radius:14px;padding:12px 6px;text-align:center;border:1px solid #e8ecf0;cursor:pointer" onclick="abrirPaises()"><i class="ti ti-world" style="font-size:20px;margin-bottom:4px;display:block;color:#8b5cf6"></i><div style="font-size:20px;font-weight:800;color:#1a1a2e" id="h-paises">1</div><div style="font-size:10px;color:#8a94a6">países</div></div>
+    </div>
+    <!-- Horas -->
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-size:15px;font-weight:600;color:#1a1a2e;margin-bottom:14px">Resumo de Horas</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+        <div style="text-align:center"><i class="ti ti-clock" style="font-size:18px;margin-bottom:4px;display:block;color:#1e6fef"></i><div style="font-size:14px;font-weight:700;color:#1a1a2e" id="h-norm">38h</div><div style="font-size:10px;color:#8a94a6">Faixa 1</div></div>
+        <div style="text-align:center"><i class="ti ti-clock-2" style="font-size:18px;margin-bottom:4px;display:block;color:#f59e0b"></i><div style="font-size:14px;font-weight:700;color:#1a1a2e" id="h-f2">0h</div><div style="font-size:10px;color:#8a94a6">Faixa 2</div></div>
+        <div style="text-align:center"><i class="ti ti-moon" style="font-size:18px;margin-bottom:4px;display:block;color:#8b5cf6"></i><div style="font-size:14px;font-weight:700;color:#1a1a2e" id="h-not">12h</div><div style="font-size:10px;color:#8a94a6">Noturnas</div></div>
+        <div style="text-align:center"><i class="ti ti-star" style="font-size:18px;margin-bottom:4px;display:block;color:#10b981"></i><div style="font-size:14px;font-weight:700;color:#1a1a2e" id="h-lid">0h</div><div style="font-size:10px;color:#8a94a6">Líder</div></div>
+      </div>
+    </div>
+    <!-- Estimativa -->
+    <div style="margin:0 16px 12px;background:linear-gradient(135deg,#0f9d7a,#0a7a60);border-radius:20px;padding:18px 20px;color:#fff;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="go('estimativa')">
+      <div><div style="font-size:11px;opacity:.8;font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-bottom:3px">Estimativa do Mês</div><div style="font-size:30px;font-weight:800" id="h-total">R$ 7.424,66</div><div style="font-size:12px;opacity:.75;margin-top:2px">Toque para detalhes</div></div>
+      <i class="ti ti-trending-up" style="font-size:40px;opacity:.35"></i>
+    </div>
+    <!-- Jornada -->
+    <!-- Resumo da semana -->
+    <div class="card" style="margin-bottom:12px" id="card-semana">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span style="font-size:15px;font-weight:600;color:#1a1a2e">📅 Esta semana</span>
+        <span style="font-size:12px;color:#8a94a6" id="semana-datas"></span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px" id="semana-stats"></div>
+    </div>
+    <div class="card" style="cursor:pointer;margin-bottom:16px" onclick="go('fadiga')">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><span style="font-size:15px;font-weight:600;color:#1a1a2e">Controle de Jornada</span><i class="ti ti-chevron-right" style="color:#b0b8c1"></i></div>
+      <div style="display:flex;gap:16px">
+        <div style="flex:1"><div style="font-size:11px;color:#8a94a6;margin-bottom:4px">Horas voadas</div><div style="height:7px;background:#f0f2f5;border-radius:4px;overflow:hidden"><div style="width:38%;height:100%;background:#1e6fef;border-radius:4px" id="bar-j"></div></div><div style="font-size:12px;font-weight:600;color:#1e6fef;margin-top:4px" id="bar-j-txt">38h / 100h</div></div>
+        <div style="flex:1"><div style="font-size:11px;color:#8a94a6;margin-bottom:4px">Fadiga</div><div style="height:7px;background:#f0f2f5;border-radius:4px;overflow:hidden"><div style="width:30%;height:100%;background:#10b981;border-radius:4px"></div></div><div style="font-size:12px;font-weight:600;color:#10b981;margin-top:4px">Baixa</div></div>
+      </div>
+    </div>
+  </div>
+  <nav class="bnav">
+    <div class="ni active" onclick="go('home')"><i class="ti ti-home"></i><span>Início</span></div>
+    <div class="ni" onclick="go('calendar')"><i class="ti ti-calendar"></i><span>Escala</span></div>
+    <div class="ni" onclick="go('historico')"><i class="ti ti-chart-bar"></i><span>Histórico</span></div>
+    <div class="ni" onclick="go('perfil')"><i class="ti ti-user"></i><span>Perfil</span></div>
+  </nav>
+</div>
+
+<!-- IMPORTAR -->
+<div class="screen" id="s-import">
+  <div class="ph"><i class="ti ti-arrow-left bk" onclick="go('perfil')"></i><div><div class="ttl">Importar Escala</div><div class="sub">Envie o PDF da sua escala</div></div></div>
+  <div class="sa nn">
+    <div style="padding:16px">
+      <div id="est-upload">
+        <div class="uz">
+          <input type="file" id="pdf-in" accept=".pdf,image/*" onchange="onFile(this)">
+          <div class="uic"><i class="ti ti-file-type-pdf"></i></div>
+          <div style="font-size:17px;font-weight:700;color:#1a1a2e;margin-bottom:6px">Toque para escolher o PDF</div>
+          <div style="font-size:13px;color:#8a94a6;line-height:1.6">PDF ou imagem da sua escala</div>
+          <div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+            <span style="background:#e3f0ff;color:#1e6fef;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600">FR/FP</span>
+            <span style="background:#f3e8ff;color:#7c3aed;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600">SB</span>
+            <span style="background:#e0f7fa;color:#00838f;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600">REA</span>
+            <span style="background:#e3f0ff;color:#1e6fef;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600">AD/G3/LA</span>
+            <span style="background:#fff3e0;color:#e65100;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600">Layover</span>
+            <span style="background:#ede9fe;color:#6d28d9;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600">ADP</span>
+          </div>
+        </div>
+        <div style="background:#e3f0ff;border-radius:12px;padding:12px 14px;display:flex;gap:10px">
+          <i class="ti ti-info-circle" style="font-size:18px;color:#1e6fef;flex-shrink:0;margin-top:1px"></i>
+          <div style="font-size:12px;color:#1e6fef;line-height:1.6">No app da Azul: <strong>Minha Escala → Exportar PDF</strong></div>
+        </div>
+      </div>
+      <div id="est-sel" style="display:none">
+        <div style="background:#fff;border-radius:16px;border:1px solid #e8ecf0;padding:16px;margin-bottom:14px;display:flex;align-items:center;gap:12px">
+          <div style="width:48px;height:48px;border-radius:12px;background:#e3f0ff;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-file-type-pdf" style="font-size:24px;color:#1e6fef"></i></div>
+          <div style="flex:1"><div style="font-size:15px;font-weight:600;color:#1a1a2e" id="fn2">escala.pdf</div><div style="font-size:12px;color:#8a94a6;margin-top:2px" id="fs">Pronto para processar</div></div>
+          <i class="ti ti-x" style="font-size:20px;color:#b0b8c1;cursor:pointer" onclick="resetUp()"></i>
+        </div>
+        <button class="btn" onclick="processarPDF()"><i class="ti ti-magic"></i>Processar com Crewly IA</button>
+      </div>
+      <div id="est-proc" style="display:none">
+        <div style="background:#fff;border-radius:20px;border:1px solid #e8ecf0;padding:24px;text-align:center;margin-bottom:14px">
+          <div class="spin"></div>
+          <div style="font-size:16px;font-weight:700;color:#1a1a2e;margin-bottom:6px">Crewly lendo sua escala...</div>
+          <div style="font-size:13px;color:#8a94a6">Identificando atividades do mês</div>
+        </div>
+        <div class="card">
+          <div class="stp"><div class="sn sok" id="s1"><i class="ti ti-check" style="font-size:12px"></i></div><div style="font-size:13px;color:#1a1a2e">Arquivo recebido ✓</div></div>
+          <div class="stp"><div class="sn sld" id="s2"><div style="width:10px;height:10px;border:2px solid #1e6fef;border-top-color:transparent;border-radius:50%;animation:sp .6s linear infinite"></div></div><div style="font-size:13px;color:#1a1a2e" id="s2t">Crewly identificando atividades...</div></div>
+          <div class="stp"><div class="sn swt" id="s3">3</div><div style="font-size:13px;color:#b0b8c1" id="s3t">Crewly organizando voos e folgas</div></div>
+          <div class="stp"><div class="sn swt" id="s4">4</div><div style="font-size:13px;color:#b0b8c1" id="s4t">Crewly calculando horas e diárias</div></div>
+        </div>
+      </div>
+      <div id="est-res" style="display:none">
+        <div style="background:#e8f5e9;border-radius:16px;padding:16px;margin-bottom:14px;display:flex;gap:12px;align-items:flex-start">
+          <i class="ti ti-circle-check" style="font-size:28px;color:#2e7d32;flex-shrink:0"></i>
+          <div><div style="font-size:16px;font-weight:700;color:#1a1a2e;margin-bottom:4px">Escala lida com sucesso! ✈️</div><div style="font-size:13px;color:#2e7d32;line-height:1.5" id="rres">30 dias processados</div></div>
+        </div>
+        <div class="card" style="margin-bottom:14px" id="rprev"></div>
+        <button class="btn" onclick="salvarEscalaImportada()"><i class="ti ti-check"></i>Salvar e abrir minha escala</button>
+        <button class="btn g" style="margin-top:10px" onclick="resetUp()"><i class="ti ti-upload"></i>Enviar outro arquivo</button>
+<div style="margin-top:12px;text-align:center;font-size:11px;color:#b0b8c1;line-height:1.7">
+  ⚠️ O Crewly pode cometer erros. Confira sempre sua escala oficial.
+</div>      </div>
+     <div id="est-err" style="display:none">
+        <div style="background:#ffeaea;border-radius:16px;padding:16px;margin-bottom:14px;display:flex;gap:12px">
+          <i class="ti ti-alert-circle" style="font-size:24px;color:#e53935;flex-shrink:0;margin-top:1px"></i>
+          <div><div style="font-size:15px;font-weight:700;color:#c62828;margin-bottom:4px">Não consegui ler</div><div style="font-size:13px;color:#b71c1c;line-height:1.5" id="emsg">Tente outro arquivo.</div></div>
+        </div>
+        <button class="btn" onclick="resetUp()"><i class="ti ti-upload"></i>Tentar novamente</button>
+      <button class="btn g" style="margin-top:10px" onclick="abrirManual(null,null)"><i class="ti ti-edit"></i>Preencher manualmente</button>
+        <div id="err-raw-box" style="display:none;margin-top:14px">
+          <div style="font-size:11px;font-weight:700;color:#8a94a6;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px">Texto detectado (debug)</div>
+          <div id="err-raw-txt" style="background:#f5f6fa;border:1px solid #e8ecf0;border-radius:10px;padding:12px;font-size:11px;color:#4a5568;font-family:monospace;white-space:pre-wrap;max-height:180px;overflow-y:auto;line-height:1.6"></div>
+          <button onclick="navigator.clipboard.writeText(document.getElementById('err-raw-txt').textContent).then(()=>alert('Copiado!'))" style="margin-top:8px;background:none;border:1px solid #e8ecf0;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;color:#8a94a6;cursor:pointer"><i class="ti ti-copy"></i> Copiar texto</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DIA -->
+<div class="screen" id="s-dia">
+  <div style="background:#fff;padding:max(52px,calc(env(safe-area-inset-top)+14px)) 16px 12px;border-bottom:1px solid #e8ecf0;flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <i class="ti ti-arrow-left" style="font-size:24px;color:#1a1a2e;cursor:pointer" onclick="go('calendar')"></i>
+      <div style="flex:1"><div style="font-size:13px;color:#8a94a6" id="ds">Sexta-feira</div><div style="font-size:20px;font-weight:800;color:#1a1a2e" id="dd">19 de Junho de 2026</div></div>
+      <div style="display:flex;gap:8px">
+        <div onclick="diaAnterior()" style="width:36px;height:36px;border-radius:50%;background:#f5f6fa;border:1px solid #e8ecf0;display:flex;align-items:center;justify-content:center;cursor:pointer"><i class="ti ti-chevron-left" style="font-size:18px;color:#1a1a2e"></i></div>
+        <div onclick="proximoDia()" style="width:36px;height:36px;border-radius:50%;background:#1e6fef;display:flex;align-items:center;justify-content:center;cursor:pointer"><i class="ti ti-chevron-right" style="font-size:18px;color:#fff"></i></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;padding-bottom:4px" id="dr"></div>
+  </div>
+  <div class="sa nn" style="padding:12px 16px 24px" id="dc"></div>
+</div>
+
+<!-- TRIPULAÇÃO -->
+<div class="screen" id="s-trip">
+  <div style="background:linear-gradient(135deg,#1e6fef,#1458cc);padding:max(52px,calc(env(safe-area-inset-top)+14px)) 20px 20px;color:#fff;flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;cursor:pointer;opacity:.85" onclick="go('dia')"><i class="ti ti-arrow-left" style="font-size:22px"></i><span style="font-size:14px;font-weight:600">Voltar</span></div>
+    <div style="font-size:22px;font-weight:800;margin-bottom:2px" id="tv">AD4070</div>
+    <div style="font-size:13px;opacity:.8" id="ti2">VCP → BEL</div>
+  </div>
+  <div class="sa nn" style="padding:16px" id="tc"></div>
+</div>
+
+<!-- CALENDÁRIO -->
+<div class="screen" id="s-calendar">
+  <div class="tb" style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e8ecf0">
+    <div style="font-size:20px;font-weight:700;color:#1a1a2e" id="cal-titulo">Junho 2026</div>
+    <div style="display:flex;gap:8px">
+      <button style="background:#f5f6fa;border:none;border-radius:8px;width:34px;height:34px;cursor:pointer"><i class="ti ti-chevron-left"></i></button>
+      <button style="background:#f5f6fa;border:none;border-radius:8px;width:34px;height:34px;cursor:pointer"><i class="ti ti-chevron-right"></i></button>
+    </div>
+  </div>
+  <div class="cdh"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+  <div class="sa">
+    <div class="cg" id="cg"></div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;padding:4px 16px 14px">
+      <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#8a94a6"><div style="width:12px;height:12px;border-radius:3px;background:#e3f0ff"></div>Voo</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#8a94a6"><div style="width:12px;height:12px;border-radius:3px;background:#e8f5e9"></div>Folga</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#8a94a6"><div style="width:12px;height:12px;border-radius:3px;background:#f3e8ff"></div>SB</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#8a94a6"><div style="width:12px;height:12px;border-radius:3px;background:#e0f7fa"></div>REA</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#8a94a6"><div style="width:12px;height:12px;border-radius:3px;background:#ede9fe"></div>ADP</div>
+    </div>
+    <div class="stl">Resumo do Mês</div>
+    <div class="card" id="cal-res"></div>
+  </div>
+  <nav class="bnav">
+    <div class="ni" onclick="go('home')"><i class="ti ti-home"></i><span>Início</span></div>
+    <div class="ni active" onclick="go('calendar')"><i class="ti ti-calendar"></i><span>Escala</span></div>
+    <div class="ni" onclick="go('historico')"><i class="ti ti-chart-bar"></i><span>Histórico</span></div>
+    <div class="ni" onclick="go('perfil')"><i class="ti ti-user"></i><span>Perfil</span></div>
+  </nav>
+</div>
+
+<!-- ESTIMATIVA -->
+<div class="screen" id="s-estimativa">
+  <div class="ph"><i class="ti ti-arrow-left bk" onclick="go('home')"></i><div><div class="ttl">Estimativa de Salário</div><div class="sub">Junho 2026</div></div></div>
+  <div class="sa">
+    <div style="padding:16px 16px 0">
+      <div style="background:linear-gradient(135deg,#0f9d7a,#0a7a60);border-radius:20px;padding:22px;color:#fff;margin-bottom:16px;text-align:center">
+        <div style="font-size:12px;opacity:.8;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Total estimado</div>
+        <div style="font-size:38px;font-weight:800" id="est-total-val">R$ 7.424,66</div>
+        <div style="font-size:12px;opacity:.7;margin-top:6px">Valores estimados · sujeito a alteração</div>
+      </div>
+      <div class="stl">Salário Base</div>
+      <div class="card">
+        <div class="row"><div class="rk"><i class="ti ti-currency-dollar" style="color:#1e6fef"></i>Salário fixo</div><div class="rv">R$ 3.474,11</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-alert-triangle" style="color:#f59e0b"></i>Periculosidade (30%)</div><div class="rv">R$ 1.042,23</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-plus" style="color:#10b981"></i>Comp. Orgânica</div><div class="rv">R$ 694,82</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-calendar" style="color:#8b5cf6"></i>DSR</div><div class="rv">R$ 590,22</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-alert-triangle" style="color:#e65100"></i>Periculosidade s/ Variáveis</div><div class="rv">R$ 374,60</div></div>
+      </div>
+      <div class="stl">Horas de Voo</div>
+      <div class="card">
+        <div class="row"><div class="rk"><i class="ti ti-clock" style="color:#1e6fef"></i>Faixa 1 (R$ 26,44/h)</div><div class="rv" id="est-f1">R$ 335,79</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-clock-2" style="color:#f59e0b"></i>Faixa 2 (R$ 31,79/h)</div><div class="rv" id="est-f2">R$ 0,00</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-moon" style="color:#8b5cf6"></i>H. Noturnas (R$ 26,44/h)</div><div class="rv" id="est-not">R$ 559,79</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-sun" style="color:#f59e0b"></i>H. Diurnas Especiais</div><div class="rv" id="est-diur">R$ 345,70</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-moon-stars" style="color:#7c3aed"></i>H. Noturnas Especiais</div><div class="rv" id="est-notur-esp">R$ 7,40</div></div>
+      </div>
+      <div class="stl">Diárias Nacionais (BR)</div>
+      <div class="card">
+        <div class="row"><div class="rk"><i class="ti ti-coffee" style="color:#f59e0b"></i>Café (× qtd)</div><div class="rv" id="est-cafe">R$ 27,49</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-bed" style="color:#e65100"></i>Diária completa (4×)</div><div class="rv" id="est-diaria">R$ 439,80</div></div>
+      </div>
+      <div class="stl">Diárias Internacionais</div>
+      <div class="card">
+        <div style="background:#f0f6ff;border-radius:10px;padding:10px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:12px;color:#1e6fef;font-weight:600">💱 Cotação em tempo real</div>
+          <div style="text-align:right"><div class="cotacao-usd" style="font-size:12px;font-weight:700;color:#1e6fef">USD 1 = R$ 5,19</div><div class="cotacao-eur" style="font-size:12px;font-weight:700;color:#8b5cf6">EUR 1 = R$ 5,65</div></div>
+        </div>
+        <div class="row"><div class="rk"><i class="ti ti-world" style="color:#1e6fef"></i>Europa · diária (EUR 23)</div><div class="rv" id="val-eur-diaria">R$ 129,26</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-coffee" style="color:#f59e0b"></i>Europa · café (EUR 5,25)</div><div class="rv" id="val-eur-cafe">R$ 29,51</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-flag" style="color:#e53935"></i>EUA · diária (USD 25)</div><div class="rv" id="val-usd-diaria">R$ 140,50</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-coffee" style="color:#f59e0b"></i>EUA · café (USD 6,25)</div><div class="rv" id="val-usd-cafe">R$ 35,13</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-map-pin" style="color:#10b981"></i>Am. Sul · diária (USD 21)</div><div class="rv" id="val-sul-diaria">R$ 118,02</div></div>
+      </div>
+      <div style="margin:0 16px 8px;background:#fff;border-radius:16px;border:1px solid #e8ecf0;padding:14px 16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid #f0f2f5"><div style="font-size:15px;font-weight:600;color:#1a1a2e">Total bruto</div><div style="font-size:18px;font-weight:800;color:#1e6fef" id="est-total2">R$ 7.424,66</div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f2f5"><div style="font-size:15px;font-weight:600;color:#e53935">(-) Descontos</div><div style="font-size:18px;font-weight:800;color:#e53935" id="est-descontos">- R$ 2.307,72</div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px"><div style="font-size:16px;font-weight:700;color:#1a1a2e">💰 Líquido estimado</div><div style="font-size:22px;font-weight:800;color:#10b981" id="est-liquido">R$ 5.116,94</div></div>
+        <div style="font-size:11px;color:#8a94a6;margin-top:6px">Configure seus descontos em Configurações</div>
+      </div>
+      <!-- Simulador de troca -->
+      <div style="margin:0 16px 8px;background:#f0f6ff;border-radius:16px;padding:14px 16px;cursor:pointer" onclick="abrirSimulador()">
+        <div style="display:flex;align-items:center;gap:10px"><i class="ti ti-arrows-exchange" style="font-size:22px;color:#1e6fef"></i><div><div style="font-size:14px;font-weight:700;color:#1e6fef">Simulador de Troca de Escala</div><div style="font-size:12px;color:#8a94a6;margin-top:1px">Veja se a troca vale a pena financeiramente</div></div></div>
+      </div>
+      <div style="margin:0 16px 16px;background:#f5f6fa;border-radius:16px;padding:12px 16px;border:1px dashed #b0b8c1">
+        <div style="font-size:12px;font-weight:600;color:#8a94a6;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">🔜 Funcionalidade futura</div>
+        <div style="font-size:13px;color:#b0b8c1">Simulador para Comandante, Copiloto e Líder — valores em breve.</div>
+<div style="margin:0 16px 24px;text-align:center;font-size:11px;color:#b0b8c1;line-height:1.7">
+  ⚠️ O Crewly pode cometer erros. Confira sempre sua escala oficial.
+</div>      </div>
+    </div>
+  </div>
+  <nav class="bnav">
+    <div class="ni active" onclick="go('home')"><i class="ti ti-home"></i><span>Início</span></div>
+    <div class="ni" onclick="go('calendar')"><i class="ti ti-calendar"></i><span>Escala</span></div>
+    <div class="ni" onclick="go('historico')"><i class="ti ti-chart-bar"></i><span>Histórico</span></div>
+    <div class="ni" onclick="go('perfil')"><i class="ti ti-user"></i><span>Perfil</span></div>
+  </nav>
+</div>
+
+<!-- FADIGA -->
+<div class="screen" id="s-fadiga">
+  <div class="ph"><i class="ti ti-arrow-left bk" onclick="go('home')"></i><div><div class="ttl">Controle de Jornada</div></div></div>
+  <div class="sa">
+    <div style="padding:16px 16px 0">
+      <div class="card" style="text-align:center">
+        <div style="font-size:13px;color:#8a94a6;margin-bottom:14px">Fadiga atual</div>
+        <div style="width:120px;height:120px;margin:0 auto 14px"><svg viewBox="0 0 120 120" width="120" height="120"><circle cx="60" cy="60" r="50" fill="none" stroke="#f0f2f5" stroke-width="10"/><circle cx="60" cy="60" r="50" fill="none" stroke="#10b981" stroke-width="10" stroke-dasharray="95 195" stroke-dashoffset="47" stroke-linecap="round"/><text x="60" y="55" text-anchor="middle" font-size="22" font-weight="800" fill="#1a1a2e">30%</text><text x="60" y="72" text-anchor="middle" font-size="11" fill="#8a94a6">BAIXA</text></svg></div>
+        <div style="font-size:14px;color:#10b981;font-weight:600">Descanso mínimo respeitado ✓</div>
+      </div>
+      <div class="stl" style="margin-top:4px">Horas do Mês</div>
+      <div class="card">
+        <div class="br"><div class="bl">Faixa 1</div><div class="bb"><div class="bf" style="width:38%;background:#1e6fef"></div></div><div class="bv">38h</div></div>
+        <div class="br"><div class="bl">Noturnas</div><div class="bb"><div class="bf" style="width:12%;background:#8b5cf6"></div></div><div class="bv">12h</div></div>
+        <div class="br"><div class="bl">SB/REA</div><div class="bb"><div class="bf" style="width:8%;background:#7c3aed"></div></div><div class="bv">8h</div></div>
+      </div>
+      <div class="stl">Limites Regulatórios</div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="row"><div class="rk">Jornada mensal máx.</div><div class="rv" style="color:#1e6fef">100h</div></div>
+        <div class="row"><div class="rk">Descanso mínimo</div><div class="rv" style="color:#10b981">12h entre voos</div></div>
+        <div class="row"><div class="rk">Serviço máx./dia</div><div class="rv" style="color:#f59e0b">12h</div></div>
+        <div class="row"><div class="rk">Intervalo mín. terra</div><div class="rv" style="color:#10b981">45-60 min</div></div>
+        <div class="row"><div class="rk">Máx. entre refeições</div><div class="rv" style="color:#f59e0b">4h em voo</div></div>
+      </div>
+      <div class="stl">Diárias de Alimentação · Azul</div>
+      <div class="card">
+        <div class="row"><div class="rk">☕ Café da manhã</div><div class="rv">05:00 – 08:00</div></div>
+        <div class="row"><div class="rk">🍽️ Almoço</div><div class="rv">11:00 – 13:00</div></div>
+        <div class="row"><div class="rk">🌙 Jantar</div><div class="rv">19:00 – 20:00</div></div>
+        <div class="row"><div class="rk">🌃 Ceia</div><div class="rv">00:00 – 01:00</div></div>
+      </div>
+      <div class="stl">Pagamento das Diárias · Azul</div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="row"><div class="rk"><i class="ti ti-calendar" style="color:#1e6fef"></i>Dia do pagamento</div><div class="rv" style="color:#1e6fef">Toda quinta-feira</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-clock" style="color:#f59e0b"></i>Período computado</div><div class="rv">Sábado → Sexta-feira</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-arrow-right" style="color:#10b981"></i>Cai na quinta seguinte</div><div class="rv" style="font-size:12px;color:#10b981">Ex: Sáb 14/06 → paga Qui 19/06</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-moon" style="color:#8b5cf6"></i>Ceia após meia-noite</div><div class="rv" style="font-size:12px;color:#8a94a6">Já é sábado → próximo período</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-info-circle" style="color:#8a94a6"></i>Café em pernoite</div><div class="rv" style="font-size:12px;color:#8a94a6">Não devido se incluso no hotel</div></div>
+        <div class="row"><div class="rk"><i class="ti ti-users" style="color:#8b5cf6"></i>Reserva/Treinamento</div><div class="rv" style="font-size:12px;color:#8a94a6">12h–14h ou 19h–21h</div></div>
+      </div>
+      <div style="margin:0 16px 16px;background:#e3f0ff;border-radius:12px;padding:12px 14px">
+        <div style="font-size:12px;font-weight:700;color:#1e6fef;margin-bottom:6px">📅 Exemplo prático</div>
+        <div style="font-size:12px;color:#1a1a2e;line-height:1.8">
+          Diária de <b>Sáb 14/06</b> → paga <b>Qui 19/06</b><br>
+          Diária de <b>Sex 20/06</b> → paga <b>Qui 26/06</b><br>
+          Ceia após 00:00 da Sex = <b>Sáb 21/06</b> → paga <b>Qui 26/06</b>
+        </div>
+      </div>
+      <div style="margin:0 16px 16px;background:#f5f6fa;border-radius:12px;padding:12px;border:1px dashed #b0b8c1">
+        <div style="font-size:12px;font-weight:600;color:#8a94a6;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">🔜 Em breve</div>
+        <div style="font-size:13px;color:#b0b8c1">Regras de diárias da Gol e Latam serão adicionadas em breve.</div>
+      </div>
+    </div>
+  </div>
+  <nav class="bnav">
+    <div class="ni" onclick="go('home')"><i class="ti ti-home"></i><span>Início</span></div>
+    <div class="ni" onclick="go('calendar')"><i class="ti ti-calendar"></i><span>Escala</span></div>
+    <div class="ni" onclick="go('historico')"><i class="ti ti-chart-bar"></i><span>Histórico</span></div>
+    <div class="ni" onclick="go('perfil')"><i class="ti ti-user"></i><span>Perfil</span></div>
+  </nav>
+</div>
+
+<!-- NOTIF -->
+<div class="screen" id="s-notif">
+  <div class="ph"><i class="ti ti-arrow-left bk" onclick="go('home')"></i><div><div class="ttl">Notificações</div></div></div>
+  <div class="sa">
+    <div style="padding:12px 16px 0">
+      <div style="background:#ffeaea;border-radius:16px;padding:14px;margin-bottom:14px;display:flex;gap:12px"><i class="ti ti-alert-circle" style="font-size:24px;color:#e53935;flex-shrink:0;margin-top:1px"></i><div><div style="font-size:15px;font-weight:700;color:#c62828;margin-bottom:4px">⚠️ Escala alterada!</div><div style="font-size:13px;color:#b71c1c;line-height:1.6">Voo AD4070 · Nova apresentação: 13:30</div></div></div>
+      <div class="card">
+        <div class="nit"><div style="width:8px;height:8px;border-radius:50%;background:#1e6fef;margin-top:5px;flex-shrink:0"></div><div style="flex:1"><div style="font-size:14px;font-weight:600;color:#1a1a2e;margin-bottom:3px">Apresentação hoje 12:00</div><div style="font-size:13px;color:#8a94a6">3 voos · VCP → BEL → CNF → CGH</div></div><div style="background:#fef3cd;border-radius:6px;padding:2px 8px;font-size:10px;color:#e65100;font-weight:600;margin-left:8px">Nova</div></div>
+        <div class="nit" style="border:none"><div style="width:8px;height:8px;border-radius:50%;background:#10b981;margin-top:5px;flex-shrink:0"></div><div style="flex:1"><div style="font-size:14px;font-weight:600;color:#1a1a2e;margin-bottom:3px">Escala importada</div><div style="font-size:13px;color:#8a94a6">Junho 2026 · processado pelo Crewly</div></div></div>
+      </div>
+    </div>
+  </div>
+  <nav class="bnav">
+    <div class="ni active" onclick="go('home')"><i class="ti ti-home"></i><span>Início</span></div>
+    <div class="ni" onclick="go('calendar')"><i class="ti ti-calendar"></i><span>Escala</span></div>
+    <div class="ni" onclick="go('historico')"><i class="ti ti-chart-bar"></i><span>Histórico</span></div>
+    <div class="ni" onclick="go('perfil')"><i class="ti ti-user"></i><span>Perfil</span></div>
+  </nav>
+</div>
+
+<!-- HISTÓRICO -->
+<div class="screen" id="s-historico">
+  <div class="tb"><div style="font-size:22px;font-weight:700;color:#1a1a2e">Histórico</div><div style="font-size:13px;color:#8a94a6;margin-top:2px">Seus últimos meses</div></div>
+  <div class="sa"><div id="hm" style="padding:12px 0 0"></div></div>
+  <nav class="bnav">
+    <div class="ni" onclick="go('home')"><i class="ti ti-home"></i><span>Início</span></div>
+    <div class="ni" onclick="go('calendar')"><i class="ti ti-calendar"></i><span>Escala</span></div>
+    <div class="ni active" onclick="go('historico')"><i class="ti ti-chart-bar"></i><span>Histórico</span></div>
+    <div class="ni" onclick="go('perfil')"><i class="ti ti-user"></i><span>Perfil</span></div>
+  </nav>
+</div>
+
+<!-- CONFIG -->
+<div class="screen" id="s-config">
+  <div class="ph"><i class="ti ti-arrow-left bk" onclick="go('perfil')"></i><div><div class="ttl">Configurações</div></div></div>
+  <div class="sa">
+    <div style="padding:12px 16px 0">
+<div class="stl" id="cfg-stl-label">Salário Base (FA)</div>
+<div style="background:#e3f0ff;border-radius:10px;padding:10px 14px;margin:0 0 10px;display:flex;gap:8px;align-items:center">
+  <i class="ti ti-info-circle" style="font-size:16px;color:#1e6fef;flex-shrink:0"></i>
+  <div style="font-size:12px;color:#1e6fef;line-height:1.5">Valores atualizados para <strong id="cfg-fn-label">Comissário (FA)</strong>. Personalize conforme seu holerite.</div>
+</div>
+<div class="card">
+  <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Salário fixo</div></div><input id="cfg-base" value="3.474,13"></div>
+  <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Periculosidade</div></div><input id="cfg-pericul" value="1.042,24"></div>
+  <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Comp. Orgânica</div></div><input id="cfg-org" value="694,83"></div>
+  <div class="cfgr" id="cfg-bon-row" style="display:none"><div><div style="font-size:14px;color:#1a1a2e">Bon. Equipamento</div><div style="font-size:12px;color:#8a94a6">CA e FO · varia por aeronave</div></div><input id="cfg-bon" value="0,00"></div>
+</div>
+<div id="eq-selector" style="display:none;margin-bottom:10px">
+  <div class="stl">Equipamento</div>
+  <div class="card">
+    <div class="cfgr">
+      <div><div style="font-size:14px;color:#1a1a2e">Aeronave principal</div></div>
+      <select id="cfg-eq" onchange="eqSel=this.value;USER.eq=this.value;atualizarValoresConfig()" style="background:#f5f6fa;border:1px solid #e8ecf0;border-radius:10px;padding:8px 12px;font-size:14px;color:#1a1a2e;font-family:inherit;outline:none">
+        <option value="330">330 / 350</option>
+        <option value="320">320</option>
+   <option value="ERJ">ERJ</option>
+        <option value="ATR">ATR</option>
+      </select>
+    </div>
+  </div>
+</div>
+</div>
+     <div class="stl">Horas de Voo</div>
+      <div class="card">
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Faixa 1 (R$/h)</div><div style="font-size:12px;color:#8a94a6">Normal, noturno, dom, feriado</div></div><input id="cfg-f1" value="26,43"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Faixa 2 (R$/h)</div></div><input id="cfg-f2" value="31,68"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Hora Líder (R$/h)</div><div style="font-size:12px;color:#8a94a6">Adicional por hora voada (CL)</div></div><input id="cfg-lider" value="9,60"></div>
+      </div>
+      <div class="stl">Diárias Nacionais</div>
+      <div class="card">
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Café da manhã</div></div><input value="27,49"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Diária completa</div></div><input value="109,95"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Transporte</div></div><input value="31,25"></div>
+      </div>
+      <div class="stl">Diárias Internacionais (USD)</div>
+      <div class="card">
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">EUA · café</div></div><input value="6,25"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">EUA · diária</div></div><input value="25,00"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Europa · café</div></div><input value="5,25"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Europa · diária</div></div><input value="23,00"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Am. Sul · café</div></div><input value="6,00"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Am. Sul · diária</div></div><input value="21,00"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">USD → BRL</div></div><input value="5,19"></div>
+      </div>
+      <div class="stl">Benefícios (consulta)</div>
+      <div class="card">
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">VA (Vale Alimentação)</div><div style="font-size:12px;color:#8a94a6">Não entra no cálculo</div></div><input value="591,95" style="opacity:.6"></div>
+      </div>
+      <div class="stl">Meus Descontos</div>
+      <div style="background:#e3f0ff;border-radius:12px;padding:10px 14px;margin:0 16px 10px;display:flex;gap:8px">
+        <i class="ti ti-info-circle" style="font-size:16px;color:#1e6fef;flex-shrink:0;margin-top:1px"></i>
+        <div style="font-size:12px;color:#1e6fef;line-height:1.5">Preencha seus descontos para o Crewly calcular seu <strong>salário líquido</strong> automaticamente.</div>
+      </div>
+      <div class="card">
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">INSS</div></div><input id="desc-inss" value="840,96" placeholder="0,00"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Imposto de Renda</div></div><input id="desc-ir" value="901,78" placeholder="0,00"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Vale-Transporte</div></div><input id="desc-vt" value="208,44" placeholder="0,00"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Mensalidade Sindical</div></div><input id="desc-sind" value="62,81" placeholder="0,00"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">AzulPrev VGBL</div></div><input id="desc-prev" value="74,25" placeholder="0,00"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Plano de Saúde</div></div><input id="desc-saude" value="88,94" placeholder="0,00"></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Outros descontos</div></div><input id="desc-outros" value="130,54" placeholder="0,00"></div>
+      </div>
+      <div class="stl">Aparência</div>
+      <div class="card">
+        <div class="cfgr">
+          <div><div style="font-size:14px;color:#1a1a2e">🌙 Modo noturno</div><div style="font-size:12px;color:#8a94a6">Tema escuro para usar à noite</div></div>
+          <div class="tgl" id="dark-toggle" onclick="toggleDark()"></div>
+        </div>
+      </div>
+      <div class="stl">Notificações</div>
+      <div class="card">
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Apresentação amanhã</div></div><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+        <div class="cfgr"><div><div style="font-size:14px;color:#1a1a2e">Alteração de escala</div></div><div class="tgl on" onclick="this.classList.toggle('on')"></div></div>
+      </div>
+      <button class="btn" style="margin-bottom:20px" onclick="go('perfil')"><i class="ti ti-check"></i>Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- PERFIL -->
+<div class="screen" id="s-perfil">
+  <div class="sa" style="padding-bottom:90px">
+    <div style="background:#fff;padding:max(56px,calc(env(safe-area-inset-top)+14px)) 20px 16px">
+      <div style="width:64px;height:64px;border-radius:50%;background:#e3f0ff;display:flex;align-items:center;justify-content:center;margin-bottom:12px"><i class="ti ti-user" style="font-size:28px;color:#1e6fef"></i></div>
+      <div style="font-size:22px;font-weight:700;color:#1a1a2e" id="perfil-nome">Erickson Rodrigues</div>
+      <div style="font-size:13px;color:#8a94a6;margin-top:2px" id="perfil-mat">Matrícula 23628</div>
+      <div style="display:flex;gap:6px;align-items:center;margin-top:6px">
+        <span style="background:#e8f5e9;color:#2e7d32;font-size:12px;padding:3px 10px;border-radius:6px;font-weight:600" id="perfil-fn">FA</span>
+        <span style="background:#e3f0ff;color:#1e6fef;font-size:12px;padding:3px 10px;border-radius:6px;font-weight:600" id="perfil-base">VCP</span>
+        <span style="font-size:13px;color:#8a94a6">Tripulante</span>
+      </div>
+    </div>
+    <div style="margin:10px 16px 0;border-radius:16px;overflow:hidden;border:1px solid #e8ecf0">
+      <div style="background:#f0f6ff;padding:15px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border-bottom:1px solid #e8ecf0" onclick="go('import')"><div style="display:flex;align-items:center;gap:12px"><i class="ti ti-upload" style="font-size:22px;color:#1e6fef"></i><div><div style="font-size:15px;font-weight:600;color:#1e6fef">Importar escala</div><div style="font-size:12px;color:#6b9fef;margin-top:1px">Envie o PDF da sua escala</div></div></div><i class="ti ti-chevron-right" style="color:#1e6fef;font-size:18px"></i></div>
+      <div class="mi" onclick="go('fadiga')"><div class="mil"><i class="ti ti-activity"></i><span>Controle de Jornada</span></div><i class="ti ti-chevron-right" style="color:#b0b8c1;font-size:18px"></i></div>
+      <div class="mi" onclick="go('estimativa')"><div class="mil"><i class="ti ti-currency-dollar"></i><span>Estimativa de Salário</span></div><i class="ti ti-chevron-right" style="color:#b0b8c1;font-size:18px"></i></div>
+      <div class="mi" onclick="go('historico')"><div class="mil"><i class="ti ti-chart-bar"></i><span>Histórico</span></div><i class="ti ti-chevron-right" style="color:#b0b8c1;font-size:18px"></i></div>
+      <div class="mi" onclick="go('config')"><div class="mil"><i class="ti ti-settings"></i><span>Configurações</span></div><i class="ti ti-chevron-right" style="color:#b0b8c1;font-size:18px"></i></div>
+      <div class="mi" onclick="go('notif')"><div class="mil"><i class="ti ti-bell"></i><span>Notificações</span></div><i class="ti ti-chevron-right" style="color:#b0b8c1;font-size:18px"></i></div>
+    </div>
+    <div style="margin:14px 16px;background:#fff0f0;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:10px;padding:16px;cursor:pointer;color:#e53935;font-weight:600;font-size:16px;border:1px solid #ffd5d5" onclick="fazerLogout()"><i class="ti ti-logout" style="font-size:20px"></i>Sair</div>
+    <div style="text-align:center;padding:0 16px 24px;font-size:11px;color:#b0b8c1;line-height:1.8">
+      © 2026 Crewly · by Whale Labs.<br>
+      Versão 1.0.0 · Não afiliado a nenhuma companhia aérea.
+    </div>
+  </div>
+  <nav class="bnav">
+    <div class="ni" onclick="go('home')"><i class="ti ti-home"></i><span>Início</span></div>
+    <div class="ni" onclick="go('calendar')"><i class="ti ti-calendar"></i><span>Escala</span></div>
+    <div class="ni" onclick="go('historico')"><i class="ti ti-chart-bar"></i><span>Histórico</span></div>
+    <div class="ni active" onclick="go('perfil')"><i class="ti ti-user"></i><span>Perfil</span></div>
+  </nav>
+</div>
+
+<!-- MODAL PAÍSES -->
+<div id="modal-paises" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:480px;padding-bottom:max(24px,env(safe-area-inset-bottom));max-height:70vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div><div style="font-size:18px;font-weight:700;color:#1a1a2e">🌍 Países Visitados</div><div style="font-size:12px;color:#8a94a6;margin-top:2px">Este mês</div></div>
+      <i class="ti ti-x" style="font-size:22px;color:#8a94a6;cursor:pointer" onclick="document.getElementById('modal-paises').style.display='none'"></i>
+    </div>
+    <div id="lista-paises"></div>
+  </div>
+</div>
+
+<!-- MODAL PERNOITES -->
+<div id="modal-pern" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#fff;border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:480px;padding-bottom:max(24px,env(safe-area-inset-bottom));max-height:70vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div><div style="font-size:18px;font-weight:700;color:#1a1a2e">Pernoites do Mês</div><div style="font-size:12px;color:#8a94a6;margin-top:2px">Cidades onde você vai dormir</div></div>
+      <i class="ti ti-x" style="font-size:22px;color:#8a94a6;cursor:pointer" onclick="document.getElementById('modal-pern').style.display='none'"></i>
+    </div>
+    <div id="lista-pern"></div>
+  </div>
+</div>
+
+<!-- MODAL SIMULADOR -->
+<div id="modal-simulador" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center">
+  <div style="background:#fff;border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:480px;padding-bottom:max(24px,env(safe-area-inset-bottom))">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div style="font-size:18px;font-weight:700;color:#1a1a2e">Simulador de Troca</div>
+      <i class="ti ti-x" style="font-size:22px;color:#8a94a6;cursor:pointer" onclick="fecharSimulador()"></i>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div>
+        <div style="font-size:12px;font-weight:600;color:#8a94a6;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Escala Atual</div>
+        <div style="background:#f5f6fa;border-radius:12px;padding:12px;margin-bottom:8px">
+          <div style="font-size:11px;color:#8a94a6;margin-bottom:4px">Horas de voo</div>
+          <input id="sim-h1" type="number" value="4" style="background:none;border:none;outline:none;font-size:18px;font-weight:700;color:#1a1a2e;width:100%;font-family:inherit" oninput="calcularTroca()">
+        </div>
+        <div style="background:#f5f6fa;border-radius:12px;padding:12px">
+          <div style="font-size:11px;color:#8a94a6;margin-bottom:4px">Pernoites</div>
+          <input id="sim-p1" type="number" value="1" style="background:none;border:none;outline:none;font-size:18px;font-weight:700;color:#1a1a2e;width:100%;font-family:inherit" oninput="calcularTroca()">
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:#1e6fef;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Nova Escala</div>
+        <div style="background:#e3f0ff;border-radius:12px;padding:12px;margin-bottom:8px">
+          <div style="font-size:11px;color:#5b8fef;margin-bottom:4px">Horas de voo</div>
+          <input id="sim-h2" type="number" value="3" style="background:none;border:none;outline:none;font-size:18px;font-weight:700;color:#1e6fef;width:100%;font-family:inherit" oninput="calcularTroca()">
+        </div>
+        <div style="background:#e3f0ff;border-radius:12px;padding:12px">
+          <div style="font-size:11px;color:#5b8fef;margin-bottom:4px">Pernoites</div>
+          <input id="sim-p2" type="number" value="2" style="background:none;border:none;outline:none;font-size:18px;font-weight:700;color:#1e6fef;width:100%;font-family:inherit" oninput="calcularTroca()">
+        </div>
+      </div>
+    </div>
+    <div id="sim-res"></div>
+  </div>
+</div>
+
+<script>
+// ===== ESTADO GLOBAL (persiste na sessão) =====
+let OBS=1, dA=19, arq=null, fnSel='FA', eqSel='330', ciaSel='AZUL';
+
+const VALORES_FUNCAO = {
+  FA: { base:3474.13, pericul:1042.24, org:694.83, f1:26.43, f2:31.68, lider:0, bon:0 },
+  CL: { base:3474.13, pericul:1042.24, org:694.83, f1:26.43, f2:31.68, lider:9.60, bon:0 },
+  CA: {
+    '330': { base:11535.22, pericul:3460.57, org:2307.04, f1:159.63, f2:191.55, lider:0, bon:5590.05 },
+    '320': { base:11535.22, pericul:3460.57, org:2307.04, f1:151.89, f2:182.27, lider:0, bon:2795.03 },
+    'ERJ': { base:11535.22, pericul:3460.57, org:2307.04, f1:135.63, f2:162.75, lider:0, bon:1570.21 },
+  },
+  FO: {
+    '330': { base:6016.21, pericul:1804.86, org:1203.24, f1:59.28, f2:71.13, lider:0, bon:5590.12 },
+    '320': { base:6016.21, pericul:1804.86, org:1203.24, f1:59.28, f2:71.13, lider:0, bon:2795.06 },
+    'ERJ': { base:6016.21, pericul:1804.86, org:1203.24, f1:59.28, f2:71.13, lider:0, bon:1570.21 },
+  }
+};
+
+function getValores(){
+  const fn = USER.fn || fnSel || 'FA';
+  const eq = USER.eq || eqSel || '330';
+  if(fn==='FA'||fn==='CL') return VALORES_FUNCAO[fn];
+  return (VALORES_FUNCAO[fn]&&VALORES_FUNCAO[fn][eq]) || VALORES_FUNCAO['FA'];
+}
+
+function atualizarValoresConfig(){
+  const v = getValores();
+  if(!v) return;
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.value=val.toFixed(2).replace('.',','); };
+  set('cfg-base', v.base);
+  set('cfg-pericul', v.pericul);
+  set('cfg-org', v.org);
+  set('cfg-f1', v.f1);
+  set('cfg-f2', v.f2);
+  set('cfg-lider', v.lider);
+  set('cfg-bon', v.bon);
+}
+
+// ===== SUPABASE =====
+const SUPA_URL = 'https://cboctlowabgmxnuxdhzb.supabase.co';
+const SUPA_KEY = 'sb_publishable_kZ0S5IEWWDJP1tSo94YGlQ_3B-ayGyH';
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+supa.auth.onAuthStateChange((event, session) => {
+  if(event === 'PASSWORD_RECOVERY'){
+    go('nova-senha');
+  }
+});
+
+const USER = {nome:'',mat:'',base:'VCP',fn:'FA',cia:'AZUL',logado:false,id:null};
+
+// Salva perfil no Supabase
+async function salvarPerfil(){
+  if(!USER.id) return;
+  await supa.from('profiles').upsert({
+    id: USER.id,
+    nome: USER.nome,
+    matricula: USER.mat,
+    base: USER.base,
+    funcao: USER.fn,
+    cia: USER.cia
+  });
+  // Também salva local como backup
+  try{ localStorage.setItem('crewly_user', JSON.stringify(USER)); }catch(e){}
+}
+
+// Carrega perfil do Supabase
+async function carregarPerfil(userId){
+  const {data} = await supa.from('profiles').select('*').eq('id', userId).single();
+  if(data){
+    USER.nome = data.nome || '';
+    USER.mat = data.matricula || '';
+    USER.base = data.base || 'VCP';
+    USER.fn = data.funcao || 'FA';
+    USER.cia = data.cia || 'AZUL';
+  }
+}
+
+// Salva escala no Supabase
+async function salvarEscala(mes, ano, dados){
+  if(!USER.id) return;
+  console.log('[salvarEscala] enviando', {mes, ano, userId: USER.id});
+  const {error, status, statusText} = await supa.from('escalas').upsert({
+    user_id: USER.id,
+    mes, ano,
+    dados: dados,
+    updated_at: new Date().toISOString()
+  }, {onConflict: 'user_id,mes,ano'});
+  if(error){
+    console.error('[salvarEscala] ERRO ao salvar', {
+      message:error.message, details:error.details, hint:error.hint, code:error.code, status, statusText
+    });
+  }
+  try{ localStorage.setItem('crewly_escala_'+mes+'_'+ano, JSON.stringify(dados)); }catch(e){}
+}
+
+// Carrega escala do Supabase
+async function carregarEscala(mes, ano){
+  if(!USER.id) return {data:null, error:null, status:null, statusText:'sem usuário logado'};
+
+  // Confirma que a sessão está restaurada ANTES de consultar
+  const {data:{session}, error:sessionError} = await supa.auth.getSession();
+  console.log('[auth antes de carregar escala]', {
+    possuiSessao: Boolean(session),
+    userId: session?.user?.id,
+    possuiAccessToken: Boolean(session?.access_token),
+    sessionError
+  });
+  if(!session){
+    console.warn('[carregarEscala] SEM SESSÃO — abortando consulta para não bater como anônimo');
+    return {data:null, error:{message:'Sem sessão ativa. Faça login novamente.'}, status:null, statusText:'sem sessão'};
+  }
+
+  console.log('[carregarEscala] consulta', {mes, ano, userId: session.user?.id});
+  const {data, error, status, statusText} = await supa
+    .from('escalas')
+    .select('dados')
+    .eq('user_id', USER.id)
+    .eq('mes', mes)
+    .eq('ano', ano)
+    .maybeSingle(); // maybeSingle: 0 linhas = data:null,error:null (não confunde "vazio" com "erro")
+  console.log('[carregarEscala] resultado', {
+    data,
+    error: error ? {message:error.message, details:error.details, hint:error.hint, code:error.code} : null,
+    status,
+    statusText
+  });
+  return {data: data ? data.dados : null, error, status, statusText};
+}
+
+// ===== TROCA DE MÊS ATIVO =====
+// Função central: é a ÚNICA responsável por decidir qual mês está carregado em E.
+// Retorna um dos 3 estados: 'loaded' (achou escala), 'empty' (mês sem escala salva,
+// não é erro), 'error' (falha de rede/autorização — NUNCA deve virar folga).
+let ESCALA_ERRO = null; // null = sem erro. String = mensagem de erro pra mostrar na tela.
+async function carregarMes(mes, ano){
+  ESCALA_ERRO = null;
+  const resultado = await carregarEscala(mes, ano);
+  Object.keys(E).forEach(k => delete E[k]);
+  ESCALA_MES = mes;
+  ESCALA_ANO = ano;
+
+  if(resultado.error){
+    ESCALA_IMPORTADA = false;
+    ESCALA_ERRO = resultado.error.message || resultado.statusText || 'Não foi possível carregar sua escala.';
+    console.error('[carregarMes] ERRO ao carregar', {mes, ano, erro: resultado.error, status: resultado.status});
+    return 'error';
+  }
+  if(resultado.data && Object.keys(resultado.data).length > 0){
+    Object.assign(E, resultado.data);
+    ESCALA_IMPORTADA = true;
+    return 'loaded';
+  }
+  ESCALA_IMPORTADA = false;
+  return 'empty';
+}
+
+// Backup local
+function salvarUser(){ try{ localStorage.setItem('crewly_user', JSON.stringify(USER)); }catch(e){} }
+function carregarUser(){
+  try{
+    const s = localStorage.getItem('crewly_user');
+    if(s){ const d=JSON.parse(s); Object.assign(USER,d); return true; }
+  }catch(e){}
+  return false;
+}
+
+// ===== ESCALA DINÂMICA =====
+// Dados carregados do Supabase ou localStorage
+let ESCALA_MES = 6; // mês atual (junho=6)
+let ESCALA_ANO = 2026;
+let ESCALA_IMPORTADA = false; // flag se já importou escala real
+const TR_DEFAULT=[
+  {m:'2669',n:'JULIO CARDOSO',f:'CA',av:'JC',c:'#fff3e0',tc:'#e65100'},
+  {m:'5203',n:'FERNANDO CASTRO',f:'FO',av:'FC',c:'#f3e8ff',tc:'#7c3aed'},
+  {m:'29311',n:'NATHALIA MARQUES',f:'CL',s:833,av:'NM',c:'#e3f0ff',tc:'#1e6fef'},
+  {m:'3300',n:'ANA WENDT',f:'FA',av:'AW',c:'#e8f5e9',tc:'#2e7d32'},
+  {m:'15115',n:'ADRIO BRASIL',f:'FA',av:'AB',c:'#e8f5e9',tc:'#2e7d32'},
+  {m:'23628',n:'ERICKSON RODRIGUES',f:'FA',s:1288,av:'ER',c:'#1e6fef',tc:'#fff',eu:true}
+];
+const TR_LIS=[
+  {m:'',n:'SCANDIUZZI',f:'CA',av:'SC',c:'#fff3e0',tc:'#e65100'},
+  {m:'',n:'NELSON RIET',f:'CA',av:'NR',c:'#fff3e0',tc:'#e65100'},
+  {m:'',n:'SONG',f:'FO',av:'SO',c:'#f3e8ff',tc:'#7c3aed'},
+  {m:'',n:'JULIETH GALHARDO',f:'CL',av:'JG',c:'#e3f0ff',tc:'#1e6fef'},
+  {m:'',n:'DOUGLAS ANTUNES',f:'CL',av:'DA',c:'#e3f0ff',tc:'#1e6fef'},
+  {m:'',n:'NATALI MICHELLIM',f:'FE',av:'NM',c:'#ede9fe',tc:'#6d28d9'},
+  {m:'',n:'KELLI SOUZA',f:'FE',av:'KS',c:'#ede9fe',tc:'#6d28d9'},
+  {m:'',n:'TANIELE BERVIAN',f:'FE',av:'TB',c:'#ede9fe',tc:'#6d28d9'},
+  {m:'',n:'TATIANA MAIA',f:'FA',av:'TM',c:'#e8f5e9',tc:'#2e7d32'},
+  {m:'',n:'PATRICIA',f:'FA',av:'PA',c:'#e8f5e9',tc:'#2e7d32'},
+  {m:'',n:'JESSICA CORNELIO',f:'FA',av:'JC',c:'#e8f5e9',tc:'#2e7d32'},
+  {m:'',n:'RAFAEL CUNHA',f:'FA',av:'RC',c:'#e8f5e9',tc:'#2e7d32'},
+  {m:'23628',n:'ERICKSON RODRIGUES',f:'FA',s:1288,av:'ER',c:'#1e6fef',tc:'#fff',eu:true}
+];
+
+// Tripulação Lisboa volta (AD8751)
+const TR_LIS2=[
+  {m:'',n:'SCANDIUZZI',f:'CA',av:'SC',c:'#fff3e0',tc:'#e65100'},
+  {m:'',n:'NELSON RIET',f:'CA',av:'NR',c:'#fff3e0',tc:'#e65100'},
+  {m:'',n:'SONG',f:'FO',av:'SO',c:'#f3e8ff',tc:'#7c3aed'},
+  {m:'',n:'JULIETH GALHARDO',f:'CL',av:'JG',c:'#e3f0ff',tc:'#1e6fef'},
+  {m:'',n:'DOUGLAS ANTUNES',f:'CL',av:'DA',c:'#e3f0ff',tc:'#1e6fef'},
+  {m:'',n:'KELLI SOUZA',f:'FE',av:'KS',c:'#ede9fe',tc:'#6d28d9'},
+  {m:'',n:'TANIELE BERVIAN',f:'FE',av:'TB',c:'#ede9fe',tc:'#6d28d9'},
+  {m:'',n:'TATIANA MAIA',f:'FA',av:'TM',c:'#e8f5e9',tc:'#2e7d32'},
+  {m:'',n:'PATRICIA',f:'FA',av:'PA',c:'#e8f5e9',tc:'#2e7d32'},
+  {m:'',n:'JESSICA CORNELIO',f:'FA',av:'JC',c:'#e8f5e9',tc:'#2e7d32'},
+  {m:'',n:'RAFAEL CUNHA',f:'FA',av:'RC',c:'#e8f5e9',tc:'#2e7d32'},
+  {m:'23628',n:'ERICKSON RODRIGUES',f:'FA',s:1288,av:'ER',c:'#1e6fef',tc:'#fff',eu:true}
+];
+const E={};
+
+// ===== NAVEGAÇÃO =====
+function go(n){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-'+n).classList.add('active');
+  document.querySelectorAll('.ni').forEach(ni=>{
+    ni.classList.remove('active');
+    const oc=ni.getAttribute('onclick')||'';
+    if(oc.includes("'"+n+"'"))ni.classList.add('active');
+  });
+  window.scrollTo(0,0);
+  if(n==='calendar')buildCal();
+  if(n==='historico')buildHist();
+  if(n==='home')updateHome();
+  if(n==='import')resetImportacao();
+}
+
+// ===== ONBOARDING =====
+function obNext(){
+  if(OBS>=3){go('cia-sel');return;}
+  document.getElementById('ob'+OBS).classList.remove('active');
+  OBS++;
+  document.getElementById('ob'+OBS).classList.add('active');
+  if(OBS===3)document.getElementById('ob-btn').textContent='Começar ✈️';
+}
+
+// ===== SELEÇÃO DE FUNÇÃO =====
+function selFn(fn,el){
+  fnSel=fn;
+  USER.fn=fn;
+  document.querySelectorAll('.fn-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+  el.querySelector('i').style.color='#1e6fef';
+  const labels={FA:'Comissário (FA)',CL:'Comissário Líder (CL)',CA:'Comandante (CA)',FO:'Copiloto (FO)'};
+  const cfgLabel=document.getElementById('cfg-fn-label');
+  if(cfgLabel) cfgLabel.textContent=labels[fn]||fn;
+  const stlLabel=document.getElementById('cfg-stl-label');
+  if(stlLabel) stlLabel.textContent='Salário Base ('+fn+')';
+  // Mostra ou esconde seletor de equipamento
+  const eqRow=document.getElementById('eq-selector');
+  if(eqRow) eqRow.style.display=(fn==='CA'||fn==='FO')?'block':'none';
+  // Atualiza valores nos inputs de configuração
+  atualizarValoresConfig();
+}
+function confirmarFn(){
+  USER.fn=fnSel;
+  USER.cia=ciaSel;
+  go('cadastro');
+}
+
+// ===== LOGIN / LOGOUT =====
+async function fazerLogin(){
+  const emailEl = document.getElementById('inp-email');
+  const senhaEl = document.getElementById('inp-senha');
+  if(!emailEl||!emailEl.value){ alert('Digite seu email'); return; }
+  if(!senhaEl||!senhaEl.value){ alert('Digite sua senha'); return; }
+  
+  const btn = document.querySelector('#s-login .btn');
+  if(btn){ btn.textContent = 'Entrando...'; btn.disabled = true; }
+  
+  const {data, error} = await supa.auth.signInWithPassword({
+    email: emailEl.value.trim(),
+    password: senhaEl.value
+  });
+  
+  if(error){
+    if(btn){ btn.innerHTML = '<i class="ti ti-login"></i>Entrar'; btn.disabled = false; }
+  alert('Email ou senha incorretos. Tente novamente.');
+    return;
+  }
+  
+  USER.id = data.user.id;
+  USER.logado = true;
+  await carregarPerfil(data.user.id);
+  salvarUser();
+  updateHome();
+  if(btn){ btn.innerHTML = '<i class="ti ti-login"></i>Entrar'; btn.disabled = false; }
+  go('home');
+}
+async function esqueciSenha(){
+  const emailEl = document.getElementById('inp-email');
+  const email = emailEl && emailEl.value ? emailEl.value.trim() : '';
+  if(!email){ alert('Digite seu email no campo acima primeiro.'); return; }
+  const {error} = await supa.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin
+  });
+  if(error){ alert('Erro ao enviar email: '+error.message); return; }
+  alert('Enviamos um link para '+email+'. Abra o email no celular e clique no link para definir uma nova senha.');
+}
+async function criarConta(){
+  const nEl=document.getElementById('inp-nome');
+  const mEl=document.getElementById('inp-mat');
+  const bEl=document.getElementById('inp-base');
+  const emailEl=document.getElementById('inp-email-cad');
+  const senhaEl=document.getElementById('inp-senha-cad');
+  const emailEl2=document.getElementById('inp-email-cad2');
+  if(!nEl||!nEl.value.trim()){alert('Digite seu nome');return;}
+  if(!emailEl||!emailEl.value){alert('Digite seu email');return;}
+  if(emailEl2&&emailEl2.value&&emailEl.value.trim()!==emailEl2.value.trim()){alert('Os emails não coincidem. Verifique e tente novamente.');return;}
+  if(!senhaEl||!senhaEl.value||senhaEl.value.length<6){alert('Senha deve ter pelo menos 6 caracteres');return;}
+  const btn=document.querySelector('#s-cadastro .btn');
+  if(btn){btn.textContent='Criando conta...';btn.disabled=true;}
+  const {data,error}=await supa.auth.signUp({
+    email:emailEl.value.trim(),
+    password:senhaEl.value,
+    options:{data:{nome:nEl.value.trim()}}
+  });
+  if(error){
+    if(btn){btn.innerHTML='<i class="ti ti-check"></i>Criar minha conta';btn.disabled=false;}
+    alert('Erro: '+error.message);return;
+  }
+  USER.id=data.user.id;
+  USER.nome=nEl.value.trim();
+  USER.mat=mEl?mEl.value:'';
+  USER.base=bEl?bEl.value:'VCP';
+  USER.fn=fnSel;USER.cia=ciaSel;USER.logado=true;
+  await salvarPerfil();salvarUser();updateHome();
+  if(btn){btn.innerHTML='<i class="ti ti-check"></i>Criar minha conta';btn.disabled=false;}
+  go('home');
+}
+async function definirNovaSenha(){
+  const p1El = document.getElementById('inp-nova-senha');
+  const p2El = document.getElementById('inp-nova-senha2');
+  const p1 = p1El ? p1El.value : '';
+  const p2 = p2El ? p2El.value : '';
+  if(!p1 || p1.length<6){ alert('Senha deve ter pelo menos 6 caracteres'); return; }
+  if(p1!==p2){ alert('As senhas não coincidem'); return; }
+  const {error} = await supa.auth.updateUser({password: p1});
+  if(error){ alert('Erro ao salvar senha: '+error.message); return; }
+  alert('Senha alterada com sucesso! Faça login com a nova senha.');
+  await supa.auth.signOut();
+  go('login');
+}
+async function fazerLogout(){
+  await supa.auth.signOut();
+  USER.logado=false; USER.nome=''; USER.mat=''; USER.id=null;
+  try{ localStorage.removeItem('crewly_user'); }catch(e){}
+  OBS=1;
+  go('ob');
+}
+
+// ===== HOME DINÂMICO =====
+function getSaudacao(){
+  const h=new Date().getHours();
+  if(h<12)return'Bom dia';
+  if(h<18)return'Boa tarde';
+  return'Boa noite';
+}
+function getDiaHoje(){
+  const hoje = new Date();
+  if(ESCALA_MES===(hoje.getMonth()+1) && ESCALA_ANO===hoje.getFullYear()){
+    return hoje.getDate();
+  }
+  return null;
+}
+function getDiaAmanha(){
+  const hoje = new Date();
+  const amanhaDt = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()+1);
+  if(ESCALA_MES===(amanhaDt.getMonth()+1) && ESCALA_ANO===amanhaDt.getFullYear()){
+    return amanhaDt.getDate();
+  }
+  return null;
+}
+
+function updateHome(){
+  const sau=document.getElementById('sau');
+  const nomeEl=document.getElementById('nome-home');
+  if(sau)sau.textContent=getSaudacao();
+  const primeiroNome=(USER.nome||'').split(' ')[0]||'Tripulante';
+  if(nomeEl)nomeEl.textContent=primeiroNome+' ✈️';
+  // Atualiza perfil
+  const pn=document.getElementById('perfil-nome');
+  const pm=document.getElementById('perfil-mat');
+  const pf=document.getElementById('perfil-fn');
+  const pb=document.getElementById('perfil-base');
+  if(pn)pn.textContent=USER.nome||'Tripulante';
+  if(pm)pm.textContent=USER.mat?'Matrícula '+USER.mat:'';
+  if(pf)pf.textContent=USER.fn||'FA';
+  if(pb)pb.textContent=USER.base||'VCP';
+
+  const hoje=getDiaHoje();
+  const amanha=getDiaAmanha();
+  const eH=hoje?E[hoje]:null;
+  const eA=amanha?E[amanha]:null;
+  const cardH=document.getElementById('card-hoje');
+  const cardA=document.getElementById('card-amanha');
+
+  // CARD HOJE
+  if(eH&&cardH){
+    if(eH.t==='voo'){
+      const nv=(eH.v||[]).length;
+      const rota=[...(eH.v||[]).map(v=>v.o),(eH.v||[])[nv-1]?.d].filter(Boolean).join(' → ');
+      cardH.innerHTML=`<div style="background:linear-gradient(135deg,#1e6fef,#1458cc);border-radius:20px;padding:20px;color:#fff;cursor:pointer" onclick="abrirDia(${hoje})">
+        <div style="font-size:11px;font-weight:600;opacity:.8;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">✈️ Hoje · ${nv} voo${nv>1?'s':''}</div>
+        <div style="font-size:16px;font-weight:800;margin-bottom:4px">${(eH.v||[]).map(v=>v.n).join(' · ')}</div>
+        <div style="font-size:14px;opacity:.9;margin-bottom:6px">${rota}</div>
+        <div style="font-size:13px;opacity:.75">🕐 Apresentação: <strong>${eH.a||'--'} · ${eH.al||''}</strong></div>
+      </div>`;
+    } else if(eH.t==='sb'){
+      cardH.innerHTML=`<div style="background:linear-gradient(135deg,#7c3aed,#6d28d9);border-radius:20px;padding:20px;color:#fff;cursor:pointer" onclick="abrirDia(${hoje})">
+        <div style="font-size:11px;font-weight:600;opacity:.8;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">🔔 Hoje · Sobreaviso</div>
+        <div style="font-size:22px;font-weight:800;margin-bottom:4px">SB (${eH.h} horas)</div>
+        <div style="font-size:14px;opacity:.9">Das ${eH.i} às 23:59 · Base: ${eH.b}</div>
+        <div style="font-size:13px;opacity:.75;margin-top:6px">🏠 Fique em casa disponível</div>
+      </div>`;
+    } else if(eH.t==='fr'||eH.t==='fp'){
+      cardH.innerHTML=`<div style="background:linear-gradient(135deg,#2e7d32,#1b5e20);border-radius:20px;padding:20px;color:#fff;cursor:pointer" onclick="abrirDia(${hoje})">
+        <div style="font-size:11px;font-weight:600;opacity:.8;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">🌿 Hoje</div>
+        <div style="font-size:28px;font-weight:800;margin-bottom:4px">${eH.t==='fr'?'Folga Regular':'Folga Programada'}</div>
+        <div style="font-size:14px;opacity:.9">Aproveite seu dia de descanso! 😴</div>
+      </div>`;
+    } else if(eH.t==='adp'){
+      cardH.innerHTML=`<div style="background:linear-gradient(135deg,#6d28d9,#5b21b6);border-radius:20px;padding:20px;color:#fff;cursor:pointer" onclick="abrirDia(${hoje})">
+        <div style="font-size:11px;font-weight:600;opacity:.8;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">✈️ Hoje · Adaptação</div>
+        <div style="font-size:22px;font-weight:800;margin-bottom:4px">ADP</div>
+        <div style="font-size:14px;opacity:.9">${eH.info||''}</div>
+      </div>`;
+    }
+  }
+
+  // ESTADO VAZIO - sem escala importada
+  const emptyCard = document.getElementById('card-empty');
+  const cardHoje = document.getElementById('card-hoje');
+  const cardAmanha = document.getElementById('card-amanha');
+
+  if(!ESCALA_IMPORTADA){
+    // Mostra card de importar escala OU card de erro, dependendo da causa
+    if(emptyCard){
+      emptyCard.style.display='block';
+      if(ESCALA_ERRO){
+        emptyCard.innerHTML=`
+<div style="background:linear-gradient(135deg,#e53935,#c62828);border-radius:24px;padding:28px 24px;color:#fff;text-align:center;margin-bottom:12px">
+  <i class="ti ti-alert-circle" style="font-size:44px;margin-bottom:14px;display:block"></i>
+  <div style="font-size:18px;font-weight:800;margin-bottom:8px">Não foi possível carregar sua escala</div>
+  <div style="font-size:13px;opacity:.9;line-height:1.7;margin-bottom:20px">${ESCALA_ERRO}<br>Verifique sua sessão e tente novamente.</div>
+  <div onclick="carregarMes(ESCALA_MES,ESCALA_ANO).then(()=>updateHome())" style="background:#fff;color:#c62828;border-radius:14px;padding:14px 20px;font-size:15px;font-weight:800;cursor:pointer;display:inline-block">
+    <i class="ti ti-refresh"></i> Tentar novamente
+  </div>
+</div>`;
+      } else {
+     emptyCard.innerHTML=`
+<div style="background:linear-gradient(135deg,#1e6fef,#1458cc);border-radius:24px;padding:28px 24px;color:#fff;text-align:center;margin-bottom:12px">
+  <div style="font-size:52px;margin-bottom:16px">✈️</div>
+  <div style="font-size:22px;font-weight:800;margin-bottom:8px">Olá, ${USER.nome?USER.nome.split(' ')[0]:'tripulante'}!</div>
+  <div style="font-size:14px;opacity:.85;line-height:1.7;margin-bottom:20px">Importe sua escala para ver seus voos, folgas, diárias e muito mais.</div>
+  <div onclick="go('import')" style="background:#fff;color:#1e6fef;border-radius:14px;padding:14px 20px;font-size:15px;font-weight:800;cursor:pointer;display:inline-block">📄 Importar minha escala</div>
+</div>
+<div style="background:#fff;border-radius:16px;border:1px solid #e8ecf0;padding:16px;margin-bottom:12px">
+  <div style="font-size:13px;font-weight:700;color:#1a1a2e;margin-bottom:12px">Como funciona:</div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <div style="width:28px;height:28px;border-radius:50%;background:#e3f0ff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#1e6fef;flex-shrink:0">1</div>
+    <div style="font-size:13px;color:#1a1a2e">Abra o app <strong>Minha Escala</strong> da Azul</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+    <div style="width:28px;height:28px;border-radius:50%;background:#e3f0ff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#1e6fef;flex-shrink:0">2</div>
+    <div style="font-size:13px;color:#1a1a2e">Exporte o PDF da sua escala</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div style="width:28px;height:28px;border-radius:50%;background:#e3f0ff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#1e6fef;flex-shrink:0">3</div>
+    <div style="font-size:13px;color:#1a1a2e">Envie aqui e o Crewly faz o resto! 🚀</div>
+  </div>
+</div>`;
+      }
+    }
+   if(cardHoje) cardHoje.innerHTML='';
+if(cardAmanha) cardAmanha.innerHTML='';
+document.getElementById('h-voos').textContent='0';
+document.getElementById('h-pern').textContent='0';
+document.getElementById('h-folgas').textContent='0';
+document.getElementById('h-paises').textContent='0';
+document.getElementById('h-norm').textContent='0h';
+document.getElementById('h-f2').textContent='0h';
+document.getElementById('h-not').textContent='0h';
+document.getElementById('home-diarias').textContent='0 diárias';
+document.getElementById('home-diarias-val').textContent='Importe sua escala';
+document.getElementById('h-total').textContent='R$ 0,00';
+document.getElementById('est-total-val').textContent='R$ 0,00';
+  } else {
+    if(emptyCard) emptyCard.style.display='none';
+  }
+
+  // CARD SEMANA
+  buildSemana();
+
+  // CARD AMANHÃ
+  if(eA&&cardA){
+    let txt='';
+    if(eA.t==='voo'){
+      const nv=(eA.v||[]).length;
+      const rota=[...(eA.v||[]).map(v=>v.o),(eA.v||[])[nv-1]?.d].filter(Boolean).join(' → ');
+      txt=`<div style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600"><i class="ti ti-plane" style="color:#1e6fef;font-size:20px"></i>${nv} voo${nv>1?'s':''} · ${rota}</div><div style="font-size:12px;color:#8a94a6;margin-top:4px;margin-left:28px">Apresentação: ${eA.a||'--'} · ${eA.al||''}</div>`;
+    } else if(eA.t==='sb'){
+      txt=`<div style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600"><i class="ti ti-bell" style="color:#7c3aed;font-size:20px"></i>Sobreaviso SB (${eA.h}h) · Das ${eA.i}</div>`;
+    } else if(eA.t==='fr'||eA.t==='fp'){
+      txt=`<div style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600"><i class="ti ti-circle-check" style="color:#2e7d32;font-size:20px"></i>${eA.t==='fr'?'Folga Regular':'Folga Programada'}</div>`;
+    } else if(eA.t==='adp'){
+      txt=`<div style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600"><i class="ti ti-plane" style="color:#6d28d9;font-size:20px"></i>Adaptação Internacional</div>`;
+    }
+    cardA.innerHTML=`<div style="font-size:11px;font-weight:600;color:#8a94a6;letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px">Amanhã</div>${txt}`;
+  }
+}
+
+// ===== UPLOAD PDF =====
+function showEst(e){
+  ['upload','sel','proc','res','err'].forEach(x=>{
+    const el=document.getElementById('est-'+x);
+    if(el)el.style.display='none';
+  });
+  const t=document.getElementById('est-'+e);
+  if(t)t.style.display='block';
+}
+function onFile(inp){
+  if(!inp.files||!inp.files[0])return;
+  arq=inp.files[0];
+  const fn2=document.getElementById('fn2');
+  const fs=document.getElementById('fs');
+  if(fn2)fn2.textContent=arq.name;
+  const kb=Math.round(arq.size/1024);
+  if(fs)fs.textContent=kb>1024?(kb/1024).toFixed(1)+' MB':kb+' KB';
+  showEst('sel');
+}
+function resetUp(){arq=null;const i=document.getElementById('pdf-in');if(i)i.value='';showEst('upload');}
+  function resetImportacao(){
+  arq=null;
+  const i=document.getElementById('pdf-in');
+  if(i)i.value='';
+  ultimaEscalaProcessada=null;
+  const rprevEl=document.getElementById('rprev');
+  if(rprevEl)rprevEl.innerHTML='';
+  const rresEl=document.getElementById('rres');
+  if(rresEl)rresEl.textContent='';
+  const emsgEl=document.getElementById('emsg');
+  if(emsgEl)emsgEl.innerHTML='';
+  const errBoxEl=document.getElementById('err-raw-box');
+  if(errBoxEl)errBoxEl.style.display='none';
+  const errTxtEl=document.getElementById('err-raw-txt');
+  if(errTxtEl)errTxtEl.textContent='';
+  showEst('upload');
+}
+
+// ── DIVISÃO EM LOTES PARA PAYLOADS GRANDES ──────────────────────────────────
+const LOTE_LIMITE_BYTES = 3.5*1024*1024; // margem segura abaixo do limite de 4.5MB da Vercel
+const LOTE_OVERHEAD_BASE_BYTES = 2000;   // mediaType, mode, chaves JSON, indices
+const LOTE_OVERHEAD_POR_STRIP_BYTES = 30; // aspas + vírgula por item do array
+
+function dividirEmLotes(strips){
+  const lotes=[];
+  let loteAtual=[], idxAtual=[], tamanhoAtual=LOTE_OVERHEAD_BASE_BYTES;
+  strips.forEach((s,i)=>{
+    const tamanhoStrip=s.length+LOTE_OVERHEAD_POR_STRIP_BYTES;
+    if(loteAtual.length>0 && (tamanhoAtual+tamanhoStrip)>LOTE_LIMITE_BYTES){
+      lotes.push({strips:loteAtual, indices:idxAtual});
+      loteAtual=[];idxAtual=[];tamanhoAtual=LOTE_OVERHEAD_BASE_BYTES;
+    }
+    loteAtual.push(s);
+    idxAtual.push(i);
+    tamanhoAtual+=tamanhoStrip;
+  });
+  if(loteAtual.length>0)lotes.push({strips:loteAtual, indices:idxAtual});
+  return lotes;
+}
+
+// Roda `worker` sobre `itens` com no máximo `maxConcorrencia` execuções simultâneas.
+// Se qualquer worker rejeitar (após seus próprios retries), a rejeição propaga
+// e interrompe o restante do fluxo — impedindo que o finalize seja chamado.
+async function processarComConcorrencia(itens, worker, maxConcorrencia){
+  const resultados = new Array(itens.length);
+  let proximo = 0;
+  async function trabalhador(){
+    while(proximo < itens.length){
+      const i = proximo++;
+      resultados[i] = await worker(itens[i], i);
+    }
+  }
+  const trabalhadores = Array.from({length:Math.min(maxConcorrencia, itens.length)}, trabalhador);
+  await Promise.all(trabalhadores);
+  return resultados;
+}
+
+// Envia um lote de strips pra transcrição, com 1 retry automático em caso de falha.
+async function enviarLote(lote, mediaType, tentativa){
+  tentativa = tentativa || 1;
+  try{
+    const r = await fetch('/api/parse-pdf', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({mode:'transcribe', mediaType, strips:lote.strips, indices:lote.indices})
+    });
+    const raw = await r.text();
+    let data = {};
+    try{ data = JSON.parse(raw); } catch(e){ throw new Error('Resposta inválida do lote (HTTP '+r.status+')'); }
+    if(!data.success || !Array.isArray(data.resultados)) throw new Error(data.message || 'Falha ao transcrever lote');
+    return data.resultados;
+  } catch(e){
+    if(tentativa<2){
+      await dl(800);
+      return enviarLote(lote, mediaType, tentativa+1);
+    }
+    throw e;
+  }
+}
+
+async function processarPDF(){
+  if(!arq)return;
+  showEst('proc');
+  await dl(500);
+  setS(2,'ok','Arquivo recebido ✓');setS(3,'ld','Crewly preparando imagem...');
+  const b64=await toB64(arq);
+  const isImg=arq.type.startsWith('image/');
+  const mt=isImg?arq.type:'application/pdf';
+  try{
+  // Corta a imagem em strips no navegador antes de enviar
+    const strips = await cortarImagemEmStrips(b64, mt);
+    await dl(500);setS(3,'ok','Crewly organizou voos e folgas ✓');setS(4,'ld','Crewly calculando horas...');
+   const temStrips = Array.isArray(strips) && strips.length>0;
+    const lotes = temStrips ? dividirEmLotes(strips) : [];
+    let r;
+
+    if(temStrips && lotes.length>1){
+      // ── FLUXO EM LOTES (payload total acima de 3.5MB) ─────────────────────
+      setS(3,'ld',`Lendo sua escala — etapa 1 de ${lotes.length}`);
+      let concluidos=0;
+      const resultadosLotes = await processarComConcorrencia(lotes, async (lote)=>{
+        const resultado = await enviarLote(lote, mt);
+        concluidos++;
+        setS(3,'ld',`Lendo sua escala — etapa ${concluidos} de ${lotes.length}`);
+        return resultado;
+      }, 2);
+      const todosResultados = resultadosLotes.flat().sort((a,b)=>a.index-b.index);
+      const rawTextMontado = todosResultados.filter(x=>x.texto).map(x=>x.texto).join('\n');
+      setS(3,'ok','Crewly organizou voos e folgas ✓');setS(4,'ld','Crewly calculando horas...');
+      r = await fetch('/api/parse-pdf',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({mode:'finalize', rawText:rawTextMontado})
+      });
+    } else {
+      // ── FLUXO ATUAL (requisição única, sem "mode") ─────────────────────────
+      const body = {mediaType:mt};
+      if(temStrips){ body.strips = strips; } else { body.fileData = b64; }
+      r = await fetch('/api/parse-pdf',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(body)
+      });
+    }
+    // Lê como texto primeiro — evita crash quando Vercel retorna HTML de erro
+    const rawResp = await r.text();
+    await dl(600);setS(4,'ok','Crewly calculou horas e diárias ✓');await dl(400);
+    let data = {};
+    try { data = JSON.parse(rawResp); } catch(jsonErr) {
+      // Resposta não era JSON (HTML do Vercel, timeout, etc.)
+      mostrarErroImport(
+        'Servidor demorou ou retornou resposta inválida.',
+        'HTTP '+r.status+' · Resposta não-JSON: '+rawResp.substring(0,300),
+        ''
+      );
+      return;
+    }
+    const rawTextDetectado = data.rawText || '';
+    // Erro estruturado vindo do backend
+   if(data.manualMode===true){
+      abrirManual(null,null);
+      return;
+    }
+    if(data.success===false || data.error || data.errorCode){
+      mostrarErroImport(
+        data.message || data.error || 'Erro ao processar escala.',
+        data.details || data.errorCode || '',
+        rawTextDetectado
+      );
+      return;
+    }
+    let txt=(data.content&&data.content[0]?data.content[0].text:'').replace(/```json|```/g,'').trim();
+    let res;
+    try{res=JSON.parse(txt);}catch(e){const m=txt.match(/\{[\s\S]*\}/);if(m)try{res=JSON.parse(m[0]);}catch(e2){}}
+    if(!res||!res.dias||res.dias.length===0){
+      showEst('err');
+      const em=document.getElementById('emsg');
+      if(em)em.innerHTML='Crewly não encontrou dias na escala.<br><small style="opacity:.7">Tente novamente ou preencha manualmente.</small>';
+      const eb=document.getElementById('err-raw-box');
+      if(eb&&rawTextDetectado){eb.style.display='block';document.getElementById('err-raw-txt').textContent=rawTextDetectado;}
+      return;
+    }
+    showRes(res, rawTextDetectado);
+  }catch(e){
+    console.error('Erro parser:',e);
+    mostrarErroImport('Erro inesperado ao processar.', e.message, '');
+  }
+}
+
+async function cortarImagemEmStrips(b64, mediaType) {
+  try {
+    console.log('[Crewly Import] Iniciando preparação do arquivo', {
+      mediaType,
+      base64KB: Math.round(b64.length / 1024)
+    });
+
+    const binary = atob(b64);
+    const bytes = new Uint8Array(binary.length);
+
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+
+    let sourceCanvas;
+
+    if (mediaType === 'application/pdf') {
+      if (!window.pdfjsLib) {
+        throw new Error('PDF.js ainda não foi carregado.');
+      }
+
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+      const pdf = await window.pdfjsLib.getDocument({
+        data: bytes
+      }).promise;
+
+      if (!pdf.numPages) {
+        throw new Error('O PDF não possui páginas.');
+      }
+
+      const page = await pdf.getPage(1);
+      const originalViewport = page.getViewport({ scale: 1 });
+
+      /*
+       * As escalas da Azul têm texto muito pequeno.
+       * Renderizamos com largura aproximada de 1.800 px,
+       * preservando a proporção original.
+       */
+      const TARGET_WIDTH = 1800;
+      const renderScale = TARGET_WIDTH / originalViewport.width;
+      const viewport = page.getViewport({ scale: renderScale });
+
+      sourceCanvas = document.createElement('canvas');
+      sourceCanvas.width = Math.ceil(viewport.width);
+      sourceCanvas.height = Math.ceil(viewport.height);
+
+      const context = sourceCanvas.getContext('2d', {
+        alpha: false
+      });
+
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = 'high';
+
+      await page.render({
+        canvasContext: context,
+        viewport,
+        background: '#ffffff'
+      }).promise;
+
+      console.log('[Crewly Import] PDF renderizado', {
+        paginas: pdf.numPages,
+        largura: sourceCanvas.width,
+        altura: sourceCanvas.height,
+        escala: Number(renderScale.toFixed(2))
+      });
+    } else if (mediaType && mediaType.startsWith('image/')) {
+      sourceCanvas = await carregarImagemEmCanvas(bytes, mediaType);
+
+      console.log('[Crewly Import] Imagem carregada', {
+        largura: sourceCanvas.width,
+        altura: sourceCanvas.height
+      });
+    } else {
+      throw new Error(`Tipo de arquivo não suportado: ${mediaType}`);
+    }
+
+    /*
+     * Cada bloco possui altura máxima de 1.800 px.
+     * A sobreposição evita cortar atividades na divisão.
+     */
+    const BLOCK_HEIGHT = 1800;
+    const OVERLAP = 140;
+    const strips = [];
+
+    let startY = 0;
+    let blockIndex = 0;
+
+    while (startY < sourceCanvas.height) {
+      const remainingHeight = sourceCanvas.height - startY;
+      const currentHeight = Math.min(BLOCK_HEIGHT, remainingHeight);
+
+      const blockCanvas = document.createElement('canvas');
+      blockCanvas.width = sourceCanvas.width;
+      blockCanvas.height = currentHeight;
+
+      const blockContext = blockCanvas.getContext('2d', {
+        alpha: false
+      });
+
+      blockContext.fillStyle = '#ffffff';
+      blockContext.fillRect(
+        0,
+        0,
+        blockCanvas.width,
+        blockCanvas.height
+      );
+
+      blockContext.drawImage(
+        sourceCanvas,
+        0,
+        startY,
+        sourceCanvas.width,
+        currentHeight,
+        0,
+        0,
+        blockCanvas.width,
+        blockCanvas.height
+      );
+
+      /*
+       * Qualidade 0.92:
+       * mantém horários e letras legíveis sem produzir arquivos enormes.
+       */
+      const base64Block = blockCanvas
+        .toDataURL('image/jpeg', 0.92)
+        .split(',')[1];
+
+      strips.push(base64Block);
+
+      console.log(`[Crewly Import] Bloco ${blockIndex + 1}`, {
+        inicioY: startY,
+        largura: blockCanvas.width,
+        altura: blockCanvas.height,
+        tamanhoKB: Math.round(base64Block.length / 1024)
+      });
+
+      blockIndex++;
+
+      if (startY + currentHeight >= sourceCanvas.height) {
+        break;
+      }
+
+      startY += BLOCK_HEIGHT - OVERLAP;
+    }
+
+    console.log('[Crewly Import] Preparação concluída', {
+      quantidadeDeBlocos: strips.length,
+      tamanhosKB: strips.map(strip =>
+        Math.round(strip.length / 1024)
+      )
+    });
+
+    return strips;
+  } catch (error) {
+    console.error('[Crewly Import] Erro ao preparar imagem:', error);
+
+    /*
+     * Retornar null mantém o comportamento atual do aplicativo
+     * e permite que o backend trate a ausência dos blocos.
+     */
+    return null;
+  }
+}
+
+async function carregarImagemEmCanvas(bytes, mediaType) {
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([bytes], {
+      type: mediaType
+    });
+
+    const objectUrl = URL.createObjectURL(blob);
+    const image = new Image();
+
+    image.onload = () => {
+      try {
+        const MAX_WIDTH = 1800;
+        const scale = image.width > MAX_WIDTH
+          ? MAX_WIDTH / image.width
+          : 1;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(image.width * scale);
+        canvas.height = Math.round(image.height * scale);
+
+        const context = canvas.getContext('2d', {
+          alpha: false
+        });
+
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = 'high';
+
+        context.drawImage(
+          image,
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+
+        URL.revokeObjectURL(objectUrl);
+        resolve(canvas);
+      } catch (error) {
+        URL.revokeObjectURL(objectUrl);
+        reject(error);
+      }
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Não foi possível carregar a imagem.'));
+    };
+
+    image.src = objectUrl;
+  });
+}
+     async function carregarImagemEmCanvas(bytes, mediaType) {
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([bytes], {
+      type: mediaType
+    });
+
+    const objectUrl = URL.createObjectURL(blob);
+    const image = new Image();
+
+    image.onload = () => {
+      try {
+        const MAX_WIDTH = 1800;
+        const scale = image.width > MAX_WIDTH
+          ? MAX_WIDTH / image.width
+          : 1;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(image.width * scale);
+        canvas.height = Math.round(image.height * scale);
+
+        const context = canvas.getContext('2d', {
+          alpha: false
+        });
+
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = 'high';
+
+        context.drawImage(
+          image,
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+
+        URL.revokeObjectURL(objectUrl);
+        resolve(canvas);
+      } catch (error) {
+        URL.revokeObjectURL(objectUrl);
+        reject(error);
+      }
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Não foi possível carregar a imagem.'));
+    };
+
+    image.src = objectUrl;
+  });
+}
+   // ===== MODO MANUAL =====
+async function abrirManual(mes, ano){
+  const hoje = new Date();
+  mes = mes || (ESCALA_IMPORTADA ? ESCALA_MES : hoje.getMonth()+1);
+  ano = ano || (ESCALA_IMPORTADA ? ESCALA_ANO : hoje.getFullYear());
+  if(mes!==ESCALA_MES || ano!==ESCALA_ANO || !ESCALA_IMPORTADA){
+    await carregarMes(mes, ano);
+  }
+  const mesEl=document.getElementById('manual-mes');
+  const anoEl=document.getElementById('manual-ano');
+  if(mesEl) mesEl.value=mes;
+  if(anoEl) anoEl.value=ano;
+  rebuildManualDays();
+  go('manual');
+}
+async function onMesAnoManualChange(){
+  const mes=parseInt(document.getElementById('manual-mes')?.value);
+  const ano=parseInt(document.getElementById('manual-ano')?.value);
+  await carregarMes(mes, ano);
+  rebuildManualDays();
+}
+function rebuildManualDays(){
+  const mes=parseInt(document.getElementById('manual-mes')?.value||(new Date().getMonth()+1));
+  const ano=parseInt(document.getElementById('manual-ano')?.value||new Date().getFullYear());
+  const diasNoMes=new Date(ano,mes,0).getDate();
+  const meses=['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const sub=document.getElementById('manual-sub');
+  if(sub) sub.textContent=`${meses[mes]} ${ano} · ${diasNoMes} dias`;
+  const container=document.getElementById('manual-days');
+  if(!container) return;
+
+  // NUNCA renderiza os dias como se fossem folga quando o carregamento falhou.
+  // Mostra um estado de erro explícito com opção de tentar de novo.
+  if(ESCALA_ERRO){
+    container.innerHTML=`
+      <div style="background:#ffeaea;border:1px solid #ffd5d5;border-radius:16px;padding:20px;text-align:center">
+        <i class="ti ti-alert-circle" style="font-size:32px;color:#e53935;margin-bottom:10px;display:block"></i>
+        <div style="font-size:15px;font-weight:700;color:#c62828;margin-bottom:6px">Não foi possível carregar sua escala</div>
+        <div style="font-size:13px;color:#8a94a6;margin-bottom:16px;line-height:1.6">${ESCALA_ERRO}<br>Verifique sua sessão e tente novamente.</div>
+        <button onclick="onMesAnoManualChange()" style="background:#1e6fef;color:#fff;border:none;border-radius:10px;padding:10px 20px;font-weight:700;font-size:13px;cursor:pointer">
+          <i class="ti ti-refresh"></i> Tentar novamente
+        </button>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML='';
+  const TIPOS=[['','Não selecionado'],['fr','Folga'],['fp','Folga Prog.'],['sb','Sobreaviso'],['rea','Reserva'],['voo','Voo'],['adp','ADP'],['adpob','ADPOB']];
+  for(let d=1;d<=diasNoMes;d++){
+    const ex=E[d]||{};
+    const t=ex.t||'';
+    const voos=ex.v||[];
+    const v0=voos[0]||{};
+    const dow=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][new Date(ano,mes-1,d).getDay()];
+    const wknd=[0,6].includes(new Date(ano,mes-1,d).getDay());
+    const opts=TIPOS.map(([v,l])=>`<option value="${v}"${t===v?' selected':''}>${l}</option>`).join('');
+    const div=document.createElement('div');
+    div.style.cssText='background:#fff;border:1px solid #e8ecf0;border-radius:12px;margin-bottom:8px;overflow:hidden';
+    div.innerHTML=`
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:${wknd?'#f5f8ff':'#fff'}">
+        <div style="min-width:38px;text-align:center">
+          <div style="font-size:9px;color:#8a94a6;font-weight:700;letter-spacing:.5px">${dow}</div>
+          <div style="font-size:19px;font-weight:900;color:${wknd?'#1e6fef':'#1a1a2e'};line-height:1.1">${d}</div>
+        </div>
+        <select id="tipo-${d}" onchange="toggleManualFields(${d})" style="flex:1;padding:7px 8px;border:1px solid #e8ecf0;border-radius:8px;font-size:13px;font-weight:600;font-family:inherit;background:#f5f6fa">${opts}</select>
+      </div>
+      <div id="fields-${d}" style="display:${t==='voo'||t==='sb'?'block':'none'};padding:0 12px 12px;border-top:1px solid #f5f6fa">
+        <div id="voo-fields-${d}" style="display:${t==='voo'?'grid':'none'};grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">Nº VOO</div><input id="vnum-${d}" value="${v0.n||''}" placeholder="AD4070" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+          <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">APRESENTAÇÃO</div><input id="vapres-${d}" value="${ex.a||''}" placeholder="05:20" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+          <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">ORIGEM</div><input id="vorg-${d}" value="${v0.o||''}" placeholder="VCP" maxlength="3" oninput="this.value=this.value.toUpperCase()" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+          <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">DESTINO</div><input id="vdest-${d}" value="${v0.d||''}" placeholder="CGH" maxlength="3" oninput="this.value=this.value.toUpperCase()" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+          <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">PARTIDA</div><input id="vdep-${d}" value="${v0.dp||''}" placeholder="06:10" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+          <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">CHEGADA</div><input id="varr-${d}" value="${v0.ar||''}" placeholder="07:25" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+        </div>
+      <div id="sb-fields-${d}" style="display:${t==='sb'?'grid':'none'};grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">INÍCIO</div><input id="sbini-${d}" value="${ex.i||''}" placeholder="06:00" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+          <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">FIM</div><input id="sbfim-${d}" value="${ex.f||''}" placeholder="18:00" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+        </div>
+        <div id="pern-wrap-${d}" style="display:${t==='voo'?'block':'none'};margin-top:10px;padding-top:10px;border-top:1px dashed #e8ecf0">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#1a1a2e;cursor:pointer">
+            <input type="checkbox" id="pern-${d}" ${ex.p?'checked':''} onchange="togglePernoite(${d})">
+            🛏️ Tem pernoite
+          </label>
+          <div id="pern-fields-${d}" style="display:${ex.p?'grid':'none'};grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+            <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">CIDADE</div><input id="pcid-${d}" value="${ex.p&&ex.p.cidade||''}" placeholder="Lisboa" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+            <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">AEROPORTO (opcional)</div><input id="paero-${d}" value="${ex.p&&(ex.p.aero||ex.p.l)||''}" placeholder="LIS" maxlength="4" oninput="this.value=this.value.toUpperCase();sugerirMoeda(${d})" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+            <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">PAÍS</div><input id="ppais-${d}" value="${ex.p&&ex.p.pais||''}" placeholder="Portugal" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+            <div><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">MOEDA</div>
+              <select id="pmoeda-${d}" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit">
+                <option value="BRL"${!(ex.p&&ex.p.moeda) || (ex.p&&ex.p.moeda==='BRL')?' selected':''}>BRL</option>
+                <option value="USD"${ex.p&&ex.p.moeda==='USD'?' selected':''}>USD</option>
+                <option value="EUR"${ex.p&&ex.p.moeda==='EUR'?' selected':''}>EUR</option>
+              </select>
+            </div>
+            <div style="grid-column:1/3"><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">HOTEL (opcional)</div><input id="photel-${d}" value="${ex.p&&ex.p.hotel||''}" placeholder="Nome do hotel" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+            <div style="grid-column:1/3"><div style="font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:3px">OBSERVAÇÕES (opcional)</div><input id="pobs-${d}" value="${ex.p&&ex.p.obs||''}" placeholder="" style="width:100%;padding:7px 8px;border:1px solid #e8ecf0;border-radius:7px;font-size:13px;box-sizing:border-box;font-family:inherit"></div>
+          </div>
+        </div>
+      </div>`;
+    container.appendChild(div);
+  }
+}
+function toggleManualFields(d){
+  const t=document.getElementById('tipo-'+d)?.value;
+  const f=document.getElementById('fields-'+d);
+  const vf=document.getElementById('voo-fields-'+d);
+  const sf=document.getElementById('sb-fields-'+d);
+  const pf=document.getElementById('pern-wrap-'+d);
+  if(!f) return;
+  if(t==='voo'){f.style.display='block';if(vf)vf.style.display='grid';if(sf)sf.style.display='none';if(pf)pf.style.display='block';}
+  else if(t==='sb'){f.style.display='block';if(vf)vf.style.display='none';if(sf)sf.style.display='grid';if(pf)pf.style.display='none';}
+  else{f.style.display='none';}
+}
+function togglePernoite(d){
+  const chk=document.getElementById('pern-'+d);
+  const box=document.getElementById('pern-fields-'+d);
+  if(box) box.style.display = (chk&&chk.checked) ? 'grid' : 'none';
+}
+function sugerirMoeda(d){
+  const aero=document.getElementById('paero-'+d)?.value?.trim();
+  const sel=document.getElementById('pmoeda-'+d);
+  if(!aero||!sel) return;
+  const reg=regiaoPernoite(aero);
+  if(reg==='europa') sel.value='EUR';
+  else if(reg==='eua'||reg==='amsul') sel.value='USD';
+  else if(reg===null && aero.length>=3) sel.value='BRL';
+}
+async function salvarManual(){
+  const mes=parseInt(document.getElementById('manual-mes')?.value);
+  const ano=parseInt(document.getElementById('manual-ano')?.value);
+  const diasNoMes=new Date(ano,mes,0).getDate();
+  const diasSemCidade=[];
+  for(let d=1;d<=diasNoMes;d++){
+    if(document.getElementById('tipo-'+d)?.value==='voo' && document.getElementById('pern-'+d)?.checked){
+      if(!document.getElementById('pcid-'+d)?.value?.trim()) diasSemCidade.push(d);
+    }
+  }
+  if(diasSemCidade.length>0){
+    alert('Informe a cidade do pernoite no(s) dia(s): '+diasSemCidade.join(', '));
+    return;
+  }
+  const novaEscala={};
+  for(let d=1;d<=diasNoMes;d++){
+    const t=document.getElementById('tipo-'+d)?.value||'fr';
+   if(t==='voo'){
+      const n=document.getElementById('vnum-'+d)?.value?.trim()||'--';
+      const o=(document.getElementById('vorg-'+d)?.value||'').toUpperCase().trim()||'--';
+      const dest=(document.getElementById('vdest-'+d)?.value||'').toUpperCase().trim()||'--';
+      const dp=document.getElementById('vdep-'+d)?.value?.trim()||'--';
+      const ar=document.getElementById('varr-'+d)?.value?.trim()||'--';
+      const apres=document.getElementById('vapres-'+d)?.value?.trim()||'--';
+      let p=undefined;
+      if(document.getElementById('pern-'+d)?.checked){
+        const cidade=document.getElementById('pcid-'+d)?.value?.trim()||'';
+        const aero=(document.getElementById('paero-'+d)?.value||'').toUpperCase().trim();
+        const pais=document.getElementById('ppais-'+d)?.value?.trim()||'';
+        const moeda=document.getElementById('pmoeda-'+d)?.value||'BRL';
+        const hotel=document.getElementById('photel-'+d)?.value?.trim()||'';
+        const obs=document.getElementById('pobs-'+d)?.value?.trim()||'';
+        p={l:aero||cidade||'--',ci:'--',co:'--',int:moeda!=='BRL',cidade,aero,pais,moeda,hotel,obs};
+      }
+      novaEscala[d]={t:'voo',a:apres,al:o,v:[{n,o,d:dest,dp,ar,du:'--',ae:'--',fn:'FA'}],p};
+    } else if(t==='sb'){
+      const ini=document.getElementById('sbini-'+d)?.value?.trim()||'06:00';
+      const fim=document.getElementById('sbfim-'+d)?.value?.trim()||'18:00';
+      novaEscala[d]={t:'sb',i:ini,f:fim,h:12,b:USER.base||'VCP'};
+    } else {
+      novaEscala[d]={t};
+    }
+  }
+  ESCALA_MES=mes; ESCALA_ANO=ano; ESCALA_IMPORTADA=true;
+  Object.keys(E).forEach(k=>delete E[k]);
+  Object.assign(E,novaEscala);
+  await salvarEscala(mes,ano,novaEscala);
+  recalcularTudo();
+  setTimeout(()=>go('home'),100);
+}
+
+// ===== RECÁLCULO CENTRAL =====
+// Chamar sempre que E (escala) mudar: import, salvamento manual, edição de pernoite, etc.
+function recalcularTudo(){
+  buildCal();
+  updateHome();
+  calcularDiarias();
+  let cV=0,cP=0,cF=0;
+  for(let d=1;d<=31;d++){
+    const e=E[d]||{};
+    if(e.t==='voo'){cV+=(e.v||[]).length;if(e.p)cP++;}
+    else if(['fr','fp','fc','fa'].includes(e.t))cF++;
+  }
+  const setEl=(id,txt)=>{const el=document.getElementById(id);if(el)el.textContent=txt;};
+  setEl('h-voos',cV);
+  setEl('h-pern',cP);
+  setEl('h-folgas',cF);
+  salvarMesNoHistorico();
+}
+
+function mostrarErroImport(mensagem, detalhes, rawText){
+  showEst('err');
+  const em=document.getElementById('emsg');
+  if(em) em.innerHTML=
+    (mensagem||'Erro desconhecido')+
+    (detalhes?`<details style="margin-top:8px"><summary style="cursor:pointer;font-size:11px;opacity:.7">Ver detalhes técnicos</summary><pre style="font-size:10px;margin-top:6px;white-space:pre-wrap;word-break:break-all;opacity:.8">${detalhes}</pre></details>`:'');
+  const eb=document.getElementById('err-raw-box');
+  if(eb&&rawText){
+    eb.style.display='block';
+    const et=document.getElementById('err-raw-txt');
+    if(et) et.textContent=rawText;
+  }
+}
+
+function buildFallback(){
+  return{mes:'Junho 2026',resumo:{voos:12,pernoites:4,folgas:8,sb:7},
+    dias:Object.entries(E).map(([d,e])=>({dia:parseInt(d),tipo:e.t,
+      label:e.t==='voo'?`${(e.v||[]).length} voos`:e.t==='sb'?`SB (${e.h}h)`:e.t==='fr'?'Folga':e.t==='fp'?'Folga Prog.':e.t==='adp'?'ADP':'REA',
+      detalhe:e.v?(e.v||[]).map(v=>v.n).join(', '):e.info||''}))};
+}
+
+// Última escala processada
+let ultimaEscalaProcessada = null;
+function calcApresentacao(dp, origem, destino) {
+  if (!dp || dp === '--') return '--';
+  const intl = ['LIS','OPO','FLL','MIA','MCO','JFK','LAX','ORD','CDG','LHR','MAD','FCO','EZE','SCL','BOG','LIM'];
+  const ehInternacional = intl.includes(destino) || intl.includes(origem);
+  const antecedencia = ehInternacional ? 90 : 50;
+  const [h, m] = dp.split(':').map(Number);
+  if (isNaN(h) || isNaN(m)) return '--';
+  let totalMin = h * 60 + m - antecedencia;
+  if (totalMin < 0) totalMin += 24 * 60;
+  const hA = Math.floor(totalMin / 60) % 24;
+  const mA = totalMin % 60;
+  return `${String(hA).padStart(2,'0')}:${String(mA).padStart(2,'0')}`;
+}
+async function salvarEscalaImportada(){
+  if(!ultimaEscalaProcessada){go('home');return;}
+  
+  // Converte resultado do parser para formato do app
+  const dias = ultimaEscalaProcessada.dias || [];
+  const novaEscala = {};
+  
+  dias.forEach(d => {
+    const tipo = mapearTipo(d.tipo);
+    
+    if(tipo === 'sb'){
+      const match = (d.detalhe||'').match(/(\d+:\d+)/);
+      const ini = match ? match[1] : '12:00';
+      const h = parseInt((d.detalhe||'').match(/(\d+)h/)?.[1]||'12');
+      novaEscala[d.dia] = {t:'sb', i:ini, h:h, b:USER.base||'VCP'};
+    } else if(tipo === 'voo'){
+      // Suporta formato rico (com voos detalhados) ou simples (só detalhe)
+      // Normaliza campo tripulacao (pode vir como array de objetos com nome/funcao)
+      const tripRaw = d.tripulacao || d.crew || [];
+      const tripNorm = tripRaw.map(t => {
+        // Normaliza diferentes formatos
+        const nome = t.nome || t.n || t.name || '--';
+        const fn = (t.funcao || t.f || t.function || 'FA').toUpperCase();
+        return {nome, funcao: fn};
+      });
+      d.tripulacao = tripNorm;
+
+      if(d.voos && d.voos.length > 0){
+        const tripulacao = (d.tripulacao||[]).map(t=>({
+          m: t.mat||t.m||'',
+          n: t.nome||t.n||'--',
+          f: (t.funcao||t.f||t.fn||'FA').toUpperCase(),
+          av: (t.n||'??').split(' ').map(p=>p[0]).join('').substring(0,2),
+          c: t.f==='CA'?'#fff3e0':t.f==='FO'?'#f3e8ff':t.f==='CL'?'#e3f0ff':'#e8f5e9',
+          tc: t.f==='CA'?'#e65100':t.f==='FO'?'#7c3aed':t.f==='CL'?'#1e6fef':'#2e7d32',
+          eu: t.mat===USER.mat
+        }));
+        novaEscala[d.dia] = {
+          t:'voo',
+       a: d.apres || calcApresentacao(d.voos[0]?.dp, d.voos[0]?.o, d.voos[0]?.d),
+          al: d.apres_local || d.voos[0]?.o || USER.base,
+          v: d.voos.map(v=>({
+            n: v.n||v.num||'--',
+            o: v.o||v.orig||'--',
+            d: v.d||v.dest||'--',
+            dp: v.dp||v.partida||'--',
+            ar: v.ar||v.chegada||'--',
+            du: v.du||v.duracao||'--',
+            ae: v.ae||v.aeronave||'--',
+            fn: 'FA'
+          })),
+          tr: tripulacao.length>0 ? tripulacao : undefined,
+         p: d.pernoite ? {
+            l: d.pernoite.l||d.pernoite.local||'--',
+            ci: d.pernoite.ci||d.pernoite.checkin||'--',
+            co: d.pernoite.co||d.pernoite.checkout||'--',
+            int: !!regiaoPernoite(d.pernoite.l||d.pernoite.local)
+          } : undefined
+        };
+      } else {
+        // Formato simples - extrai números de voo do detalhe
+        const detalhe = d.detalhe||'';
+        const partes = detalhe.split(/[\s,]+/).filter(p=>/^[A-Z]{2,3}\d+/.test(p));
+        
+        // Processa tripulação se veio do parser
+        let trParser = [];
+        if(d.tripulacao && d.tripulacao.length > 0){
+          const corFnP={CA:'#e65100',FO:'#7c3aed',SUP:'#0a7a60',CL:'#1e6fef',FE:'#6d28d9',FA:'#2e7d32'};
+          const bgFnP={CA:'#fff3e0',FO:'#f3e8ff',SUP:'#e0f7f4',CL:'#e3f0ff',FE:'#ede9fe',FA:'#e8f5e9'};
+          trParser = d.tripulacao.map(t=>{
+            const fn = (t.funcao||t.f||'FA').toUpperCase();
+            const nome = t.nome||t.n||'--';
+            const av = nome.split(' ').map(p=>p[0]||'').join('').substring(0,2).toUpperCase();
+            const euFlag = nome.includes('ERICKSON') || nome.includes(USER.nome?.split(' ')[0]?.toUpperCase()||'XXXXXX');
+            return {
+              m:'', n:nome, f:fn, av,
+              c: euFlag?'#1e6fef':(bgFnP[fn]||'#e8f5e9'),
+              tc: euFlag?'#fff':(corFnP[fn]||'#2e7d32'),
+              eu: euFlag
+            };
+          });
+        }
+
+        // Também tenta usar campo voos se existir
+        let voosArr = [];
+        if(d.voos && d.voos.length > 0){
+          voosArr = d.voos.map(v=>({
+            n: v.n || v.numero || v.num || '--',
+            o: v.o || v.orig || v.origem || '--',
+            d: v.d || v.dest || v.destino || '--',
+            dp: v.dp || v.partida || v.start || '--',
+            ar: v.ar || v.chegada || v.end || '--',
+            du: v.du || v.duracao || '--',
+            ae: v.ae || v.aeronave || '--',
+            fn: 'FA'
+          }));
+        } else if(partes.length > 0){
+          voosArr = partes.map(n=>({n,o:'--',d:'--',dp:'--',ar:'--',du:'--',ae:'--',fn:'FA'}));
+        } else if(detalhe){
+          voosArr = [{n:detalhe,o:'--',d:'--',dp:'--',ar:'--',du:'--',ae:'--',fn:'FA'}];
+        }
+        
+       let pernoiteParser = undefined;
+        if(d.pernoite && d.pernoite.l){
+          pernoiteParser = {l:d.pernoite.l, ci:d.pernoite.ci||'--', co:d.pernoite.co||'--', int: !!regiaoPernoite(d.pernoite.l)};
+        }
+
+        novaEscala[d.dia] = {
+          t:'voo',
+          a: d.apres || d.apresentacao || (voosArr[0]?.dp !== '--' ? voosArr[0]?.dp : undefined),
+          al: d.apres_local || d.base || (voosArr[0]?.o !== '--' ? voosArr[0]?.o : undefined),
+          v: voosArr.length > 0 ? voosArr : [{n:'--',o:'--',d:'--',dp:'--',ar:'--',du:'--',ae:'--',fn:'FA'}],
+          tr: trParser.length>0 ? trParser : undefined,
+          p: pernoiteParser
+        };
+      }
+    } else if(tipo === 'adp' || tipo === 'adpob'){
+      novaEscala[d.dia] = {t: tipo, info: d.detalhe||'Adaptação', local: d.local||''};
+    } else if(tipo === 'pernoite'){
+      novaEscala[d.dia] = {t:'pernoite', info: d.detalhe||'Pernoite'};
+    } else {
+      novaEscala[d.dia] = {t: tipo};
+    }
+  });
+
+  // Extrai mês/ano
+  const mesStr = ultimaEscalaProcessada.mes || 'Junho 2026';
+  const meses = {
+    janeiro:1,fevereiro:2,'março':3,marco:3,abril:4,maio:5,junho:6,
+    julho:7,agosto:8,setembro:9,outubro:10,novembro:11,dezembro:12,
+    january:1,february:2,march:3,april:4,may:5,june:6,
+    july:7,august:8,september:9,october:10,november:11,december:12
+  };
+  const partes = mesStr.toLowerCase().replace(/[^a-záàãâéêíóôõúç0-9 ]/g,'').split(' ').filter(Boolean);
+  const mesNum = meses[partes[0]] || new Date().getMonth()+1;
+  const anoNum = parseInt(partes.find(p=>/^\d{4}$/.test(p))) || new Date().getFullYear();
+  
+  ESCALA_MES = mesNum;
+  ESCALA_ANO = anoNum;
+  ESCALA_IMPORTADA = true;
+
+  // Atualiza E com nova escala
+  Object.keys(E).forEach(k => delete E[k]);
+  Object.assign(E, novaEscala);
+
+  // Salva no Supabase
+  await salvarEscala(mesNum, anoNum, novaEscala);
+  // Salva no histórico automaticamente
+  setTimeout(salvarMesNoHistorico, 1000);
+  resetImportacao();
+
+  // Atualiza interface
+buildCal();
+setTimeout(() => {
+ ESCALA_IMPORTADA = true;
+updateHome();
+let cV=0, cP=0, cF=0;
+for(let d=1;d<=31;d++){
+  const e=E[d]||{};
+  if(e.t==='voo'){cV+=(e.v||[]).length;if(e.p)cP++;}
+  else if(e.t==='adpob'&&e.local&&['LIS','OPO','FLL','MCO','MIA','JFK','PUJ','SCL','MVD','EZE','AEP','ASU'].includes(e.local))cP++;
+  else if(e.t==='fr'||e.t==='fp'||e.t==='fc'||e.t==='fa')cF++;
+}
+document.getElementById('h-voos').textContent=cV;
+document.getElementById('h-pern').textContent=cP;
+document.getElementById('h-folgas').textContent=cF;
+calcularDiarias();
+go('home');
+}, 100);
+}
+
+function mapearTipo(tipo){
+  const map = {
+    'fr':'fr','fp':'fp','folga':'fr','folga regular':'fr','folga programada':'fp',
+    'sb':'sb','sobreaviso':'sb',
+    'rea':'rea','reserva':'rea','rhc':'rea',
+    'voo':'voo','flight':'voo',
+   'adpob':'adpob','adaptação fora da base':'adpob','fc':'fc','fa':'fa',
+    'pernoite':'pernoite','layover':'pernoite',
+    'dia oculto':'fr'
+  };
+  return map[tipo?.toLowerCase()] || tipo || 'fr';
+}
+function showRes(r, rawText){
+  ultimaEscalaProcessada = r;
+  showEst('res');
+  const s=r.resumo||{};
+  const rr=document.getElementById('rres');
+  if(rr)rr.textContent=`${r.mes||'Junho 2026'} · ${s.voos||0} voos · ${s.pernoites||0} pernoites · ${s.folgas||0} folgas`;
+  // Injeta caixa de raw text se houver conteúdo
+  const rprev=document.getElementById('rprev');
+  if(rprev&&rawText){
+    const rawBox=`<div style="margin-top:14px"><div style="font-size:11px;font-weight:700;color:#8a94a6;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px">Texto detectado (debug)</div><div style="background:#f5f6fa;border:1px solid #e8ecf0;border-radius:10px;padding:12px;font-size:11px;color:#4a5568;font-family:monospace;white-space:pre-wrap;max-height:180px;overflow-y:auto;line-height:1.6" id="suc-raw-txt">${rawText.replace(/</g,'&lt;')}</div><button onclick="navigator.clipboard.writeText(document.getElementById('suc-raw-txt').textContent).then(()=>alert('Copiado!'))" style="margin-top:8px;background:none;border:1px solid #e8ecf0;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;color:#8a94a6;cursor:pointer"><i class='ti ti-copy'></i> Copiar texto</button></div>`;
+    setTimeout(()=>{const el=document.getElementById('rprev');if(el)el.insertAdjacentHTML('beforeend',rawBox);},50);
+  }
+  const cors={voo:'#e3f0ff',fr:'#e8f5e9',fp:'#e8f5e9',sb:'#f3e8ff',rea:'#e0f7fa',adp:'#ede9fe'};
+  const tcs={voo:'#1e6fef',fr:'#2e7d32',fp:'#2e7d32',sb:'#7c3aed',rea:'#00838f',adp:'#6d28d9'};
+ const dias = r.dias || [];
+  const rp=document.getElementById('rprev');
+  if(rp)rp.innerHTML=`<div style="font-size:12px;font-weight:600;color:#8a94a6;letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px">Prévia</div>`+
+    dias.map(d=>{
+      const linha=`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f5f6fa"><div style="width:24px;font-size:13px;font-weight:700;color:#8a94a6">${String(d.dia).padStart(2,'0')}</div><span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:${cors[d.tipo]||'#f5f6fa'};color:${tcs[d.tipo]||'#555'}">${d.label||d.tipo}</span>${d.detalhe?`<span style="font-size:12px;color:#8a94a6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${d.detalhe}</span>`:''}</div>`;
+      let debug='';
+      if(d.tipo==='voo'&&Array.isArray(d.voos)&&d.voos.length>0){
+        const voosTxt=d.voos.map(v=>`${v.n||'--'} ${v.o||'--'}→${v.d||'--'} (${v.dp||'--'}-${v.ar||'--'})`).join(' · ');
+       const partes=[`voos: ${voosTxt}`,d.apres?`apresentação confirmada: ${d.apres}`:`revisar apresentação — sugestão: ${d.apresSugerida||'--'}`];
+      if(d.atividadeAnterior){
+          const aa=d.atividadeAnterior;
+          if(typeof aa==='object'){
+            const horario=(aa.inicio||aa.fim)?`${aa.inicio||'--'}–${aa.fim||'--'}`:'';
+            partes.push(`atividade anterior: ${aa.label||aa.tipo||''}${aa.codigo?' '+aa.codigo:''}${horario?' '+horario:''}${aa.local?' · '+aa.local:''}`);
+          } else {
+            partes.push(`atividade anterior: ${aa}`);
+          }
+        }
+        if(d.pernoite&&d.pernoite.l)partes.push(`pernoite: ${d.pernoite.l} (${d.pernoite.ci||'--'}-${d.pernoite.co||'--'})`);
+        debug=`<div style="font-size:11px;color:#b45309;background:#fffbeb;border:1px dashed #fbbf24;border-radius:6px;padding:6px 8px;margin:2px 0 8px 34px;font-family:monospace">${partes.join(' | ').replace(/</g,'&lt;')}</div>`;
+      }
+      return linha+debug;
+    }).join('');
+}
+function setS(n,est,txt){
+  const el=document.getElementById('s'+n);
+  const te=document.getElementById('s'+n+'t');
+  if(!el)return;
+  if(est==='ok'){el.className='sn sok';el.innerHTML='<i class="ti ti-check" style="font-size:12px"></i>';}
+  else if(est==='ld'){el.className='sn sld';el.innerHTML='<div style="width:10px;height:10px;border:2px solid #1e6fef;border-top-color:transparent;border-radius:50%;animation:sp .6s linear infinite"></div>';}
+  if(txt&&te){te.textContent=txt;te.style.color='#1a1a2e';}
+}
+function dl(ms){return new Promise(r=>setTimeout(r,ms));}
+function toB64(f){return new Promise((r,j)=>{const rd=new FileReader();rd.onload=()=>r(rd.result.split(',')[1]);rd.onerror=()=>j();rd.readAsDataURL(f);});}
+
+// ===== CALENDÁRIO =====
+function buildCal(){
+  const g=document.getElementById('cg');if(!g)return;g.innerHTML='';
+  // Atualiza título
+  const meses=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const tituloEl=document.getElementById('cal-titulo');
+  if(tituloEl)tituloEl.textContent=meses[ESCALA_MES-1]+' '+ESCALA_ANO;
+  // Primeiro dia da semana do mês
+  const primeiroDia=new Date(ESCALA_ANO,ESCALA_MES-1,1).getDay();
+  const diasNoMes=new Date(ESCALA_ANO,ESCALA_MES,0).getDate();
+  for(let i=0;i<primeiroDia;i++){const e=document.createElement('div');e.className='cd';e.style.pointerEvents='none';g.appendChild(e);}
+  for(let d=1;d<=diasNoMes;d++){
+    const e=E[d]||{};
+    const el=document.createElement('div');
+    let cls='cd ';
+    if(e.t==='voo')cls+='voo';
+    else if(e.t==='fr'||e.t==='fp')cls+='folga';
+    else if(e.t==='sb')cls+='sby';
+    else if(e.t==='rea')cls+='rea';
+    else if(e.t==='adp')cls+='adp';
+    const hj=new Date();
+    if(d===hj.getDate()&&ESCALA_MES===(hj.getMonth()+1)&&ESCALA_ANO===hj.getFullYear())cls+=' today';
+    el.className=cls;
+    el.innerHTML=`<span>${d}</span>${e.t==='voo'&&e.v?`<div class="mv">${e.v.length}v</div>`:e.t&&e.t!=='fr'&&e.t!=='fp'?'<div class="dot"></div>':''}`;
+    el.onclick=()=>abrirDia(d);
+    g.appendChild(el);
+  }
+  const cr=document.getElementById('cal-res');
+  // Conta dias
+  let cVoos=0,cPern=0,cFolgas=0,cSB=0;
+  for(let d=1;d<=30;d++){
+    const e=E[d]||{};
+    if(e.t==='voo'){cVoos+=(e.v||[]).length;if(e.p)cPern++;}
+    else if(e.t==='fr'||e.t==='fp')cFolgas++;
+    else if(e.t==='sb')cSB++;
+  }
+const diariasCalc = calcularDiarias();
+  if(cr)cr.innerHTML=`<div class="row"><div class="rk"><i class="ti ti-plane" style="color:#1e6fef"></i>Voos</div><div class="rv">${cVoos} voos</div></div><div class="row"><div class="rk"><i class="ti ti-bed" style="color:#f59e0b"></i>Pernoites</div><div class="rv">${cPern} noites</div></div><div class="row"><div class="rk"><i class="ti ti-circle-check" style="color:#10b981"></i>Folgas</div><div class="rv">${cFolgas} dias</div></div><div class="row"><div class="rk"><i class="ti ti-bell" style="color:#7c3aed"></i>Sobreavisos</div><div class="rv">${cSB} dias</div></div><div class="row"><div class="rk"><i class="ti ti-currency-dollar" style="color:#10b981"></i>Diárias estimadas</div><div class="rv" style="color:#10b981">${fmtBRL(diariasCalc.total)}</div></div>`;}
+
+// ===== ABRIR DIA =====
+function diaAnterior(){
+  const diasNoMes = new Date(ESCALA_ANO, ESCALA_MES, 0).getDate();
+  let novo = dA - 1;
+  if(novo < 1) novo = diasNoMes;
+  abrirDia(novo);
+}
+function proximoDia(){
+  const diasNoMes = new Date(ESCALA_ANO, ESCALA_MES, 0).getDate();
+  let novo = dA + 1;
+  if(novo > diasNoMes) novo = 1;
+  abrirDia(novo);
+}
+function abrirDia(d){
+  dA=d;
+  const e=E[d];if(!e)return;
+  const dias=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  const dt=new Date(2026,5,d);
+  const ds=document.getElementById('ds');const dd=document.getElementById('dd');
+  if(ds)ds.textContent=dias[dt.getDay()];
+  if(dd)dd.textContent=d+' de Junho de 2026';
+  let res='',con='';
+
+  if(e.t==='voo'){
+    const nv=(e.v||[]).length;
+    res=`<div style="background:#e3f0ff;border-radius:10px;padding:8px 12px;text-align:center;flex:1"><div style="font-size:18px;font-weight:800;color:#1e6fef">${nv}</div><div style="font-size:10px;color:#5b8fef;font-weight:600">VOOS</div></div>${e.p?'<div style="background:#fff3e0;border-radius:10px;padding:8px 12px;text-align:center;flex:1"><div style="font-size:18px;font-weight:800;color:#e65100">1</div><div style="font-size:10px;color:#e65100;font-weight:600">PERNOITE</div></div>':''}`;
+    if(e.a)con+=`<div style="background:#e3f0ff;border-radius:14px;padding:13px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center"><div style="font-size:12px;font-weight:600;color:#1e6fef;text-transform:uppercase;letter-spacing:.8px">🕐 Apresentação</div><div style="text-align:right"><div style="font-size:14px;font-weight:700;color:#1e6fef">${String(d).padStart(2,'0')}/06 · ${e.a}</div><div style="font-size:12px;color:#5b8fef">${e.al}</div></div></div>`;
+    (e.v||[]).forEach((v,i)=>{
+      // Calcular refeições do voo
+      const refs=calcRefs(v.dp,v.ar);
+      con+=`<div class="vc"><div class="vh" style="background:#1e6fef"><span style="font-size:15px;font-weight:800;color:#fff">${v.n}</span><span style="font-size:12px;color:rgba(255,255,255,.8)">${String(d).padStart(2,'0')}/06</span></div>
+        <div class="vr"><div style="text-align:center"><div class="via">${v.o}</div><div class="vho">${v.dp}</div></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><i class="ti ti-plane" style="font-size:20px;color:#b0b8c1"></i><div style="font-size:11px;color:#8a94a6;background:#f5f6fa;padding:3px 10px;border-radius:20px">${v.du}</div></div>
+        <div style="text-align:center"><div class="via">${v.d}</div><div class="vho">${v.ar}</div></div></div>
+        <div class="vi"><div class="vii"><i class="ti ti-plane-tilt"></i>${v.ae}</div><div class="vii"><i class="ti ti-user"></i>${v.fn}</div>
+        <div class="vii" style="cursor:pointer;color:#1e6fef;margin-left:auto" onclick="abrirTrip(${i})"><i class="ti ti-users"></i>Tripulação</div></div>
+        ${refs.length?`<div style="padding:8px 14px 10px;display:flex;flex-wrap:wrap;gap:4px;border-top:1px solid #f0f2f5">${refs.map(r=>`<span class="ref-badge" style="background:${r.bg};color:${r.tc}">${r.icon} ${r.label} · R$ ${r.val}</span>`).join('')}</div>`:''}</div>`;
+    });
+    if(e.p)con+=`<div style="background:#fff3e0;border-radius:14px;padding:14px;margin-bottom:10px;border:1px solid #ffe0b2">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px"><div style="font-size:12px;font-weight:600;color:#e65100;display:flex;align-items:center;gap:6px"><i class="ti ti-bed"></i>Pernoite</div><div style="font-size:12px;color:#e65100;opacity:.8">${String(d).padStart(2,'0')}/06</div></div>
+      <div style="display:flex;align-items:center;gap:10px"><div><div style="font-size:18px;font-weight:800;color:#e65100">${e.p.l}</div><div style="font-size:13px;font-weight:600;color:#e65100">Check-in ${e.p.ci}</div></div>
+      <div style="font-size:20px;color:#e65100;opacity:.5;margin:0 8px">→</div>
+      <div><div style="font-size:18px;font-weight:800;color:#e65100">${e.p.l}</div><div style="font-size:13px;font-weight:600;color:#e65100">Check-out ${e.p.co}</div></div></div>
+      <div style="margin-top:8px;font-size:12px;color:#e65100;opacity:.8">💰 ${e.p.int?'Diária internacional':'Diária nacional · R$ 109,95'}</div></div>`;
+  } else if(e.t==='sb'){
+    res=`<div style="background:#f3e8ff;border-radius:10px;padding:8px 12px;text-align:center;flex:1"><div style="font-size:18px;font-weight:800;color:#7c3aed">${e.h}h</div><div style="font-size:10px;color:#7c3aed;font-weight:600">SOBREAVISO</div></div><div style="background:#f5f6fa;border-radius:10px;padding:8px 12px;text-align:center;flex:1"><div style="font-size:18px;font-weight:800;color:#555">${e.b}</div><div style="font-size:10px;color:#888;font-weight:600">BASE</div></div>`;
+    con=`<div class="vc"><div class="vh" style="background:#7c3aed"><span style="font-size:15px;font-weight:800;color:#fff">🔔 Sobreaviso</span></div>
+      <div style="padding:16px"><div style="font-size:24px;font-weight:800;color:#6d28d9;margin-bottom:8px">SB (${e.h} horas)</div>
+      <div style="font-size:14px;color:#8a94a6;margin-bottom:12px">Das <strong>${e.i}</strong> às <strong>${(()=>{const[H,M]=(e.i||'00:00').split(':').map(Number);let t=(H*60+M+(e.h||0)*60)%1440;return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');})()}</strong> · Base: ${e.b}</div>
+      <div style="background:#f3e8ff;border-radius:10px;padding:12px;font-size:13px;color:#7c3aed;font-weight:600">🔔 Você está de Sobreaviso</div></div></div>`;
+  } else if(e.t==='fr'||e.t==='fp'){
+    res=`<div style="background:#e8f5e9;border-radius:10px;padding:8px 12px;text-align:center;flex:1"><div style="font-size:18px;font-weight:800;color:#2e7d32">✓</div><div style="font-size:10px;color:#2e7d32;font-weight:600">${e.t==='fr'?'FOLGA':'FOLGA PROG.'}</div></div>`;
+    con=`<div class="vc"><div class="vh" style="background:#2e7d32"><span style="font-size:15px;font-weight:800;color:#fff">🌿 ${e.t==='fr'?'Folga Regular':'Folga Programada'}</span></div>
+      <div style="padding:20px;text-align:center"><div style="font-size:48px;margin-bottom:12px">😴</div><div style="font-size:18px;font-weight:700;color:#2e7d32">Dia de descanso!</div><div style="font-size:13px;color:#8a94a6;margin-top:6px">Aproveite 😊</div></div></div>`;
+ } else if(e.t==='adp'||e.t==='adpob'){
+    res=`<div style="background:#ede9fe;border-radius:10px;padding:8px 12px;text-align:center;flex:1"><div style="font-size:18px;font-weight:800;color:#6d28d9">ADP</div><div style="font-size:10px;color:#6d28d9;font-weight:600">ADAPTAÇÃO</div></div>`;
+    con=`<div class="vc"><div class="vh" style="background:#6d28d9"><span style="font-size:15px;font-weight:800;color:#fff">✈️ Adaptação Internacional</span></div>
+      <div style="padding:16px"><div style="font-size:16px;font-weight:700;color:#6d28d9;margin-bottom:8px">${e.info||'ADP'}</div>
+      <div style="background:#ede9fe;border-radius:10px;padding:12px;font-size:13px;color:#6d28d9;line-height:1.6">Adaptação conforme regulamentação do aeronauta.</div></div></div>`;
+  }
+  const dr=document.getElementById('dr');const dc=document.getElementById('dc');
+  if(dr)dr.innerHTML=res;if(dc)dc.innerHTML=con;
+  go('dia');
+}
+
+// ===== CALCULAR REFEIÇÕES =====
+function calcRefs(dep,arr){
+  if(!dep||!arr||arr.includes('+'))return[];
+  const refs=[];
+  const d=dep.split(':').map(Number);
+  const a=arr.split(':').map(Number);
+  const dMin=d[0]*60+d[1];
+  const aMin=a[0]*60+a[1];
+  // Café 05:00-08:00
+  if((dMin<=8*60&&aMin>=5*60)||(dMin>=5*60&&dMin<=8*60))
+    refs.push({icon:'☕',label:'Café',val:'27,49',bg:'#fef3cd',tc:'#b45309'});
+  // Almoço 11:00-13:00
+  if((dMin<=13*60&&aMin>=11*60)||(dMin>=11*60&&dMin<=13*60))
+    refs.push({icon:'🍽️',label:'Almoço',val:'109,95',bg:'#e8f5e9',tc:'#2e7d32'});
+  // Jantar 19:00-20:00
+  if((dMin<=20*60&&aMin>=19*60)||(dMin>=19*60&&dMin<=20*60))
+    refs.push({icon:'🌙',label:'Jantar',val:'109,95',bg:'#e3f0ff',tc:'#1e6fef'});
+  // Ceia 00:00-01:00
+  if(dMin<=1*60||aMin<=1*60||dMin>=23*60)
+    refs.push({icon:'🌃',label:'Ceia',val:'109,95',bg:'#f3e8ff',tc:'#7c3aed'});
+  return refs;
+}
+
+// ===== TRIPULAÇÃO =====
+function abrirTrip(vi){
+  const e=E[dA];if(!e||!e.tr)return;
+  const v=e.v[vi];
+  const tv=document.getElementById('tv');const ti2=document.getElementById('ti2');
+  if(tv)tv.textContent=v.n;
+  if(ti2)ti2.textContent=`${v.o} → ${v.d} · ${String(dA).padStart(2,'0')}/06 · ${v.dp}`;
+  const ca=e.tr.filter(t=>t.f==='CA');
+  const fo=e.tr.filter(t=>t.f==='FO');
+  const sup=e.tr.filter(t=>t.f==='SUP');
+  const cl=e.tr.filter(t=>t.f==='CL');
+  const fe=e.tr.filter(t=>t.f==='FE');
+  const fa=e.tr.filter(t=>t.f==='FA'||t.f==='FA');
+  console.log('Tripulação total:', e.tr.length, 'CA:', ca.length, 'FO:', fo.length, 'CL:', cl.length, 'FE:', fe.length, 'FA:', fa.length);
+
+  const corFn={CA:'#e65100',FO:'#7c3aed',SUP:'#0a7a60',CL:'#1e6fef',FE:'#6d28d9',FA:'#2e7d32'};
+  const bgFn={CA:'#fff3e0',FO:'#f3e8ff',SUP:'#e0f7f4',CL:'#e3f0ff',FE:'#ede9fe',FA:'#e8f5e9'};
+
+  const rt=t=>{
+    const cor = t.eu ? '#1e6fef' : corFn[t.f]||'#555';
+    const bg = t.eu ? '#f0f6ff' : '';
+    const mat = t.m && t.m!=='' ? t.m+' ' : '';
+    const av = t.av || (t.n||'??').substring(0,2).toUpperCase();
+    return `<div class="ti" style="${bg?'background:'+bg+';margin:0 -14px;padding:9px 14px;':''}">
+      <div class="tav" style="background:${t.eu?'#1e6fef':bgFn[t.f]||'#f5f6fa'};color:${t.eu?'#fff':corFn[t.f]||'#555'}">${av}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:600;color:${cor}">${mat}${t.n||'--'}</div>
+        <div style="font-size:12px;color:${t.eu?'#5b8fef':'#8a94a6'};margin-top:2px">${t.f}${t.s?' · Senior '+t.s:''}${t.eu?' · Você':''}</div>
+      </div>
+      <span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:${bgFn[t.f]||'#f5f6fa'};color:${corFn[t.f]||'#555'}">${t.f}</span>
+    </div>`;
+  };
+
+  const secao=(titulo,emoji,lista,cor)=>lista.length?
+    `<div style="background:#fff;border-radius:16px;border:1px solid #e8ecf0;padding:14px;margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;color:${cor};letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">${emoji} ${titulo}</div>
+      ${lista.map(rt).join('')}
+    </div>`:'';
+
+  const tc=document.getElementById('tc');
+  // Total tripulação
+  const totalTrip = [...ca,...fo,...sup,...cl,...fe,...fa].length;
+  if(tc)tc.innerHTML=
+    `<div style="font-size:12px;font-weight:600;color:#8a94a6;letter-spacing:.8px;text-transform:uppercase;margin-bottom:14px">Tripulação · ${totalTrip} pessoas</div>`+
+    secao('Comandante','⭐',ca,'#e65100')+
+    secao('Copiloto','🎮',fo,'#7c3aed')+
+    secao('Supervisor','🌍',sup,'#0a7a60')+
+    secao('Comissário Líder','⭐',cl,'#1e6fef')+
+    secao('Executiva (FE)','💺',fe,'#6d28d9')+
+    secao('Comissários','👥',fa,'#2e7d32');
+  go('trip');
+}
+
+// ===== HISTÓRICO =====
+function buildSemana(){
+  const hoje = new Date();
+  // Encontra segunda-feira da semana atual
+  const diaSemana = hoje.getDay();
+  const seg = new Date(hoje);
+  seg.setDate(hoje.getDate() - (diaSemana === 0 ? 6 : diaSemana - 1));
+  const dom = new Date(seg);
+  dom.setDate(seg.getDate() + 6);
+
+  const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const datasEl = document.getElementById('semana-datas');
+  if(datasEl) datasEl.textContent = `${seg.getDate()} ${meses[seg.getMonth()]} – ${dom.getDate()} ${meses[dom.getMonth()]}`;
+
+  // Conta atividades da semana
+  let voos=0, folgas=0, sb=0, diarias=0;
+  for(let i=0; i<=6; i++){
+    const d = new Date(seg);
+    d.setDate(seg.getDate() + i);
+    if(d.getMonth()+1 === ESCALA_MES && d.getFullYear() === ESCALA_ANO){
+      const e = E[d.getDate()];
+      if(e){
+        if(e.t==='voo'){ voos+=(e.v||[]).length; if(e.p)diarias++; }
+        else if(e.t==='fr'||e.t==='fp') folgas++;
+        else if(e.t==='sb') sb++;
+      }
+    }
+  }
+
+  const statsEl = document.getElementById('semana-stats');
+  if(statsEl) statsEl.innerHTML = `
+    <div style="background:#e3f0ff;border-radius:10px;padding:10px;text-align:center">
+      <div style="font-size:20px;font-weight:800;color:#1e6fef">${voos}</div>
+      <div style="font-size:10px;color:#5b8fef">voos</div>
+    </div>
+    <div style="background:#e8f5e9;border-radius:10px;padding:10px;text-align:center">
+      <div style="font-size:20px;font-weight:800;color:#2e7d32">${folgas}</div>
+      <div style="font-size:10px;color:#2e7d32">folgas</div>
+    </div>
+    <div style="background:#fff3e0;border-radius:10px;padding:10px;text-align:center">
+      <div style="font-size:20px;font-weight:800;color:#e65100">${diarias}</div>
+      <div style="font-size:10px;color:#e65100">pernoites</div>
+    </div>
+  `;
+}
+
+function buildHist(){
+  const data=[
+    {m:'Junho 2026',mes:6,v:12,h:38,p:4,t:5211,parc:true},
+    {m:'Maio 2026',mes:5,v:18,h:86,p:8,t:7424},
+    {m:'Abril 2026',mes:4,v:14,h:78,p:7,t:6840},
+    {m:'Março 2026',mes:3,v:16,h:82,p:6,t:7100},
+    {m:'Fevereiro 2026',mes:2,v:12,h:70,p:5,t:6400},
+    {m:'Janeiro 2026',mes:1,v:15,h:90,p:9,t:7800}
+  ];
+
+  // Gráfico de barras anual
+  const maxH = Math.max(...data.map(d=>d.h));
+  const grafico = data.slice().reverse().map(d=>`
+    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">
+      <div style="font-size:9px;font-weight:600;color:#1e6fef">${d.h}h</div>
+      <div style="width:100%;border-radius:4px 4px 0 0;background:${d.parc?'rgba(30,111,239,.3)':'#1e6fef'};height:${Math.round((d.h/maxH)*60)}px;min-height:4px"></div>
+      <div style="font-size:9px;color:#8a94a6">${d.m.substring(0,3)}</div>
+    </div>
+  `).join('');
+
+  const hm=document.getElementById('hm');
+  if(!hm) return;
+
+  const totalAnual = data.reduce((a,d)=>a+(d.parc?0:d.t),0);
+  const totalHoras = data.reduce((a,d)=>a+d.h,0);
+  const totalVoos = data.reduce((a,d)=>a+d.v,0);
+
+  hm.innerHTML = `
+    <!-- Gráfico -->
+    <div style="margin:0 16px 16px;background:#fff;border-radius:16px;padding:16px;border:1px solid #e8ecf0">
+      <div style="font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:16px">Horas voadas por mês</div>
+      <div style="display:flex;align-items:flex-end;gap:6px;height:80px">${grafico}</div>
+    </div>
+    <!-- Meses -->
+    ${data.map(h=>`
+    <div style="margin:0 16px 12px;background:#fff;border-radius:16px;padding:16px;border:1px solid #e8ecf0">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div><span style="font-size:16px;font-weight:700;color:#1a1a2e">${h.m}</span>${h.parc?'<span style="font-size:10px;background:#fff3e0;color:#e65100;padding:2px 8px;border-radius:20px;font-weight:600;margin-left:6px">Parcial</span>':''}</div>
+        <span style="font-size:15px;font-weight:800;color:#0f9d7a">R$ ${h.t.toLocaleString('pt-BR')}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="background:#f5f6fa;border-radius:10px;padding:10px"><div style="font-size:11px;color:#8a94a6">Voos</div><div style="font-size:17px;font-weight:700;color:#1e6fef">${h.v}</div></div>
+        <div style="background:#f5f6fa;border-radius:10px;padding:10px"><div style="font-size:11px;color:#8a94a6">Horas</div><div style="font-size:17px;font-weight:700;color:#8b5cf6">${h.h}h</div></div>
+        <div style="background:#f5f6fa;border-radius:10px;padding:10px"><div style="font-size:11px;color:#8a94a6">Pernoites</div><div style="font-size:17px;font-weight:700;color:#f59e0b">${h.p}</div></div>
+        <div style="background:#f5f6fa;border-radius:10px;padding:10px"><div style="font-size:11px;color:#8a94a6">Estimativa</div><div style="font-size:17px;font-weight:700;color:#10b981">R$ ${h.t.toLocaleString('pt-BR')}</div></div>
+      </div>
+    </div>`).join('')}
+  `;
+}
+
+// ===== CIA =====
+function selCia(cia, el){
+  ciaSel = cia;
+  USER.cia = cia;
+  document.querySelectorAll('.cia-card').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function confirmarCia(){
+  USER.cia = ciaSel;
+  go('fn-sel');
+}
+
+// ===== MODO NOTURNO =====
+function toggleDark(){
+  const isDark = document.body.classList.toggle('dark');
+  const toggle = document.getElementById('dark-toggle');
+  if(toggle) toggle.classList.toggle('on', isDark);
+  try{ localStorage.setItem('crewly_dark', isDark?'1':'0'); }catch(e){}
+}
+function initDark(){
+  try{
+    const saved = localStorage.getItem('crewly_dark');
+    if(saved === '1'){
+      document.body.classList.add('dark');
+      const toggle = document.getElementById('dark-toggle');
+      if(toggle) toggle.classList.add('on');
+    }
+  }catch(e){}
+}
+
+// ===== COTAÇÃO EM TEMPO REAL =====
+let cotacao = {usd: 5.19, eur: 5.65, fonte: 'carregando...'};
+
+async function buscarCotacao(){
+  try{
+    const r = await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL');
+    const d = await r.json();
+    if(d.USDBRL) cotacao.usd = parseFloat(d.USDBRL.bid);
+    if(d.EURBRL) cotacao.eur = parseFloat(d.EURBRL.bid);
+    cotacao.fonte = 'Atualizado agora';
+    atualizarCotacaoUI();
+  } catch(e){
+    cotacao.fonte = 'Sem conexão · usando referência';
+  }
+}
+
+function atualizarCotacaoUI(){
+  const els = document.querySelectorAll('.cotacao-usd');
+  els.forEach(el => el.textContent = 'USD 1 = R$ ' + cotacao.usd.toFixed(2));
+  const els2 = document.querySelectorAll('.cotacao-eur');
+  els2.forEach(el => el.textContent = 'EUR 1 = R$ ' + cotacao.eur.toFixed(2));
+}
+
+function fmtBRL(v){ return 'R$ ' + v.toFixed(2).replace('.',','); }
+function usdToBrl(usd){ return fmtBRL(usd * cotacao.usd); }
+function eurToBrl(eur){ return fmtBRL(eur * cotacao.eur); }
+
+// ===== DIÁRIAS — classificação por região =====
+// Lista provisória baseada nos destinos internacionais já validados pelo parser.
+// Revisar conforme testarmos escalas reais de outros tripulantes.
+const REGIAO_AEROPORTO = {
+  LIS:'europa', OPO:'europa',
+  FLL:'eua', MCO:'eua', MIA:'eua', JFK:'eua',
+  PUJ:'amsul', SCL:'amsul', MVD:'amsul', EZE:'amsul', AEP:'amsul', ASU:'amsul'
+};
+function regiaoPernoite(codigo){
+  if(!codigo) return null;
+  return REGIAO_AEROPORTO[String(codigo).toUpperCase().trim()] || null;
+}
+
+// ===== DIÁRIAS — cálculo real a partir da escala importada =====
+const VALOR_DIARIA_NAC = 109.95;
+const VALOR_DIARIA_EUROPA_EUR = 23;
+const VALOR_CAFE_EUROPA_EUR = 5.25;
+const VALOR_DIARIA_EUA_USD = 25;
+const VALOR_DIARIA_AMSUL_USD = 21;
+
+function calcularDiarias(){
+  let nac=0, eur=0, eua=0, ams=0;
+  for(let d=1; d<=31; d++){
+    const e = E[d];
+    if(!e) continue;
+    let reg=null;
+    if(e.t==='voo' && e.p){
+      reg = regiaoPernoite(e.p.aero || e.p.l);
+      if(!reg && e.p.moeda && e.p.moeda!=='BRL'){
+        reg = e.p.moeda==='EUR' ? 'europa' : 'eua';
+      }
+    } else if(e.t==='adpob' && e.local){
+      reg = regiaoPernoite(e.local);
+    }
+    if(reg==='europa') eur++;
+    else if(reg==='eua') eua++;
+    else if(reg==='amsul') ams++;
+    else nac++;
+  }
+  const valNac = nac * VALOR_DIARIA_NAC;
+ const valEur = eur * VALOR_DIARIA_EUROPA_EUR * cotacao.eur;
+  const valEua = eua * VALOR_DIARIA_EUA_USD * cotacao.usd;
+  const valAms = ams * VALOR_DIARIA_AMSUL_USD * cotacao.usd;
+  const total = valNac + valEur + valEua + valAms;
+
+  const setEl = (id, txt) => { const el=document.getElementById(id); if(el) el.textContent = txt; };
+  setEl('est-diaria', fmtBRL(valNac));
+  setEl('val-eur-diaria', fmtBRL(valEur));
+  setEl('val-usd-diaria', fmtBRL(valEua));
+  setEl('val-sul-diaria', fmtBRL(valAms));
+  setEl('est-cafe', fmtBRL(0));
+  setEl('val-eur-cafe', fmtBRL(0));
+  setEl('val-usd-cafe', fmtBRL(0));
+  setEl('home-diarias', (nac+eur+eua+ams)+' diárias');
+  setEl('home-diarias-val', fmtBRL(total)+' este mês');
+
+  return {nac, eur, eua, ams, valNac, valEur, valEua, valAms, total};
+}
+
+// ===== SIMULADOR DE TROCA =====
+function abrirPaises(){
+  const modal = document.getElementById('modal-paises');
+  const lista = document.getElementById('lista-paises');
+  if(!modal||!lista) return;
+
+  // Aeroportos internacionais conhecidos por país
+  const paisPorIATA = {
+    'MCO':'🇺🇸 Estados Unidos','MIA':'🇺🇸 Estados Unidos','JFK':'🇺🇸 Estados Unidos','LAX':'🇺🇸 Estados Unidos','ORD':'🇺🇸 Estados Unidos',
+    'LIS':'🇵🇹 Portugal','OPO':'🇵🇹 Portugal',
+    'GRU':'🇧🇷 Brasil','CGH':'🇧🇷 Brasil','VCP':'🇧🇷 Brasil','GIG':'🇧🇷 Brasil','BSB':'🇧🇷 Brasil',
+    'SSA':'🇧🇷 Brasil','REC':'🇧🇷 Brasil','FOR':'🇧🇷 Brasil','BEL':'🇧🇷 Brasil','MAO':'🇧🇷 Brasil',
+    'CNF':'🇧🇷 Brasil','CWB':'🇧🇷 Brasil','POA':'🇧🇷 Brasil','FLN':'🇧🇷 Brasil','SDU':'🇧🇷 Brasil',
+    'VIX':'🇧🇷 Brasil','THE':'🇧🇷 Brasil','SLZ':'🇧🇷 Brasil','NAT':'🇧🇷 Brasil','JPA':'🇧🇷 Brasil',
+    'MCZ':'🇧🇷 Brasil','AJU':'🇧🇷 Brasil','IMP':'🇧🇷 Brasil','PMW':'🇧🇷 Brasil','CGB':'🇧🇷 Brasil',
+    'CGR':'🇧🇷 Brasil','PVH':'🇧🇷 Brasil','BOA':'🇧🇷 Brasil','MCP':'🇧🇷 Brasil',
+    'EZE':'🇦🇷 Argentina','AEP':'🇦🇷 Argentina',
+    'SCL':'🇨🇱 Chile','GRU':'🇧🇷 Brasil',
+    'BOG':'🇨🇴 Colômbia','LIM':'🇵🇪 Peru','UIO':'🇪🇨 Equador',
+    'CDG':'🇫🇷 França','LHR':'🇬🇧 Reino Unido','MAD':'🇪🇸 Espanha','FCO':'🇮🇹 Itália',
+    'FLL':'🇺🇸 Estados Unidos','XAA':'🇺🇸 Estados Unidos'
+  };
+
+  const paises = new Set();
+  const destinos = [];
+  Object.entries(E).forEach(([d,e])=>{
+    if(e && e.t==='voo' && e.v){
+      e.v.forEach(v=>{
+        [v.o, v.d].forEach(iata=>{
+          if(iata && iata!=='--'){
+            const pais = paisPorIATA[iata];
+            if(pais) paises.add(pais);
+            if(pais && pais!=='🇧🇷 Brasil' && !destinos.find(x=>x.iata===iata)){
+              destinos.push({iata, pais});
+            }
+          }
+        });
+      });
+    }
+  });
+
+  const total = paises.size;
+  const intl = destinos.length;
+
+  // Update counter
+  const h = document.getElementById('h-paises');
+  if(h) h.textContent = total;
+
+  lista.innerHTML = `
+    <div style="background:#f3e8ff;border-radius:14px;padding:14px;margin-bottom:16px;text-align:center">
+      <div style="font-size:32px;font-weight:800;color:#7c3aed">${total}</div>
+      <div style="font-size:13px;color:#7c3aed;margin-top:4px">país${total!==1?'es':''} este mês</div>
+    </div>
+    ${intl>0?`
+      <div style="font-size:12px;font-weight:600;color:#8a94a6;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Internacional</div>
+      ${destinos.map(d=>`
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f0f2f5">
+          <div style="width:44px;height:44px;border-radius:12px;background:#ede9fe;display:flex;align-items:center;justify-content:center;font-size:24px">${d.pais.split(' ')[0]}</div>
+          <div><div style="font-size:15px;font-weight:600;color:#1a1a2e">${d.pais.split(' ').slice(1).join(' ')}</div><div style="font-size:12px;color:#8a94a6">${d.iata}</div></div>
+        </div>
+      `).join('')}
+    `:'<div style="text-align:center;padding:20px;color:#8a94a6">Apenas voos nacionais este mês 🇧🇷</div>'}
+  `;
+  modal.style.display = 'flex';
+}
+
+function abrirPernoites(){
+  const modal = document.getElementById('modal-pern');
+  const lista = document.getElementById('lista-pern');
+  if(!modal || !lista) return;
+  
+  // Coleta todos os pernoites da escala
+  const pernoites = [];
+  const cidadeCount = {};
+  const INTL_PERN = new Set(['LIS','OPO','FLL','MCO','MIA','JFK','PUJ','SCL','MVD','EZE','AEP','ASU']);
+  Object.entries(E).forEach(([d, e]) => {
+    if(e && e.p && e.p.l && e.p.l !== '--' && e.p.co && e.p.co !== '--'){
+      const cidade = e.p.l;
+      cidadeCount[cidade] = (cidadeCount[cidade]||0) + 1;
+      pernoites.push({dia: parseInt(d), cidade, ci: e.p.ci||'--', co: e.p.co||'--', int: e.p.int});
+    }
+    // ADPOB com local internacional = pernoite fora da base
+    if(e && e.t === 'adpob' && e.local && INTL_PERN.has(e.local)){
+      cidadeCount[e.local] = (cidadeCount[e.local]||0) + 1;
+      pernoites.push({dia: parseInt(d), cidade: e.local, ci: '--', co: '--', int: true});
+    }
+  });
+  
+  if(pernoites.length === 0){
+    lista.innerHTML = '<div style="text-align:center;padding:20px;color:#8a94a6">Nenhum pernoite encontrado neste mês</div>';
+  } else {
+    const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    lista.innerHTML = pernoites.map(p => `
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f0f2f5">
+        <div style="width:44px;height:44px;border-radius:12px;background:${p.int?'#ede9fe':'#fff3e0'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="ti ti-bed" style="font-size:22px;color:${p.int?'#6d28d9':'#e65100'}"></i>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:16px;font-weight:700;color:#1a1a2e">${p.cidade}</div>
+          <div style="font-size:12px;color:#8a94a6;margin-top:2px">Dia ${p.dia} · Check-in ${p.ci}</div>
+          ${cidadeCount[p.cidade]>1?`<div style="font-size:11px;color:#1e6fef;margin-top:2px">${cidadeCount[p.cidade]}x este mês</div>`:''}
+        </div>
+        ${p.int?'<span style="font-size:10px;background:#ede9fe;color:#6d28d9;padding:3px 8px;border-radius:20px;font-weight:600">Internacional</span>':''}
+      </div>
+    `).join('');
+  }
+  modal.style.display = 'flex';
+}
+
+function abrirSimulador(){
+  const modal = document.getElementById('modal-simulador');
+  if(modal) modal.style.display = 'flex';
+}
+function fecharSimulador(){
+  const modal = document.getElementById('modal-simulador');
+  if(modal) modal.style.display = 'none';
+}
+function calcularTroca(){
+  const h1 = parseFloat(document.getElementById('sim-h1').value)||0;
+  const h2 = parseFloat(document.getElementById('sim-h2').value)||0;
+  const p1 = parseInt(document.getElementById('sim-p1').value)||0;
+  const p2 = parseInt(document.getElementById('sim-p2').value)||0;
+  const vlhora = 26.44;
+  const vldiaria = 109.95;
+  const val1 = (h1*vlhora)+(p1*vldiaria);
+  const val2 = (h2*vlhora)+(p2*vldiaria);
+  const dif = val2 - val1;
+  const res = document.getElementById('sim-res');
+  if(res) res.innerHTML = `
+    <div style="background:${dif>=0?'#e8f5e9':'#ffeaea'};border-radius:12px;padding:14px;margin-top:14px">
+      <div style="font-size:14px;font-weight:700;color:${dif>=0?'#2e7d32':'#c62828'};margin-bottom:6px">
+        ${dif>=0?'✅ Troca vantajosa!':'⚠️ Troca desvantajosa'}
+      </div>
+      <div style="font-size:13px;color:#1a1a2e;line-height:1.7">
+        Escala atual: <strong>${fmtBRL(val1)}</strong><br>
+        Nova escala: <strong>${fmtBRL(val2)}</strong><br>
+        Diferença: <strong style="color:${dif>=0?'#2e7d32':'#e53935'}">${dif>=0?'+':''}${fmtBRL(dif)}</strong>
+      </div>
+    </div>`;
+}
+
+// ===== SALVAR HISTÓRICO AUTOMÁTICO =====
+async function salvarMesNoHistorico(){
+  if(!USER.id || !ESCALA_IMPORTADA) return;
+  const key = `hist_${ESCALA_ANO}_${ESCALA_MES}`;
+  // Conta dados do mês
+  let voos=0, pernoites=0, folgas=0, sb=0, horas=0;
+  Object.values(E).forEach(e=>{
+    if(!e) return;
+    if(e.t==='voo'){ voos+=(e.v||[]).length; if(e.p)pernoites++; }
+    else if(e.t==='fr'||e.t==='fp') folgas++;
+    else if(e.t==='sb') sb++;
+  });
+  // Salva no Supabase como parte do histórico
+  try{
+    await supa.from('escalas').upsert({
+      user_id: USER.id,
+      mes: ESCALA_MES,
+      ano: ESCALA_ANO,
+      dados: E,
+      updated_at: new Date().toISOString()
+    }, {onConflict: 'user_id,mes,ano'});
+    console.log('Mês salvo no histórico:', ESCALA_MES, ESCALA_ANO);
+  }catch(err){
+    console.log('Erro ao salvar histórico:', err);
+  }
+}
+
+// ===== INIT =====
+  // ===== SPLASH =====
+setTimeout(()=>{
+  const s=document.getElementById('splash');
+  if(s){s.classList.add('hide');setTimeout(()=>s.remove(),700);}
+},2500);
+(async function init(){
+  initDark();
+  buscarCotacao();
+  buildCal();
+  buildHist();
+  
+  // Verifica sessão ativa no Supabase
+  const {data: {session}} = await supa.auth.getSession();
+  
+  if(session && session.user){
+    USER.id = session.user.id;
+    USER.logado = true;
+    await carregarPerfil(session.user.id);
+    salvarUser();
+    // Carrega o mês real atual do dispositivo
+    const hoje = new Date();
+    await carregarMes(hoje.getMonth()+1, hoje.getFullYear());
+    updateHome();
+    buildCal();
+    go('home');
+  } else {
+    // Tenta localStorage como fallback
+    const local = carregarUser();
+    if(local && USER.logado && USER.nome){
+      updateHome();
+      go('home');
+    } else {
+      go('ob');
+    }
+  }
+  
+  // Listener para mudanças de auth
+  supa.auth.onAuthStateChange((event, session) => {
+    if(event === 'SIGNED_OUT'){
+      go('ob');
+    }
+  });
+})();
+</script>
+<!-- ═══════════════════════════════════════════════════════════════════════
+     BOTÃO DE DESENVOLVIMENTO — EXISTE SÓ NESTA CÓPIA (mobile/www/index.html)
+     Nunca deve existir no index.html principal servido pela Vercel.
+     Único propósito: acesso rápido à POC isolada de login em WebView durante
+     testes locais. Não faz parte do produto, não é visível a usuário real.
+     Protegido pela mesma flag POC_ATIVA que controla a página da POC — não é
+     um link estático, só é inserido no DOM se a flag estiver ligada.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<script src="./poc-config.js"></script>
+<script>
+  if (typeof POC_ATIVA !== 'undefined' && POC_ATIVA === true) {
+    const btnDevPoc = document.createElement('a');
+    btnDevPoc.href = './azul-login-poc.html';
+    btnDevPoc.textContent = '⚠️ DEV: Abrir POC de login';
+    btnDevPoc.style.cssText = 'position:fixed;bottom:16px;right:16px;z-index:99999;background:#f0883e;color:#000;font-family:monospace;font-size:11px;font-weight:700;padding:8px 12px;border-radius:8px;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.4)';
+    document.body.appendChild(btnDevPoc);
+  }
+</script>
+</body>
+</html>

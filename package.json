@@ -2,6 +2,13 @@
   "name": "crewly",
   "version": "1.0.0",
   "dependencies": {
+    "@capacitor/android": "8.4.2",
+    "@capacitor/core": "8.4.2",
+    "@capacitor/inappbrowser": "4.0.1",
+    "@capacitor/ios": "8.4.2",
     "jimp": "0.22.10"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.4.2"
   }
 }

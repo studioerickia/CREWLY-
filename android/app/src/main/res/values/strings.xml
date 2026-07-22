@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Crewly</string>
+    <string name="title_activity_main">Crewly</string>
+    <string name="package_name">com.whalelabs.crewly</string>
+    <string name="custom_url_scheme">com.whalelabs.crewly</string>
+</resources>

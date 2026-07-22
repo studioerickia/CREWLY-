@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POC — WebView de Login (uso interno)</title>
+<style>
+  body{font-family:-apple-system,system-ui,sans-serif;background:#0d1117;color:#e6edf3;padding:20px;margin:0}
+  h1{font-size:16px;color:#f0883e}
+  .aviso{background:#3d2a0e;border:1px solid #f0883e;border-radius:8px;padding:12px;font-size:13px;margin-bottom:16px;line-height:1.5}
+  .bloqueado{background:#3d0e0e;border:1px solid #f85149;border-radius:8px;padding:16px;font-size:14px;line-height:1.6}
+  .campo{margin-bottom:14px}
+  label{display:block;font-size:12px;color:#8b949e;margin-bottom:4px}
+  input[type=text]{width:100%;box-sizing:border-box;padding:10px;border-radius:6px;border:1px solid #30363d;background:#161b22;color:#e6edf3;font-size:14px}
+  button{padding:10px 16px;border-radius:6px;border:none;font-size:14px;font-weight:600;cursor:pointer;margin-right:8px;margin-top:6px}
+  #btnAbrir{background:#238636;color:#fff}
+  #btnConcluir{background:#1f6feb;color:#fff}
+  #btnAbrir:disabled{background:#30363d;color:#6e7681;cursor:not-allowed}
+  .status{margin-top:16px;padding:12px;border-radius:8px;background:#161b22;border:1px solid #30363d;font-size:13px;white-space:pre-wrap}
+  .log{margin-top:10px;font-size:12px;color:#8b949e;max-height:200px;overflow-y:auto;border-top:1px solid #30363d;padding-top:8px}
+  .log div{margin-bottom:4px}
+</style>
+</head>
+<body>
+
+<h1>⚠️ POC interna — WebView de login (não é parte do Crewly)</h1>
+<div class="aviso">
+  Esta página existe só pra prova de conceito técnica isolada. Não é linkada de nenhuma
+  tela do app real (exceto por um botão marcado como DEV na cópia de desenvolvimento do
+  index.html, também protegido pela mesma flag desta página), não lê senha/matrícula/
+  cookie/token/DOM, e não envia nada pra nenhum backend. Fecha a WebView, sanitiza
+  qualquer URL antes de exibir (nunca mostra query string nem fragmento), e o teste só é
+  considerado concluído por detecção automática de mudança de URL (se configurada) ou por
+  confirmação manual sua.
+</div>
+
+<div id="areaBloqueada" style="display:none" class="bloqueado">
+  🚫 POC desativada (<code>POC_ATIVA = false</code> em <code>poc-config.js</code>).
+  Nenhuma funcionalidade desta página roda enquanto a flag estiver desligada.
+</div>
+
+<div id="areaFuncional">
+  <div class="campo">
+    <label for="loginUrlInput">URL de login (definida manualmente só nesta tela, modo dev)</label>
+    <input type="text" id="loginUrlInput" placeholder="Cole aqui a URL de login quando for testar" autocomplete="off">
+  </div>
+
+  <div class="campo">
+    <label for="padraoUrlInput">Padrão de URL autenticada (opcional — deixe vazio pra usar só o botão manual)</label>
+    <input type="text" id="padraoUrlInput" placeholder="ex: /portal/home — só depois de você confirmar a URL real" autocomplete="off">
+  </div>
+
+  <button id="btnAbrir">Abrir WebView de login</button>
+  <button id="btnConcluir">Já concluí o login</button>
+
+  <div class="status" id="status">Aguardando início do teste.</div>
+  <div class="log" id="log"></div>
+</div>
+
+<!-- Fonte única da flag de ativação, compartilhada com index.html -->
+<script src="./poc-config.js"></script>
+
+<!--
+  Estratégia SEM bundler e SEM CDN, oficialmente suportada pelo Capacitor:
+  os dois arquivos abaixo são cópias locais exatas dos builds UMD ("unpkg")
+  que os próprios pacotes já distribuem em node_modules/*/dist — não é um
+  bundle customizado, é o arquivo pronto do pacote, só vendorizado localmente.
+  A ORDEM importa: capacitor.js expõe window.capacitorExports (usado pelo
+  Capacitor.registerPlugin internamente), e capacitor-inappbrowser.js lê
+  essa variável global ao carregar, por isso precisa vir depois.
+
+  DÍVIDA TÉCNICA REGISTRADA: esses dois arquivos são copiados manualmente de
+  node_modules/@capacitor/core/dist/capacitor.js e
+  node_modules/@capacitor/inappbrowser/dist/plugin.js. Isso funciona pra esta
+  POC, mas pode divergir silenciosamente se as dependências forem atualizadas
+  sem re-copiar os arquivos. Futuramente (fora do escopo desta etapa) isso
+  deveria virar um passo automatizado (script npm de "postinstall" ou similar)
+  em vez de cópia manual.
+-->
+<script src="./vendor/capacitor.js"></script>
+<script src="./vendor/capacitor-inappbrowser.js"></script>
+
+<script>
+  // ── BLOQUEIO POR FLAG — checado antes de qualquer outra coisa ──────────────
+  const pocAtiva = typeof POC_ATIVA !== 'undefined' && POC_ATIVA === true;
+
+  if(!pocAtiva){
+    document.getElementById('areaBloqueada').style.display = 'block';
+    document.getElementById('areaFuncional').style.display = 'none';
+    // Encerra a execução do script aqui — nenhum listener é registrado,
+    // nenhum botão funciona, nenhuma chamada ao plugin acontece.
+    throw new Error('POC_ATIVA=false — execução da POC interrompida intencionalmente.');
+  }
+
+  // ── CONSTANTES ISOLADAS DA POC — nada aqui é usado pelo app principal ──────
+  // LOGIN_URL: NUNCA hardcoded. Fica vazia até ser preenchida manualmente nesta
+  // tela, em modo desenvolvimento, por quem está rodando o teste.
+  let LOGIN_URL = "";
+
+  // PADRÃO_URL_AUTENTICADA: detecção automática fica DESATIVADA (null) até a URL
+  // real pós-login ser conhecida e configurada manualmente nesta tela.
+  let PADRAO_URL_AUTENTICADA = null;
+
+  const statusEl = document.getElementById('status');
+  const logEl = document.getElementById('log');
+  const btnAbrir = document.getElementById('btnAbrir');
+  const btnConcluir = document.getElementById('btnConcluir');
+  const loginUrlInput = document.getElementById('loginUrlInput');
+  const padraoUrlInput = document.getElementById('padraoUrlInput');
+
+  function log(msg){
+    const linha = document.createElement('div');
+    linha.textContent = `[${new Date().toLocaleTimeString('pt-BR')}] ${msg}`;
+    logEl.prepend(linha);
+  }
+
+  function setStatus(msg){
+    statusEl.textContent = msg;
+  }
+
+  // Extrai SÓ origem + caminho de uma URL, descartando query string e fragmento.
+  // Nunca expõe a URL completa (que pode conter código/token/parâmetro sensível).
+  // Nenhuma chamada a console.log em nenhum lugar deste arquivo — tudo que é
+  // exibido passa por log()/setStatus(), que escrevem só na tela, nunca no
+  // console do navegador/dispositivo.
+  function sanitizarUrl(urlCompleta){
+    try{
+      const u = new URL(urlCompleta);
+      return u.origin + u.pathname;
+    }catch(e){
+      return '(url inválida — não exibida)';
+    }
+  }
+
+  // Resolvido via build UMD vendorizado localmente (window.capacitorInAppBrowser),
+  // carregado pelas duas tags <script> acima — nunca via import de bare specifier
+  // (que não funciona em HTML estático sem bundler) e nunca via CDN.
+  const capacitorDisponivel = typeof window.capacitorInAppBrowser !== 'undefined'
+    && typeof window.Capacitor !== 'undefined'
+    && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+
+  const InAppBrowser = capacitorDisponivel ? window.capacitorInAppBrowser.InAppBrowser : null;
+  const DefaultWebViewOptions = capacitorDisponivel ? window.capacitorInAppBrowser.DefaultWebViewOptions : null;
+
+  if(capacitorDisponivel){
+    log('Plugin resolvido via window.capacitorInAppBrowser (build UMD local).');
+  } else {
+    log('Plugin não disponível — ambiente não é uma plataforma nativa Capacitor (esperado ao abrir isto num navegador comum).');
+  }
+
+  async function configurarListeners(){
+    if(!InAppBrowser) return;
+    try{
+      // Evento real confirmado na documentação oficial: só dispara pra openInWebView,
+      // e o único dado que carrega é { url: string }.
+      await InAppBrowser.addListener('browserPageNavigationCompleted', (data) => {
+        const urlSanitizada = sanitizarUrl(data.url);
+        log(`Navegação detectada → ${urlSanitizada}`);
+
+        if(PADRAO_URL_AUTENTICADA){
+          if(urlSanitizada.includes(PADRAO_URL_AUTENTICADA)){
+            setStatus('✅ Login concluído — detectado automaticamente por mudança de URL.');
+            log('Padrão de URL autenticada correspondido — encerrando teste automaticamente.');
+            finalizarTeste('automatico');
+          }
+        }
+      });
+
+      await InAppBrowser.addListener('browserClosed', () => {
+        log('WebView fechada.');
+      });
+    }catch(e){
+      // Tratamento de erro do registro de listeners: nunca deixa o script
+      // quebrar por completo se o ambiente não suportar os eventos.
+      log('Não foi possível registrar os listeners de navegação neste ambiente: ' + (e && e.message ? e.message : 'erro desconhecido'));
+    }
+  }
+
+  function finalizarTeste(origem){
+    setStatus(`Teste concluído (${origem === 'automatico' ? 'detecção automática de URL' : 'confirmação manual'}).`);
+    btnAbrir.disabled = false;
+  }
+
+  btnAbrir.addEventListener('click', async () => {
+    LOGIN_URL = loginUrlInput.value.trim();
+    PADRAO_URL_AUTENTICADA = padraoUrlInput.value.trim() || null;
+
+    if(!LOGIN_URL){
+      setStatus('⚠️ Preencha a URL de login antes de abrir a WebView.');
+      log('Tentativa de abrir bloqueada: LOGIN_URL está vazia.');
+      return;
+    }
+    if(!capacitorDisponivel){
+      setStatus('Plugin do Capacitor não disponível neste ambiente — rode dentro do app nativo (Android/iOS) pra testar de verdade.');
+      return;
+    }
+
+    btnAbrir.disabled = true;
+    setStatus('Abrindo WebView incorporada...');
+    log('Abrindo WebView com a URL configurada (não exibida por conter possível parâmetro sensível de origem).');
+
+    try{
+      // Tratamento de erro do openInWebView: qualquer falha reabilita o botão
+      // e mostra mensagem clara, sem nunca logar a URL ou qualquer dado da chamada.
+      await InAppBrowser.openInWebView({
+        url: LOGIN_URL,
+        options: DefaultWebViewOptions
+      });
+      setStatus('WebView aberta. Faça o login manualmente. O app não lê nenhum campo nem dado da página.');
+    }catch(e){
+      setStatus('Erro ao abrir a WebView: ' + (e && e.message ? e.message : 'erro desconhecido'));
+      btnAbrir.disabled = false;
+    }
+  });
+
+  btnConcluir.addEventListener('click', async () => {
+    log('Confirmação manual recebida — fechando WebView, sem ler página/DOM/cookie.');
+    if(InAppBrowser){
+      try{ await InAppBrowser.close(); }catch(e){ /* já pode estar fechada */ }
+    }
+    finalizarTeste('manual');
+  });
+
+  configurarListeners();
+</script>
+
+</body>
+</html>
